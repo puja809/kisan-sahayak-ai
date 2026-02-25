@@ -1,0 +1,64 @@
+# Sync Service Configuration
+spring:
+  application:
+    name: sync-service
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://localhost:3306/farmer_assistance?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+  
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+# Server Configuration
+server:
+  port: 8085
+
+# Application Configuration
+app:
+  # Retry Configuration
+  retry:
+    max-attempts: 3
+    initial-delay-ms: 1000
+    multiplier: 2.0
+    max-delay-ms: 10000
+  
+  # Sync Configuration
+  sync:
+    batch-size: 100
+    queue-ttl-hours: 24
+    conflict-resolution: TIMESTAMP
+
+# Logging Configuration
+logging:
+  level:
+    com.farmer.sync: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
