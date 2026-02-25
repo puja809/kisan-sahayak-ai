@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: scheme-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/farmer_assistance?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+  config:
+    import: optional:file:./config/common.yml
+
+server:
+  port: 8084
+
+# Custom application configuration
+app:
+  session-id: c05a946fe7c08b9859bbcc2813af5fd177f1a2c9ebcc657343605e380196a165
+  table-prefix: sess_c05a946fe_
+
+# Actuator endpoints for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.farmer.scheme: DEBUG
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN

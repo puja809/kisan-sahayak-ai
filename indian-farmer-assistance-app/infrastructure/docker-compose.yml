@@ -1,0 +1,390 @@
+# Docker Compose Configuration for Indian Farmer Assistance Application
+# Local Development Environment
+
+version: '3.8'
+
+services:
+  # MySQL Database - Primary data store for structured data
+  mysql:
+    image: mysql:8.0
+    container_name: farmer-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:rootpassword}
+      MYSQL_DATABASE: farmer_dev
+      MYSQL_USER: farmer_app
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:farmerpassword}
+    ports:
+      - "${MYSQL_PORT:3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init-scripts:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=256M
+      --max-connections=200
+      --innodb-log-file-size=64M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - farmer-network
+
+  # MongoDB - Vector database for document embeddings
+  mongodb:
+    image: mongo:6.0
+    container_name: farmer-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:admin123}
+      MONGO_INITDB_DATABASE: farmer_dev
+    ports:
+      - "${MONGODB_PORT:27017}:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./mongodb/mongod.conf:/etc/mongod.conf
+    command: --config /etc/mongod.conf --replSet rs0 --bind_ip 0.0.0.0
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - farmer-network
+
+  # Redis - Cache layer for performance
+  redis:
+    image: redis:7.2-alpine
+    container_name: farmer-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - farmer-network
+
+  # API Gateway - Entry point for all API requests
+  api-gateway:
+    build:
+      context: ../../backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: farmer-api-gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:8080}:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_CLOUD_DISCOVERY_CLIENT_SIMPLE_INSTANCES_API-GATEWAY_0_URI=http://api-gateway:8080
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # User Service - User management and authentication
+  user-service:
+    build:
+      context: ../../backend/user-service
+      dockerfile: Dockerfile
+    container_name: farmer-user-service
+    restart: unless-stopped
+    ports:
+      - "${USER_SERVICE_PORT:8081}:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/farmer_dev?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATA_MONGODB_URI=mongodb://admin:admin123@mongodb:27017/farmer_dev?authSource=admin
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Weather Service - IMD API integration
+  weather-service:
+    build:
+      context: ../../backend/weather-service
+      dockerfile: Dockerfile
+    container_name: farmer-weather-service
+    restart: unless-stopped
+    ports:
+      - "${WEATHER_SERVICE_PORT:8082}:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/farmer_dev?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Crop Service - Crop recommendations and rotation planning
+  crop-service:
+    build:
+      context: ../../backend/crop-service
+      dockerfile: Dockerfile
+    container_name: farmer-crop-service
+    restart: unless-stopped
+    ports:
+      - "${CROP_SERVICE_PORT:8083}:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/farmer_dev?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATA_MONGODB_URI=mongodb://admin:admin123@mongodb:27017/farmer_dev?authSource=admin
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Scheme Service - Government schemes management
+  scheme-service:
+    build:
+      context: ../../backend/scheme-service
+      dockerfile: Dockerfile
+    container_name: farmer-scheme-service
+    restart: unless-stopped
+    ports:
+      - "${SCHEME_SERVICE_PORT:8084}:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/farmer_dev?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Mandi Service - AGMARKNET price integration
+  mandi-service:
+    build:
+      context: ../../backend/mandi-service
+      dockerfile: Dockerfile
+    container_name: farmer-mandi-service
+    restart: unless-stopped
+    ports:
+      - "${MANDI_SERVICE_PORT:8085}:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/farmer_dev?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # IoT Service - IoT device management
+  iot-service:
+    build:
+      context: ../../backend/iot-service
+      dockerfile: Dockerfile
+    container_name: farmer-iot-service
+    restart: unless-stopped
+    ports:
+      - "${IOT_SERVICE_PORT:8086}:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/farmer_dev?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Admin Service - Document and system management
+  admin-service:
+    build:
+      context: ../../backend/admin-service
+      dockerfile: Dockerfile
+    container_name: farmer-admin-service
+    restart: unless-stopped
+    ports:
+      - "${ADMIN_SERVICE_PORT:8087}:8087"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/farmer_dev?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATA_MONGODB_URI=mongodb://admin:admin123@mongodb:27017/farmer_dev?authSource=admin
+      - SPRING_REDIS_HOST=redis
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # AI/ML Service - Disease detection, recommendations, voice processing
+  ai-service:
+    build:
+      context: ../../ai-service
+      dockerfile: Dockerfile
+    container_name: farmer-ai-service
+    restart: unless-stopped
+    ports:
+      - "${AI_SERVICE_PORT:8000}:8000"
+    environment:
+      - ENVIRONMENT=dev
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/farmer_dev?authSource=admin
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Elasticsearch - For log aggregation (optional)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: farmer-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - farmer-network
+    profiles:
+      - logging
+
+  # Kibana - Log visualization (optional)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: farmer-kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_started
+    networks:
+      - farmer-network
+    profiles:
+      - logging
+
+  # Grafana - Metrics visualization (optional)
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: farmer-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:admin}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - farmer-network
+    profiles:
+      - monitoring
+
+volumes:
+  mysql_data:
+    driver: local
+  mongo_data:
+    driver: local
+  redis_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  farmer-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

@@ -1,0 +1,255 @@
+# API Gateway Configuration
+# Environment: ${SPRING_PROFILES_ACTIVE:dev}
+
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+    min-response-size: 1024
+
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: optional:file:./config.yaml
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  main:
+    web-application-type: reactive
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 3000ms
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 30s
+      httpserver:
+        wiretap: true
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - RewritePath=/api/v1/users/(?<segment>.*), /$\{segment}
+            - CircuitBreaker=usersCircuitBreaker, fallbackUri: forward:/fallback/users
+            - Retry=3
+        - id: weather-service
+          uri: lb://weather-service
+          predicates:
+            - Path=/api/v1/weather/**
+          filters:
+            - RewritePath=/api/v1/weather/(?<segment>.*), /$\{segment}
+            - CircuitBreaker=weatherCircuitBreaker, fallbackUri: forward:/fallback/weather
+            - Retry=3
+        - id: crop-service
+          uri: lb://crop-service
+          predicates:
+            - Path=/api/v1/crops/**
+          filters:
+            - RewritePath=/api/v1/crops/(?<segment>.*), /$\{segment}
+            - CircuitBreaker=cropCircuitBreaker, fallbackUri: forward:/fallback/crops
+            - Retry=3
+        - id: scheme-service
+          uri: lb://scheme-service
+          predicates:
+            - Path=/api/v1/schemes/**
+          filters:
+            - RewritePath=/api/v1/schemes/(?<segment>.*), /$\{segment}
+            - CircuitBreaker=schemeCircuitBreaker, fallbackUri: forward:/fallback/schemes
+            - Retry=3
+        - id: mandi-service
+          uri: lb://mandi-service
+          predicates:
+            - Path=/api/v1/mandi/**
+          filters:
+            - RewritePath=/api/v1/mandi/(?<segment>.*), /$\{segment}
+            - CircuitBreaker=mandiCircuitBreaker, fallbackUri: forward:/fallback/mandi
+            - Retry=3
+        - id: iot-service
+          uri: lb://iot-service
+          predicates:
+            - Path=/api/v1/iot/**
+          filters:
+            - RewritePath=/api/v1/iot/(?<segment>.*), /$\{segment}
+            - CircuitBreaker=iotCircuitBreaker, fallbackUri: forward:/fallback/iot
+            - Retry=3
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/admin/**
+          filters:
+            - RewritePath=/api/v1/admin/(?<segment>.*), /$\{segment}
+            - CircuitBreaker=adminCircuitBreaker, fallbackUri: forward:/fallback/admin
+            - Retry=3
+        - id: ai-service
+          uri: lb://ai-service
+          predicates:
+            - Path=/api/v1/ai/**
+          filters:
+            - RewritePath=/api/v1/ai/(?<segment>.*), /$\{segment}
+            - CircuitBreaker=aiCircuitBreaker, fallbackUri: forward:/fallback/ai
+            - Retry=3
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - AddRequestHeader=X-Forwarded-Proto, ${scheme:http}
+        - AddResponseHeader=X-Response-Time, ${executionTime:}
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000}
+            allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+
+# Resilience4j Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      usersCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+      weatherCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+      cropCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+      schemeCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+      mandiCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+      iotCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+      adminCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+      aiCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 60s
+        failureRateThreshold: 50
+  retry:
+    instances:
+      usersCircuitBreaker:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      weatherCircuitBreaker:
+        maxAttempts: 3
+        waitDuration: 1000ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      cropCircuitBreaker:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      schemeCircuitBreaker:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      mandiCircuitBreaker:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      iotCircuitBreaker:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      adminCircuitBreaker:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+      aiCircuitBreaker:
+        maxAttempts: 3
+        waitDuration: 1000ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+  ratelimiter:
+    instances:
+      apiRateLimiter:
+        limitForPeriod: 100
+        limitRefreshPeriod: 1s
+        timeoutDuration: 500ms
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.farmer: DEBUG
+    org.springframework.cloud.gateway: INFO
+    org.springframework.data.redis: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

@@ -1,0 +1,132 @@
+-------------------------------------------------------------------------------
+Test set: com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 0.044 s <<< FAILURE! -- in com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests
+com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetryIncludesAttemptCountInException -- Time elapsed: 0.005 s <<< FAILURE!
+java.lang.AssertionError: expectation "expectErrorSatisfies" failed (assertion failed on exception <com.farmer.weather.exception.ImdApiException: Failed to fetch 7-day forecast and no cached data available>: expected: <4> but was: <1>)
+	at reactor.test.MessageFormatter.assertionError(MessageFormatter.java:115)
+	at reactor.test.MessageFormatter.failPrefix(MessageFormatter.java:104)
+	at reactor.test.MessageFormatter.fail(MessageFormatter.java:73)
+	at reactor.test.MessageFormatter.failOptional(MessageFormatter.java:88)
+	at reactor.test.DefaultStepVerifierBuilder.lambda$consumeErrorWith$0(DefaultStepVerifierBuilder.java:251)
+	at reactor.test.DefaultStepVerifierBuilder$SignalEvent.test(DefaultStepVerifierBuilder.java:2289)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultVerifySubscriber.onSignal(DefaultStepVerifierBuilder.java:1529)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultVerifySubscriber.onExpectation(DefaultStepVerifierBuilder.java:1477)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultVerifySubscriber.onError(DefaultStepVerifierBuilder.java:1129)
+	at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:106)
+	at reactor.core.publisher.Operators.error(Operators.java:198)
+	at reactor.core.publisher.MonoError.subscribe(MonoError.java:53)
+	at reactor.core.publisher.Mono.subscribe(Mono.java:4512)
+	at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:103)
+	at reactor.core.publisher.FluxPeek$PeekSubscriber.onError(FluxPeek.java:222)
+	at reactor.core.publisher.Operators.error(Operators.java:198)
+	at reactor.core.publisher.MonoError.subscribe(MonoError.java:53)
+	at reactor.core.publisher.Mono.subscribe(Mono.java:4512)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultStepVerifier.toVerifierAndSubscribe(DefaultStepVerifierBuilder.java:891)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultStepVerifier.verify(DefaultStepVerifierBuilder.java:831)
+	at com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetryIncludesAttemptCountInException(WeatherServiceRetryAndOfflineTest.java:565)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: com.farmer.weather.exception.ImdApiException: Failed to fetch 7-day forecast and no cached data available
+		at com.farmer.weather.service.WeatherService.lambda$1(WeatherService.java:82)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:94)
+		... 11 more
+	Caused by: java.lang.RuntimeException: API error 1
+		at com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetryIncludesAttemptCountInException(WeatherServiceRetryAndOfflineTest.java:550)
+		... 4 more
+
+com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetryLogicWithDifferentErrorTypes -- Time elapsed: 0.005 s <<< FAILURE!
+java.lang.AssertionError: expectation "expectNextMatches" failed (expected: onNext(); actual: onError(com.farmer.weather.exception.ImdApiException: Failed to fetch current weather and no cached data available))
+	at reactor.test.MessageFormatter.assertionError(MessageFormatter.java:115)
+	at reactor.test.MessageFormatter.failPrefix(MessageFormatter.java:104)
+	at reactor.test.MessageFormatter.fail(MessageFormatter.java:73)
+	at reactor.test.MessageFormatter.failOptional(MessageFormatter.java:88)
+	at reactor.test.DefaultStepVerifierBuilder.lambda$expectNextMatches$11(DefaultStepVerifierBuilder.java:556)
+	at reactor.test.DefaultStepVerifierBuilder$SignalEvent.test(DefaultStepVerifierBuilder.java:2289)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultVerifySubscriber.onSignal(DefaultStepVerifierBuilder.java:1529)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultVerifySubscriber.onExpectation(DefaultStepVerifierBuilder.java:1477)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultVerifySubscriber.onError(DefaultStepVerifierBuilder.java:1129)
+	at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:106)
+	at reactor.core.publisher.Operators.error(Operators.java:198)
+	at reactor.core.publisher.MonoError.subscribe(MonoError.java:53)
+	at reactor.core.publisher.Mono.subscribe(Mono.java:4512)
+	at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:103)
+	at reactor.core.publisher.FluxPeek$PeekSubscriber.onError(FluxPeek.java:222)
+	at reactor.core.publisher.Operators.error(Operators.java:198)
+	at reactor.core.publisher.MonoError.subscribe(MonoError.java:53)
+	at reactor.core.publisher.Mono.subscribe(Mono.java:4512)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultStepVerifier.toVerifierAndSubscribe(DefaultStepVerifierBuilder.java:891)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultStepVerifier.verify(DefaultStepVerifierBuilder.java:831)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultStepVerifier.verify(DefaultStepVerifierBuilder.java:823)
+	at reactor.test.DefaultStepVerifierBuilder.verifyComplete(DefaultStepVerifierBuilder.java:690)
+	at com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetryLogicWithDifferentErrorTypes(WeatherServiceRetryAndOfflineTest.java:515)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: com.farmer.weather.exception.ImdApiException: Failed to fetch current weather and no cached data available
+		at com.farmer.weather.service.WeatherService.lambda$3(WeatherService.java:124)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:94)
+		... 13 more
+	Caused by: java.lang.RuntimeException: Connection timeout
+		at com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetryLogicWithDifferentErrorTypes(WeatherServiceRetryAndOfflineTest.java:503)
+		... 4 more
+
+com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetrySucceedsOnThirdAttempt -- Time elapsed: 0.005 s <<< FAILURE!
+java.lang.AssertionError: expectation "expectNextMatches" failed (expected: onNext(); actual: onError(com.farmer.weather.exception.ImdApiException: Failed to fetch 7-day forecast and no cached data available))
+	at reactor.test.MessageFormatter.assertionError(MessageFormatter.java:115)
+	at reactor.test.MessageFormatter.failPrefix(MessageFormatter.java:104)
+	at reactor.test.MessageFormatter.fail(MessageFormatter.java:73)
+	at reactor.test.MessageFormatter.failOptional(MessageFormatter.java:88)
+	at reactor.test.DefaultStepVerifierBuilder.lambda$expectNextMatches$11(DefaultStepVerifierBuilder.java:556)
+	at reactor.test.DefaultStepVerifierBuilder$SignalEvent.test(DefaultStepVerifierBuilder.java:2289)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultVerifySubscriber.onSignal(DefaultStepVerifierBuilder.java:1529)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultVerifySubscriber.onExpectation(DefaultStepVerifierBuilder.java:1477)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultVerifySubscriber.onError(DefaultStepVerifierBuilder.java:1129)
+	at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:106)
+	at reactor.core.publisher.Operators.error(Operators.java:198)
+	at reactor.core.publisher.MonoError.subscribe(MonoError.java:53)
+	at reactor.core.publisher.Mono.subscribe(Mono.java:4512)
+	at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:103)
+	at reactor.core.publisher.FluxPeek$PeekSubscriber.onError(FluxPeek.java:222)
+	at reactor.core.publisher.Operators.error(Operators.java:198)
+	at reactor.core.publisher.MonoError.subscribe(MonoError.java:53)
+	at reactor.core.publisher.Mono.subscribe(Mono.java:4512)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultStepVerifier.toVerifierAndSubscribe(DefaultStepVerifierBuilder.java:891)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultStepVerifier.verify(DefaultStepVerifierBuilder.java:831)
+	at reactor.test.DefaultStepVerifierBuilder$DefaultStepVerifier.verify(DefaultStepVerifierBuilder.java:823)
+	at reactor.test.DefaultStepVerifierBuilder.verifyComplete(DefaultStepVerifierBuilder.java:690)
+	at com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetrySucceedsOnThirdAttempt(WeatherServiceRetryAndOfflineTest.java:482)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: com.farmer.weather.exception.ImdApiException: Failed to fetch 7-day forecast and no cached data available
+		at com.farmer.weather.service.WeatherService.lambda$1(WeatherService.java:82)
+		at reactor.core.publisher.FluxOnErrorResume$ResumeSubscriber.onError(FluxOnErrorResume.java:94)
+		... 13 more
+	Caused by: java.lang.RuntimeException: API error 1
+		at com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetrySucceedsOnThirdAttempt(WeatherServiceRetryAndOfflineTest.java:470)
+		... 4 more
+
+com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetryLogicWithExponentialBackoff -- Time elapsed: 0.025 s <<< FAILURE!
+org.mockito.exceptions.verification.TooFewActualInvocations: 
+
+imdApiClient.getSevenDayForecast(
+    "Bangalore Rural",
+    "Karnataka"
+);
+Wanted 4 times:
+-> at com.farmer.weather.client.ImdApiClient.getSevenDayForecast(ImdApiClient.java:76)
+But was 1 time:
+-> at com.farmer.weather.service.WeatherService.getSevenDayForecast(WeatherService.java:65)
+
+	at com.farmer.weather.client.ImdApiClient.getSevenDayForecast(ImdApiClient.java:76)
+	at com.farmer.weather.service.WeatherServiceRetryAndOfflineTest$RetryLogicExponentialBackoffTests.testRetryLogicWithExponentialBackoff(WeatherServiceRetryAndOfflineTest.java:445)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+

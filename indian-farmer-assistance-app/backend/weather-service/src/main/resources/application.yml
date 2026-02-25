@@ -1,0 +1,53 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: weather-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/farmer_assistance
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# IMD API Configuration
+imd:
+  api:
+    base-url: https://api.imd.gov.in
+    key: ${IMD_API_KEY:}
+    timeout-seconds: 30
+    rate-limit-requests-per-minute: 60
+
+# Weather Service Configuration
+weather:
+  cache:
+    ttl-minutes: 30
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# Logging Configuration
+logging:
+  level:
+    com.farmer.weather: DEBUG
+    org.springframework.web.reactive: INFO
+    reactor.netty: INFO

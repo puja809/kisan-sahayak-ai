@@ -1,0 +1,79 @@
+# Staging Environment Configuration
+# This file contains settings specific to the staging/pre-production environment
+
+spring:
+  config:
+    activate:
+      on-profile: staging
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:staging-mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:farmer_staging}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:farmer_app}
+    password: ${MYSQL_PASSWORD:${STAGING_DB_PASSWORD}}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 50
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+  data:
+    mongodb:
+      uri: mongodb://${MONGODB_USER:admin}:${MONGODB_PASSWORD}@${MONGODB_HOST:staging-mongodb}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:farmer_staging}?authSource=admin
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_HOST:staging-redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+
+# Application Settings
+app:
+  name: Indian Farmer Assistance API Gateway
+  version: ${APP_VERSION:1.0.0-staging}
+  environment: staging
+  host: 0.0.0.0
+  port: ${SERVER_PORT:8080}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000  # 24 hours
+  refresh-expiration: 604800000  # 7 days
+
+# External API Configuration
+external:
+  imd:
+    base-url: https://api.imd.gov.in
+    api-key: ${IMD_API_KEY}
+    timeout: 5000
+  agmarknet:
+    base-url: https://agmarknet.gov.in/api
+    api-key: ${AGMARKNET_API_KEY}
+    timeout: 5000
+  agristack:
+    base-url: https://api.agristack.gov.in
+    client-id: ${AGRISTACK_CLIENT_ID}
+    client-secret: ${AGRISTACK_CLIENT_SECRET}
+    timeout: 5000
+  bhashini:
+    base-url: https://api.bhashini.gov.in
+    api-key: ${BHASHINI_API_KEY}
+    timeout: 10000
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.farmer: INFO
+  file:
+    name: /var/log/farmer-app/api-gateway-staging.log
+  logback:
+    rolling-policy:
+      max-file-size: 50MB
+      max-history: 14
