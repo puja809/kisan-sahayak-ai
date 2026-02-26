@@ -4,7 +4,7 @@ langchain==0.2.12
 langchain-community==0.2.10
 faiss-cpu
 sentence-transformers
-pydantic==2.7.4
+pydantic
 docx2txt
 python-dotenv
 

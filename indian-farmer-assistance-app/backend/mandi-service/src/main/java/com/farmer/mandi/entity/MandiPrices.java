@@ -22,7 +22,9 @@ import java.time.LocalDateTime;
            @Index(name = "idx_commodity", columnList = "commodity_name"),
            @Index(name = "idx_mandi", columnList = "mandi_name"),
            @Index(name = "idx_location", columnList = "state, district"),
-           @Index(name = "idx_date", columnList = "price_date")
+           @Index(name = "idx_date", columnList = "price_date"),
+           @Index(name = "idx_state_id", columnList = "state_id"),
+           @Index(name = "idx_district_id", columnList = "district_id")
        })
 @Getter
 @Setter
@@ -52,6 +54,14 @@ public class MandiPrices {
 
     @Column(name = "district", nullable = false, length = 50)
     private String district;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "state_id")
+    private State stateEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "district_id")
+    private District districtEntity;
 
     @Column(name = "price_date", nullable = false)
     private LocalDate priceDate;

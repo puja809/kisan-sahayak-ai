@@ -17,7 +17,9 @@ import java.time.LocalDateTime;
        indexes = {
            @Index(name = "idx_mandi_code", columnList = "mandi_code"),
            @Index(name = "idx_state", columnList = "state"),
-           @Index(name = "idx_district", columnList = "district")
+           @Index(name = "idx_district", columnList = "district"),
+           @Index(name = "idx_state_id", columnList = "state_id"),
+           @Index(name = "idx_district_id", columnList = "district_id")
        })
 @Getter
 @Setter
@@ -41,6 +43,14 @@ public class MandiLocation {
 
     @Column(name = "district", nullable = false, length = 50)
     private String district;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "state_id")
+    private State stateEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "district_id")
+    private District districtEntity;
 
     @Column(name = "address", length = 500)
     private String address;

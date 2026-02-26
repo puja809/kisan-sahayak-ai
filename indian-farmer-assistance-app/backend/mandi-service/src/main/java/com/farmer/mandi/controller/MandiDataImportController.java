@@ -25,9 +25,13 @@ public class MandiDataImportController {
     /**
      * Import market data from CSV file
      */
-    @PostMapping("/csv")
-    @Operation(summary = "Import market data from CSV", description = "Upload CSV file with market data")
-    public ResponseEntity<?> importCsv(@RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/csv", consumes = "multipart/form-data", produces = "application/json")
+    @Operation(
+        summary = "Import market data from CSV",
+        description = "Upload CSV file with market data. File should contain columns: State, District, Market, Commodity, Variety, Grade"
+    )
+    public ResponseEntity<?> importCsv(
+            @RequestParam("file") MultipartFile file) {
         try {
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body(new ErrorResponse("File is empty"));

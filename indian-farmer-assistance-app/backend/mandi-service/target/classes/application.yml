@@ -7,6 +7,12 @@ spring:
   application:
     name: mandi-service
   
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+      enabled: true
+  
   datasource:
     url: ${MANDI_DB_URL:jdbc:postgresql://localhost:5432/farmer_assistance}
     username: ${MANDI_DB_USERNAME:postgres}

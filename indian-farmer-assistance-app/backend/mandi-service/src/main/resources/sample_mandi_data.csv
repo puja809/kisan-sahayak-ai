@@ -1,0 +1,21 @@
+State,District,Market,Commodity,Variety,Grade
+Maharashtra,Pune,Pune Mandi,Wheat,Local,A
+Maharashtra,Pune,Pune Mandi,Rice,Basmati,A
+Maharashtra,Mumbai,Mumbai Mandi,Onion,Red,A
+Maharashtra,Nagpur,Nagpur Mandi,Cotton,Desi,A
+Karnataka,Bangalore,Bangalore Mandi,Coffee,Arabica,A
+Karnataka,Mysore,Mysore Mandi,Cardamom,Green,A
+Tamil Nadu,Chennai,Chennai Mandi,Coconut,Mature,A
+Tamil Nadu,Coimbatore,Coimbatore Mandi,Spices,Turmeric,A
+Uttar Pradesh,Lucknow,Lucknow Mandi,Sugarcane,Local,A
+Uttar Pradesh,Kanpur,Kanpur Mandi,Wheat,Local,A
+Punjab,Ludhiana,Ludhiana Mandi,Wheat,Local,A
+Punjab,Amritsar,Amritsar Mandi,Rice,Basmati,A
+Haryana,Hisar,Hisar Mandi,Cotton,Desi,A
+Haryana,Rohtak,Rohtak Mandi,Wheat,Local,A
+Rajasthan,Jaipur,Jaipur Mandi,Mustard,Local,A
+Rajasthan,Jodhpur,Jodhpur Mandi,Gram,Local,A
+Madhya Pradesh,Indore,Indore Mandi,Soybean,Local,A
+Madhya Pradesh,Bhopal,Bhopal Mandi,Wheat,Local,A
+Gujarat,Ahmedabad,Ahmedabad Mandi,Cotton,Desi,A
+Gujarat,Vadodara,Vadodara Mandi,Groundnut,Local,A

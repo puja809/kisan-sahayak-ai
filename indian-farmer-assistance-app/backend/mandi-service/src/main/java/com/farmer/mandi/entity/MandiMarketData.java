@@ -20,7 +20,9 @@ import java.time.LocalDateTime;
     @Index(name = "idx_variety", columnList = "variety"),
     @Index(name = "idx_grade", columnList = "grade"),
     @Index(name = "idx_state_district", columnList = "state,district"),
-    @Index(name = "idx_market_commodity", columnList = "market,commodity")
+    @Index(name = "idx_market_commodity", columnList = "market,commodity"),
+    @Index(name = "idx_state_id", columnList = "state_id"),
+    @Index(name = "idx_district_id", columnList = "district_id")
 })
 @Data
 @NoArgsConstructor
@@ -37,6 +39,14 @@ public class MandiMarketData {
     
     @Column(nullable = false, length = 100)
     private String district;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "state_id")
+    private State stateEntity;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "district_id")
+    private District districtEntity;
     
     @Column(nullable = false, length = 200)
     private String market;

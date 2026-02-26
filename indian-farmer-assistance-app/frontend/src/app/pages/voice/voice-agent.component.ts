@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../../environments/environment';
 
 interface ConversationMessage {
   timestamp: Date;
   userText: string;
   systemResponse: string;
+  sections?: string[];
   userAudioPath?: string;
   systemAudioPath?: string;
 }
@@ -19,7 +21,7 @@ interface ConversationMessage {
   template: `
     <div class="voice-agent-container">
       <div class="voice-header">
-        <h1>Voice Assistant</h1>
+        <h1>Voice Assistant (Krishi RAG)</h1>
         <div class="language-selector">
           <label for="language">Language:</label>
           <select id="language" [(ngModel)]="selectedLanguage" (change)="onLanguageChange()">
@@ -48,6 +50,12 @@ interface ConversationMessage {
               </div>
               <div class="system-message">
                 <p><strong>Assistant:</strong> {{ message.systemResponse }}</p>
+                <div *ngIf="message.sections && message.sections.length > 0" class="reference-sections">
+                  <small><strong>References:</strong></small>
+                  <ul>
+                    <li *ngFor="let section of message.sections"><small>{{ section }}</small></li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -80,7 +88,7 @@ interface ConversationMessage {
           </div>
 
           <div *ngIf="isProcessing" class="processing-indicator">
-            <p>Processing your request...</p>
+            <p>Generating response from AIF AGI...</p>
           </div>
         </div>
 
@@ -91,11 +99,12 @@ interface ConversationMessage {
             <input
               type="text"
               [(ngModel)]="textInput"
-              placeholder="Type your question here..."
+              placeholder="Ask a question about AIF Scheme..."
               (keyup.enter)="sendTextQuery()"
               class="text-input"
+              [disabled]="isProcessing"
             />
-            <button class="btn-send" (click)="sendTextQuery()" [disabled]="!textInput.trim()">
+            <button class="btn-send" (click)="sendTextQuery()" [disabled]="!textInput.trim() || isProcessing">
               Send
             </button>
           </div>
@@ -175,7 +184,7 @@ interface ConversationMessage {
     }
 
     .messages-container {
-      max-height: 400px;
+      max-height: 500px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -211,6 +220,19 @@ interface ConversationMessage {
     .system-message p {
       margin: 0;
       color: #333;
+      white-space: pre-wrap;
+    }
+
+    .reference-sections {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #ccc;
+    }
+
+    .reference-sections ul {
+      margin: 5px 0 0;
+      padding-left: 20px;
+      color: #666;
     }
 
     .voice-input-section {
@@ -353,6 +375,10 @@ interface ConversationMessage {
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
+    
+    .text-input:disabled {
+      background-color: #f5f5f5;
+    }
 
     .btn-send {
       padding: 0.75rem 1.5rem;
@@ -421,11 +447,12 @@ export class VoiceAgentComponent implements OnInit {
   isProcessing = false;
   textInput = '';
   lastAudioPath: string | null = null;
+  private ragApiUrl = environment.services.ai + '/ask';
 
   constructor(
     private http: HttpClient,
     private toastr: ToastrService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadConversationHistory();
@@ -433,7 +460,7 @@ export class VoiceAgentComponent implements OnInit {
 
   onLanguageChange(): void {
     console.log('Language changed to:', this.selectedLanguage);
-    // Configure Bhashini API for selected language
+    // Future: handle translation before/after RAG queries
   }
 
   toggleRecording(): void {
@@ -453,36 +480,58 @@ export class VoiceAgentComponent implements OnInit {
   private stopRecording(): void {
     console.log('Stopping voice recording...');
     this.isProcessing = true;
-    // Send audio to backend for processing
-    // this.http.post('/api/v1/ai/voice/process', audioData).subscribe(...)
+
+    // Once audio is transcribed to text, send as normal query.
+    // For now we'll simulate a failure since we're using Text input primarily with the RAG
+    setTimeout(() => {
+      this.isProcessing = false;
+      this.toastr.warning('Voice recording is currently mocked. Please use text input.', 'Demo Mode');
+    }, 1500);
   }
 
   sendTextQuery(): void {
-    if (!this.textInput.trim()) return;
+    if (!this.textInput.trim() || this.isProcessing) return;
 
     this.isProcessing = true;
     const userText = this.textInput;
     this.textInput = '';
 
-    this.http.post<any>('/api/v1/ai/voice/process', {
-      text: userText,
-      language: this.selectedLanguage
-    }).subscribe({
+    const payload = {
+      question: userText
+    };
+
+    console.log('Sending query to Krishi RAG:', payload);
+
+    this.http.post<any>(this.ragApiUrl, payload).subscribe({
       next: (response) => {
         this.isProcessing = false;
-        const message: ConversationMessage = {
-          timestamp: new Date(),
-          userText,
-          systemResponse: response.response,
-          systemAudioPath: response.audioPath
-        };
-        this.conversationHistory.push(message);
-        this.lastAudioPath = response.audioPath;
-        this.toastr.success('Response received');
+
+        if (response.success) {
+          const message: ConversationMessage = {
+            timestamp: new Date(),
+            userText,
+            systemResponse: response.answer,
+            sections: response.sections
+          };
+          this.conversationHistory.push(message);
+          this.saveConversationHistory();
+          this.toastr.success('Answer generated successfully');
+        } else {
+          this.toastr.error(response.error || 'Failed to get an answer', 'RAG Error');
+        }
       },
       error: (error) => {
         this.isProcessing = false;
-        this.toastr.error('Failed to process query');
+        console.error('Error querying Krishi RAG:', error);
+        this.toastr.error('Failed to connect to Krishi RAG service', 'Connection Error');
+
+        // Push error message to chat for visibility
+        this.conversationHistory.push({
+          timestamp: new Date(),
+          userText,
+          systemResponse: 'Sorry, I am unable to connect to the backend AIF RAG service right now. Please make sure the krishi_rag service is running on port 8000.'
+        });
+        this.saveConversationHistory();
       }
     });
   }
@@ -490,9 +539,36 @@ export class VoiceAgentComponent implements OnInit {
   clearHistory(): void {
     this.conversationHistory = [];
     this.lastAudioPath = null;
+    this.saveConversationHistory();
+  }
+
+  private saveConversationHistory(): void {
+    // Save history to local storage, omitting the welcome message if it's the only one
+    if (this.conversationHistory.length <= 1) {
+      localStorage.removeItem('krishi_rag_history');
+    } else {
+      localStorage.setItem('krishi_rag_history', JSON.stringify(this.conversationHistory));
+    }
   }
 
   private loadConversationHistory(): void {
-    // Load from backend or local storage
+    // Optionally load from local storage
+    const saved = localStorage.getItem('krishi_rag_history');
+    if (saved) {
+      try {
+        this.conversationHistory = JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse history', e);
+      }
+    }
+
+    // If empty, add a welcome message
+    if (this.conversationHistory.length === 0) {
+      this.conversationHistory.push({
+        timestamp: new Date(),
+        userText: 'Hello',
+        systemResponse: 'Namaste! I am the Krishi RAG Assistant. Ask me any questions about the Agriculture Infrastructure Fund (AIF) scheme.'
+      });
+    }
   }
 }

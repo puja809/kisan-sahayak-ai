@@ -21,6 +21,9 @@ public class MandiDataImportService {
     
     @Autowired
     private MandiMarketDataRepository mandiMarketDataRepository;
+
+    @Autowired
+    private StateDistrictPopulationService stateDistrictService;
     
     /**
      * Import market data from CSV file
@@ -32,6 +35,16 @@ public class MandiDataImportService {
         try {
             List<MandiMarketData> records = parseCsvFile(file);
             result.setTotalRecords(records.size());
+            
+            // Initialize state and district data from CSV
+            List<Map<String, String>> csvDataMaps = new ArrayList<>();
+            for (MandiMarketData record : records) {
+                Map<String, String> map = new HashMap<>();
+                map.put("State", record.getState());
+                map.put("District", record.getDistrict());
+                csvDataMaps.add(map);
+            }
+            stateDistrictService.initializeStateDistrictData(csvDataMaps);
             
             // Remove duplicates
             Set<String> uniqueKeys = new HashSet<>();

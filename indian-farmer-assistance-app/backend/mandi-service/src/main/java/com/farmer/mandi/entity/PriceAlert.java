@@ -16,7 +16,9 @@ import java.time.LocalDateTime;
        indexes = {
            @Index(name = "idx_farmer_id", columnList = "farmer_id"),
            @Index(name = "idx_commodity", columnList = "commodity"),
-           @Index(name = "idx_active", columnList = "is_active")
+           @Index(name = "idx_active", columnList = "is_active"),
+           @Index(name = "idx_state_id", columnList = "state_id"),
+           @Index(name = "idx_district_id", columnList = "district_id")
        })
 @Getter
 @Setter
@@ -44,6 +46,14 @@ public class PriceAlert {
     @Column(name = "alert_type", length = 20)
     @Builder.Default
     private String alertType = "PRICE_ABOVE"; // PRICE_ABOVE, PRICE_BELOW, PRICE_PEAK
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "state_id")
+    private State state;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "district_id")
+    private District district;
 
     @Column(name = "neighboring_districts_only")
     @Builder.Default
