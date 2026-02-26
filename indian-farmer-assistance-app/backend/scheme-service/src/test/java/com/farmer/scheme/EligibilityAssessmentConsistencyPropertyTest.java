@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jqwik.api.*;
 import org.junit.jupiter.api.BeforeEach;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.*;
 
@@ -73,7 +73,7 @@ class EligibilityAssessmentConsistencyPropertyTest {
                     .name(name)
                     .state(state)
                     .district(district)
-                    .totalLandholdingAcres(new BigDecimal(userId % 20 + 1))
+                    .totalLandholdingAcres(new Double(userId % 20 + 1))
                     .crops(Arrays.asList(crop))
                     .irrigationType(irrigation)
                     .category(category)
@@ -81,7 +81,7 @@ class EligibilityAssessmentConsistencyPropertyTest {
                     .age(age)
                     .isSmallMarginalFarmer(userId % 3 == 0)
                     .isTenantFarmer(userId % 4 == 0)
-                    .annualIncome(new BigDecimal((userId % 10 + 1) * 50000))
+                    .annualIncome(new Double((userId % 10 + 1) * 50000))
                     .hasKisanCreditCard(userId % 2 == 0)
                     .hasPMKisanRegistration(userId % 3 == 1)
                     .hasPMFBYInsurance(userId % 2 == 1)
@@ -109,7 +109,7 @@ class EligibilityAssessmentConsistencyPropertyTest {
             
             // Randomly set or nullify optional fields
             if (userId % 2 == 0) {
-                builder.totalLandholdingAcres(new BigDecimal(userId % 10 + 1));
+                builder.totalLandholdingAcres(new Double(userId % 10 + 1));
             }
             if (userId % 3 == 0) {
                 builder.crops(Arrays.asList("Wheat", "Rice"));
@@ -154,7 +154,7 @@ class EligibilityAssessmentConsistencyPropertyTest {
                     .schemeCode(code)
                     .schemeName(name)
                     .schemeType(type)
-                    .benefitAmount(new BigDecimal((id % 10 + 1) * 10000))
+                    .benefitAmount(new Double((id % 10 + 1) * 10000))
                     .applicationStartDate(startDate)
                     .applicationEndDate(endDate)
                     .isActive(true);
@@ -194,7 +194,7 @@ class EligibilityAssessmentConsistencyPropertyTest {
                     .schemeName(name)
                     .schemeType(type)
                     .eligibilityCriteria(eligibilityCriteria)
-                    .benefitAmount(new BigDecimal((id % 10 + 1) * 5000))
+                    .benefitAmount(new Double((id % 10 + 1) * 5000))
                     .applicationStartDate(LocalDate.now().minusDays(30))
                     .applicationEndDate(LocalDate.now().plusDays(60))
                     .isActive(true)
@@ -494,7 +494,7 @@ class EligibilityAssessmentConsistencyPropertyTest {
                 .schemeName("Scheme with Null Criteria")
                 .schemeType(SchemeType.CENTRAL)
                 .eligibilityCriteria(null)
-                .benefitAmount(new BigDecimal("10000"))
+                .benefitAmount(new Double("10000"))
                 .applicationStartDate(LocalDate.now().minusDays(30))
                 .applicationEndDate(LocalDate.now().plusDays(60))
                 .isActive(true)
@@ -534,7 +534,7 @@ class EligibilityAssessmentConsistencyPropertyTest {
                 .schemeName("Scheme with Empty Criteria")
                 .schemeType(SchemeType.CENTRAL)
                 .eligibilityCriteria("")
-                .benefitAmount(new BigDecimal("10000"))
+                .benefitAmount(new Double("10000"))
                 .applicationStartDate(LocalDate.now().minusDays(30))
                 .applicationEndDate(LocalDate.now().plusDays(60))
                 .isActive(true)

@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -40,17 +39,17 @@ public class CropRecommendationRequestDto {
     /**
      * GPS latitude of farm location
      */
-    private BigDecimal latitude;
+    private Double latitude;
     
     /**
      * GPS longitude of farm location
      */
-    private BigDecimal longitude;
+    private Double longitude;
     
     /**
      * Total farm area in acres
      */
-    private BigDecimal farmAreaAcres;
+    private Double farmAreaAcres;
     
     /**
      * Soil type (if known, otherwise will use GAEZ data)
@@ -92,7 +91,7 @@ public class CropRecommendationRequestDto {
     /**
      * Minimum expected yield (quintals per acre) - for filtering
      */
-    private BigDecimal minExpectedYield;
+    private Double minExpectedYield;
     
     /**
      * Maximum water stress tolerance
@@ -123,7 +122,7 @@ public class CropRecommendationRequestDto {
     /**
      * Minimum suitability score threshold (0-100)
      */
-    private BigDecimal minSuitabilityScore;
+    private Double minSuitabilityScore;
     
     /**
      * Irrigation type enum

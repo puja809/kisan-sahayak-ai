@@ -30,6 +30,8 @@
         <module>admin-service</module>
         <module>sync-service</module>
         <module>yield-service</module>
+        <module>bandwidth-service</module>
+        <module>iot-service</module>
     </modules>
 
     <properties>
@@ -37,6 +39,9 @@
         <spring-cloud.version>2023.0.0</spring-cloud.version>
         <snakeyaml.version>2.2</snakeyaml.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <springdoc.version>2.3.0</springdoc.version>
+        <jqwik.version>1.8.2</jqwik.version>
+        <eureka-client.version>4.0.3</eureka-client.version>
     </properties>
 
     <dependencyManagement>
@@ -70,18 +75,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.jqwik</groupId>
-            <artifactId>jqwik</artifactId>
-            <version>1.8.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.jqwik</groupId>
-            <artifactId>jqwik-junit-platform</artifactId>
-            <version>1.8.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

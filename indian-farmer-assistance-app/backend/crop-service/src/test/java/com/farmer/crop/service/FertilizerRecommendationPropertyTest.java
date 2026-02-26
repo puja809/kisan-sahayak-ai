@@ -5,18 +5,13 @@ import com.farmer.crop.repository.FertilizerApplicationRepository;
 import com.farmer.crop.repository.SoilHealthCardRepository;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
-import net.jqwik.api.constraints.BigRange;
 import net.jqwik.api.constraints.IntRange;
 import net.jqwik.api.constraints.StringLength;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Property-based tests for FertilizerRecommendationService.
@@ -41,9 +36,11 @@ class FertilizerRecommendationPropertyTest {
     void propertyFertilizerRecommendationCompleteness(
             @ForAll @StringLength(min = 1, max = 50) String farmerId,
             @ForAll @StringLength(min = 1, max = 50) String cropName,
-            @ForAll @BigRange(min = "0.5", max = "10") BigDecimal areaAcres,
+            @ForAll Double areaAcres,
             @ForAll String state
     ) {
+        Double area = Math.max(0.5, Math.min(10.0, areaAcres));
+
         // Arrange - Create mock services
         SoilHealthCardRepository soilHealthCardRepository = mock(SoilHealthCardRepository.class);
         FertilizerApplicationRepository fertilizerApplicationRepository = mock(FertilizerApplicationRepository.class);
@@ -55,7 +52,7 @@ class FertilizerRecommendationPropertyTest {
         FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                 .farmerId(farmerId)
                 .cropName(cropName)
-                .areaAcres(areaAcres)
+                .areaAcres(area)
                 .state(state)
                 .includeOrganicAlternatives(true)
                 .includeSplitApplication(true)
@@ -75,7 +72,7 @@ class FertilizerRecommendationPropertyTest {
             assertFalse(rec.getFertilizerType().isEmpty(), "Fertilizer type should not be empty");
             
             assertNotNull(rec.getQuantityKgPerAcre(), "Quantity per acre must be present");
-            assertTrue(rec.getQuantityKgPerAcre().compareTo(BigDecimal.ZERO) > 0, 
+            assertTrue(rec.getQuantityKgPerAcre() > 0.0, 
                     "Quantity should be positive");
             
             assertNotNull(rec.getApplicationTiming(), "Application timing must be present");
@@ -100,8 +97,10 @@ class FertilizerRecommendationPropertyTest {
     void propertySplitApplicationScheduleCompleteness(
             @ForAll @StringLength(min = 1, max = 50) String farmerId,
             @ForAll @StringLength(min = 1, max = 50) String cropName,
-            @ForAll @BigRange(min = "0.5", max = "10") BigDecimal areaAcres
+            @ForAll Double areaAcres
     ) {
+        Double area = Math.max(0.5, Math.min(10.0, areaAcres));
+
         // Arrange
         SoilHealthCardRepository soilHealthCardRepository = mock(SoilHealthCardRepository.class);
         FertilizerApplicationRepository fertilizerApplicationRepository = mock(FertilizerApplicationRepository.class);
@@ -113,7 +112,7 @@ class FertilizerRecommendationPropertyTest {
         FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                 .farmerId(farmerId)
                 .cropName(cropName)
-                .areaAcres(areaAcres)
+                .areaAcres(area)
                 .includeSplitApplication(true)
                 .build();
 
@@ -183,7 +182,7 @@ class FertilizerRecommendationPropertyTest {
                 assertFalse(alt.getName().isEmpty(), "Name should not be empty");
                 
                 assertNotNull(alt.getQuantityKgPerAcre(), "Quantity per acre must be present");
-                assertTrue(alt.getQuantityKgPerAcre().compareTo(BigDecimal.ZERO) > 0, 
+                assertTrue(alt.getQuantityKgPerAcre() > 0.0, 
                         "Quantity should be positive");
                 
                 assertNotNull(alt.getBenefits(), "Benefits must be present");
@@ -206,8 +205,10 @@ class FertilizerRecommendationPropertyTest {
     void propertyNutrientRequirementsValidity(
             @ForAll @StringLength(min = 1, max = 50) String farmerId,
             @ForAll @StringLength(min = 1, max = 50) String cropName,
-            @ForAll @BigRange(min = "0.5", max = "10") BigDecimal areaAcres
+            @ForAll Double areaAcres
     ) {
+        Double area = Math.max(0.5, Math.min(10.0, areaAcres));
+
         // Arrange
         SoilHealthCardRepository soilHealthCardRepository = mock(SoilHealthCardRepository.class);
         FertilizerApplicationRepository fertilizerApplicationRepository = mock(FertilizerApplicationRepository.class);
@@ -219,7 +220,7 @@ class FertilizerRecommendationPropertyTest {
         FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                 .farmerId(farmerId)
                 .cropName(cropName)
-                .areaAcres(areaAcres)
+                .areaAcres(area)
                 .build();
 
         FertilizerRecommendationResponseDto response = service.generateRecommendations(request);
@@ -229,11 +230,11 @@ class FertilizerRecommendationPropertyTest {
         assertNotNull(response.getNutrientRequirements());
         
         FertilizerRecommendationResponseDto.NutrientRequirementsDto req = response.getNutrientRequirements();
-        assertTrue(req.getNitrogenKgPerAcre().compareTo(BigDecimal.ZERO) >= 0, 
+        assertTrue(req.getNitrogenKgPerAcre() >= 0.0, 
                 "Nitrogen requirement should be non-negative");
-        assertTrue(req.getPhosphorusKgPerAcre().compareTo(BigDecimal.ZERO) >= 0, 
+        assertTrue(req.getPhosphorusKgPerAcre() >= 0.0, 
                 "Phosphorus requirement should be non-negative");
-        assertTrue(req.getPotassiumKgPerAcre().compareTo(BigDecimal.ZERO) >= 0, 
+        assertTrue(req.getPotassiumKgPerAcre() >= 0.0, 
                 "Potassium requirement should be non-negative");
     }
 
@@ -246,8 +247,10 @@ class FertilizerRecommendationPropertyTest {
     void propertyCostCalculationValidity(
             @ForAll @StringLength(min = 1, max = 50) String farmerId,
             @ForAll @StringLength(min = 1, max = 50) String cropName,
-            @ForAll @BigRange(min = "0.5", max = "10") BigDecimal areaAcres
+            @ForAll Double areaAcres
     ) {
+        Double area = Math.max(0.5, Math.min(10.0, areaAcres));
+
         // Arrange
         SoilHealthCardRepository soilHealthCardRepository = mock(SoilHealthCardRepository.class);
         FertilizerApplicationRepository fertilizerApplicationRepository = mock(FertilizerApplicationRepository.class);
@@ -259,7 +262,7 @@ class FertilizerRecommendationPropertyTest {
         FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                 .farmerId(farmerId)
                 .cropName(cropName)
-                .areaAcres(areaAcres)
+                .areaAcres(area)
                 .build();
 
         FertilizerRecommendationResponseDto response = service.generateRecommendations(request);
@@ -268,7 +271,7 @@ class FertilizerRecommendationPropertyTest {
         assertTrue(response.isSuccess());
         
         if (response.getEstimatedCost() != null) {
-            assertTrue(response.getEstimatedCost().compareTo(BigDecimal.ZERO) >= 0, 
+            assertTrue(response.getEstimatedCost() >= 0.0, 
                     "Total cost should be non-negative");
         }
     }
@@ -292,10 +295,10 @@ class FertilizerRecommendationPropertyTest {
 
         // Create soil health card data
         SoilHealthCardDto soilHealthCard = SoilHealthCardDto.builder()
-                .nitrogenKgHa(new BigDecimal("200"))
-                .phosphorusKgHa(new BigDecimal("8"))
-                .potassiumKgHa(new BigDecimal("100"))
-                .zincPpm(new BigDecimal("0.4"))
+                .nitrogenKgHa(200.0)
+                .phosphorusKgHa(8.0)
+                .potassiumKgHa(100.0)
+                .zincPpm(0.4)
                 .build();
 
         // Act
@@ -313,3 +316,4 @@ class FertilizerRecommendationPropertyTest {
                 "Soil health card used flag should be true when data is provided");
     }
 }
+

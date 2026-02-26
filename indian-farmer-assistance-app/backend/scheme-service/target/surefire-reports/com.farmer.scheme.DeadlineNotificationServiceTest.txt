@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.farmer.scheme.DeadlineNotificationServiceTest
--------------------------------------------------------------------------------
-Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.812 s -- in com.farmer.scheme.DeadlineNotificationServiceTest

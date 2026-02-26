@@ -10,8 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -133,7 +133,7 @@ public class EligibilityAssessmentService {
                 .map(scheme -> createPersonalizedRecommendation(farmer, scheme))
                 .filter(java.util.Objects::nonNull)
                 .sorted(Comparator.comparing(
-                        (PersonalizedSchemeDTO r) -> r.getRankingScore() != null ? r.getRankingScore() : BigDecimal.ZERO)
+                        (PersonalizedSchemeDTO r) -> r.getRankingScore() != null ? r.getRankingScore() : 0.0)
                         .reversed()
                         .thenComparing(r -> r.getDaysUntilDeadline() != null ? r.getDaysUntilDeadline() : Long.MAX_VALUE))
                 .collect(Collectors.toList());
@@ -167,10 +167,10 @@ public class EligibilityAssessmentService {
         // Determine small/marginal farmer priority
         boolean isSmallMarginalFarmer = Boolean.TRUE.equals(farmer.getIsSmallMarginalFarmer()) ||
                 (farmer.getTotalLandholdingAcres() != null && 
-                 farmer.getTotalLandholdingAcres().compareTo(new BigDecimal("4.94")) < 0); // 2 hectares ≈ 4.94 acres
+                 farmer.getTotalLandholdingAcres().compareTo(new Double("4.94")) < 0); // 2 hectares ≈ 4.94 acres
         
         // Calculate enhanced ranking score with small farmer priority
-        BigDecimal rankingScore = calculateEnhancedRankingScore(eligibilityResult, scheme, isSmallMarginalFarmer, matchingCrops);
+        Double rankingScore = calculateEnhancedRankingScore(eligibilityResult, scheme, isSmallMarginalFarmer, matchingCrops);
         eligibilityResult.setRankingScore(rankingScore);
         
         // Determine highlight reasons
@@ -247,55 +247,52 @@ public class EligibilityAssessmentService {
      * Calculate enhanced ranking score with small farmer priority and crop-specific weighting.
      * Requirements: 11D.2, 11D.4, 11D.8
      */
-    private BigDecimal calculateEnhancedRankingScore(
+    private Double calculateEnhancedRankingScore(
             EligibilityResultDTO result, 
             Scheme scheme, 
             boolean isSmallMarginalFarmer,
             List<String> matchingCrops) {
         
         // Start with base ranking score
-        BigDecimal baseScore = calculateRankingScore(result, scheme);
+        Double baseScore = calculateRankingScore(result, scheme);
         
         // Add small/marginal farmer priority boost
-        BigDecimal smallFarmerBoost = BigDecimal.ZERO;
+        Double smallFarmerBoost = 0.0;
         if (isSmallMarginalFarmer && isSchemeForSmallFarmers(scheme)) {
-            smallFarmerBoost = new BigDecimal("15"); // Significant boost for small farmer schemes
+            smallFarmerBoost = 15.0; // Significant boost for small farmer schemes
         }
         
         // Add crop-specific boost
-        BigDecimal cropBoost = BigDecimal.ZERO;
+        Double cropBoost = 0.0;
         if (matchingCrops != null && !matchingCrops.isEmpty()) {
-            cropBoost = new BigDecimal("10").multiply(new BigDecimal(matchingCrops.size()));
-            cropBoost = cropBoost.min(new BigDecimal("20")); // Cap at 20 points
+            cropBoost = 10.0 * matchingCrops.size();
+            cropBoost = Math.min(cropBoost, 20.0); // Cap at 20 points
         }
         
         // Add high confidence boost
-        BigDecimal confidenceBoost = BigDecimal.ZERO;
+        Double confidenceBoost = 0.0;
         if (result.getConfidenceLevel() == EligibilityResultDTO.ConfidenceLevel.HIGH) {
-            confidenceBoost = new BigDecimal("10");
+            confidenceBoost = 10.0;
         } else if (result.getConfidenceLevel() == EligibilityResultDTO.ConfidenceLevel.MEDIUM) {
-            confidenceBoost = new BigDecimal("5");
+            confidenceBoost = 5.0;
         }
         
         // Add approaching deadline urgency boost
-        BigDecimal deadlineBoost = BigDecimal.ZERO;
+        Double deadlineBoost = 0.0;
         if (result.getDaysUntilDeadline() != null && result.getDaysUntilDeadline() > 0) {
             if (result.getDaysUntilDeadline() <= 7) {
-                deadlineBoost = new BigDecimal("25"); // Urgent
+                deadlineBoost = 25.0; // Urgent
             } else if (result.getDaysUntilDeadline() <= 15) {
-                deadlineBoost = new BigDecimal("15");
+                deadlineBoost = 15.0;
             } else if (result.getDaysUntilDeadline() <= 30) {
-                deadlineBoost = new BigDecimal("10");
+                deadlineBoost = 10.0;
             }
         }
         
         // Calculate final score
-        BigDecimal totalScore = baseScore.add(smallFarmerBoost)
-                .add(cropBoost)
-                .add(confidenceBoost)
-                .add(deadlineBoost);
+        Double totalScore = baseScore + smallFarmerBoost + cropBoost + confidenceBoost + deadlineBoost;
         
-        return totalScore.setScale(2, RoundingMode.HALF_UP);
+        return totalScore;
     }
 
     /**
@@ -311,7 +308,7 @@ public class EligibilityAssessmentService {
         List<PersonalizedSchemeDTO.HighlightReason> reasons = new ArrayList<>();
         
         // High benefit amount
-        if (result.getRankingScore() != null && result.getRankingScore().compareTo(new BigDecimal("50")) > 0) {
+        if (result.getRankingScore() != null && result.getRankingScore().compareTo(new Double("50")) > 0) {
             reasons.add(PersonalizedSchemeDTO.HighlightReason.HIGH_BENEFIT);
         }
         
@@ -365,7 +362,7 @@ public class EligibilityAssessmentService {
                 .filter(result -> result.getEligibilityStatus() == EligibilityResultDTO.EligibilityStatus.ELIGIBLE ||
                                   result.getEligibilityStatus() == EligibilityResultDTO.EligibilityStatus.POTENTIALLY_ELIGIBLE)
                 .sorted(Comparator.comparing(
-                        (EligibilityResultDTO r) -> r.getRankingScore() != null ? r.getRankingScore() : BigDecimal.ZERO)
+                        (EligibilityResultDTO r) -> r.getRankingScore() != null ? r.getRankingScore() : 0.0)
                         .reversed()
                         .thenComparing(r -> r.getDaysUntilDeadline() != null ? r.getDaysUntilDeadline() : Long.MAX_VALUE))
                 .collect(Collectors.toList());
@@ -400,7 +397,7 @@ public class EligibilityAssessmentService {
         return schemes.stream()
                 .map(scheme -> assessEligibility(farmer, scheme))
                 .sorted(Comparator.comparing(
-                        (EligibilityResultDTO r) -> r.getRankingScore() != null ? r.getRankingScore() : BigDecimal.ZERO)
+                        (EligibilityResultDTO r) -> r.getRankingScore() != null ? r.getRankingScore() : 0.0)
                         .reversed())
                 .collect(Collectors.toList());
     }
@@ -432,7 +429,7 @@ public class EligibilityAssessmentService {
     private void checkLandholdingCriteria(FarmerProfileDTO farmer, EligibilityCriteriaDTO criteria,
             List<String> met, List<String> unmet, List<String> verification) {
         if (criteria.getMinLandholdingAcres() != null || criteria.getMaxLandholdingAcres() != null) {
-            BigDecimal landholding = farmer.getTotalLandholdingAcres();
+            Double landholding = farmer.getTotalLandholdingAcres();
             if (landholding == null) {
                 verification.add("Landholding size needs verification");
                 return;
@@ -711,56 +708,54 @@ public class EligibilityAssessmentService {
         return ChronoUnit.DAYS.between(LocalDate.now(), scheme.getApplicationEndDate());
     }
 
-    private BigDecimal calculateRankingScore(EligibilityResultDTO result, Scheme scheme) {
+    private Double calculateRankingScore(EligibilityResultDTO result, Scheme scheme) {
         // Base score from benefit amount (normalized to 0-100)
-        BigDecimal benefitScore = BigDecimal.ZERO;
+        Double benefitScore = 0.0;
         if (scheme.getBenefitAmount() != null) {
             // Assuming max benefit of 10 lakhs for normalization
-            benefitScore = scheme.getBenefitAmount()
-                    .divide(new BigDecimal("100000"), 4, RoundingMode.HALF_UP)
-                    .min(new BigDecimal("100"));
+            benefitScore = Math.min(scheme.getBenefitAmount() / 100000.0, 100.0);
         }
         
         // Deadline proximity score (closer deadline = higher score)
-        BigDecimal deadlineScore = BigDecimal.ZERO;
+        Double deadlineScore = 0.0;
         if (result.getDaysUntilDeadline() != null && result.getDaysUntilDeadline() > 0) {
             if (result.getDaysUntilDeadline() <= 7) {
-                deadlineScore = new BigDecimal("30"); // High priority for urgent deadlines
+                deadlineScore = 30.0; // High priority for urgent deadlines
             } else if (result.getDaysUntilDeadline() <= 30) {
-                deadlineScore = new BigDecimal("20");
+                deadlineScore = 20.0;
             } else {
-                deadlineScore = new BigDecimal("10");
+                deadlineScore = 10.0;
             }
         } else if (result.getDaysUntilDeadline() == null || result.getDaysUntilDeadline() < 0) {
-            deadlineScore = new BigDecimal("5"); // Lower priority for expired or no deadline
+            deadlineScore = 5.0; // Lower priority for expired or no deadline
         }
         
         // Confidence multiplier
-        BigDecimal confidenceMultiplier = BigDecimal.ONE;
+        Double confidenceMultiplier = 1.0;
         if (result.getConfidenceLevel() == EligibilityResultDTO.ConfidenceLevel.HIGH) {
-            confidenceMultiplier = new BigDecimal("1.5");
+            confidenceMultiplier = 1.5;
         } else if (result.getConfidenceLevel() == EligibilityResultDTO.ConfidenceLevel.MEDIUM) {
-            confidenceMultiplier = new BigDecimal("1.2");
+            confidenceMultiplier = 1.2;
         } else if (result.getConfidenceLevel() == EligibilityResultDTO.ConfidenceLevel.LOW) {
-            confidenceMultiplier = new BigDecimal("0.8");
+            confidenceMultiplier = 0.8;
         }
         
         // Calculate final score
-        BigDecimal score = benefitScore.add(deadlineScore).multiply(confidenceMultiplier);
+        Double score = benefitScore + (deadlineScore * confidenceMultiplier);
         
         // Add priority weight if available
         if (scheme.getEligibilityCriteria() != null) {
             try {
                 EligibilityCriteriaDTO criteria = parseEligibilityCriteria(scheme.getEligibilityCriteria());
                 if (criteria.getPriorityWeight() != null) {
-                    score = score.add(new BigDecimal(criteria.getPriorityWeight()));
+                    score = score + criteria.getPriorityWeight();
                 }
             } catch (Exception e) {
                 log.warn("Error parsing priority weight from eligibility criteria", e);
             }
         }
         
-        return score.setScale(2, RoundingMode.HALF_UP);
+        return score;
     }
 
     private EligibilityCriteriaDTO parseEligibilityCriteria(String eligibilityCriteriaJson) {

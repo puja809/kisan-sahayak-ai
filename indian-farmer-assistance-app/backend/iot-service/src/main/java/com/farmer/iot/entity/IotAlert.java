@@ -34,13 +34,13 @@ public class IotAlert {
     @Column(name = "sensor_type", nullable = false, length = 50)
     private String sensorType;
 
-    @Column(name = "reading_value", precision = 10, scale = 2)
+    @Column(name = "reading_value")
     private Double readingValue;
 
     @Column(name = "threshold_type", length = 10)
     private String thresholdType;
 
-    @Column(name = "threshold_value", precision = 10, scale = 2)
+    @Column(name = "threshold_value")
     private Double thresholdValue;
 
     @Column(name = "alert_message", length = 500)

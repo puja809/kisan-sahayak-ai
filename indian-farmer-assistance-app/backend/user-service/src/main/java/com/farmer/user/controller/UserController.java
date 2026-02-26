@@ -5,6 +5,14 @@ import com.farmer.user.dto.UserResponse;
 import com.farmer.user.entity.User;
 import com.farmer.user.security.JwtService;
 import com.farmer.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +28,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "User Management", description = "User profile and authentication management endpoints")
+@SecurityRequirement(name = "bearer-jwt")
 public class UserController {
 
     private final UserService userService;
@@ -32,7 +42,14 @@ public class UserController {
      * Requirements: 11A.1
      */
     @GetMapping("/profile")
-    public ResponseEntity<UserResponse> getProfile(@AuthenticationPrincipal User user) {
+    @Operation(summary = "Get current user profile", description = "Retrieves the profile of the currently authenticated user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Profile retrieved successfully",
+            content = @Content(schema = @Schema(implementation = UserResponse.class))),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<UserResponse> getProfile(
+            @Parameter(description = "Authenticated user") @AuthenticationPrincipal User user) {
         log.info("Profile request for user: {}", user.getFarmerId());
 
         try {
@@ -49,9 +66,15 @@ public class UserController {
      * Requirements: 11A.4, 11A.7
      */
     @PutMapping("/profile")
+    @Operation(summary = "Update user profile", description = "Updates the profile of the currently authenticated user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Profile updated successfully",
+            content = @Content(schema = @Schema(implementation = UserResponse.class))),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     public ResponseEntity<UserResponse> updateProfile(
-            @AuthenticationPrincipal User user,
-            @Valid @RequestBody UpdateProfileRequest request) {
+            @Parameter(description = "Authenticated user") @AuthenticationPrincipal User user,
+            @Parameter(description = "Profile update request") @Valid @RequestBody UpdateProfileRequest request) {
         log.info("Profile update request for user: {}", user.getFarmerId());
 
         try {
@@ -68,6 +91,9 @@ public class UserController {
      * Requirements: 11.2, 11.3, 11.9
      */
     @PostMapping("/agristack/sync")
+    @Operation(summary = "Sync profile with AgriStack", description = "Synchronizes the user profile with AgriStack registries")
+    @ApiResponse(responseCode = "200", description = "Sync completed successfully")
+    @ApiResponse(responseCode = "500", description = "Sync failed")
     public ResponseEntity<Void> syncAgriStackProfile(@AuthenticationPrincipal User user) {
         log.info("AgriStack sync request for user: {}", user.getFarmerId());
 
@@ -84,6 +110,11 @@ public class UserController {
      * Deactivate current user's account.
      */
     @DeleteMapping("/account")
+    @Operation(summary = "Deactivate user account", description = "Deactivates the currently authenticated user's account")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Account deactivated successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     public ResponseEntity<Void> deactivateAccount(@AuthenticationPrincipal User user) {
         log.info("Account deactivation request for user: {}", user.getFarmerId());
 
@@ -101,9 +132,16 @@ public class UserController {
      * Requirements: 22.3, 22.5
      */
     @GetMapping("/{farmerId}")
+    @Operation(summary = "Get user profile by ID", description = "Retrieves a user profile by farmer ID (admin or self only)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Profile retrieved successfully",
+            content = @Content(schema = @Schema(implementation = UserResponse.class))),
+        @ApiResponse(responseCode = "403", description = "Unauthorized access"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     public ResponseEntity<UserResponse> getProfileById(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable String farmerId) {
+            @Parameter(description = "Authenticated user") @AuthenticationPrincipal User currentUser,
+            @Parameter(description = "Farmer ID to retrieve") @PathVariable String farmerId) {
         log.info("Profile request by ID: {} for user: {}", farmerId, currentUser.getFarmerId());
 
         // Check if user is requesting their own profile or is an admin

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
+
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -179,130 +179,130 @@ public class GaezDataImportService {
 
         // Upper Gangetic Plain Region (AEZ-05) - Uttar Pradesh, Punjab, Haryana
         dataList.add(createGaezCropData("AEZ-05", "RICE", "Rice", 
-                new BigDecimal("75"), new BigDecimal("80"), new BigDecimal("70"),
-                new BigDecimal("85"), new BigDecimal("65"), new BigDecimal("3500"),
-                new BigDecimal("4500"), new BigDecimal("1200"), 140, true, false, false, "MEDIUM"));
+                75.0, 80.0, 70.0,
+                85.0, 65.0, 3500.0,
+                4500.0, 1200.0, 140, true, false, false, "MEDIUM"));
         
         dataList.add(createGaezCropData("AEZ-05", "WHEAT", "Wheat", 
-                new BigDecimal("90"), new BigDecimal("95"), new BigDecimal("85"),
-                new BigDecimal("90"), new BigDecimal("85"), new BigDecimal("4500"),
-                new BigDecimal("5500"), new BigDecimal("500"), 120, false, true, false, "LOW"));
+                90.0, 95.0, 85.0,
+                90.0, 85.0, 4500.0,
+                5500.0, 500.0, 120, false, true, false, "LOW"));
         
         dataList.add(createGaezCropData("AEZ-05", "COTTON", "Cotton", 
-                new BigDecimal("70"), new BigDecimal("75"), new BigDecimal("65"),
-                new BigDecimal("80"), new BigDecimal("60"), new BigDecimal("2500"),
-                new BigDecimal("3500"), new BigDecimal("700"), 180, true, false, false, "HIGH"));
+                70.0, 75.0, 65.0,
+                80.0, 60.0, 2500.0,
+                3500.0, 700.0, 180, true, false, false, "HIGH"));
         
         dataList.add(createGaezCropData("AEZ-05", "SUGARCANE", "Sugarcane", 
-                new BigDecimal("85"), new BigDecimal("80"), new BigDecimal("90"),
-                new BigDecimal("85"), new BigDecimal("75"), new BigDecimal("70000"),
-                new BigDecimal("90000"), new BigDecimal("1500"), 365, true, true, false, "MEDIUM"));
+                85.0, 80.0, 90.0,
+                85.0, 75.0, 70000.0,
+                90000.0, 1500.0, 365, true, true, false, "MEDIUM"));
         
         dataList.add(createGaezCropData("AEZ-05", "MUSTARD", "Mustard", 
-                new BigDecimal("88"), new BigDecimal("90"), new BigDecimal("85"),
-                new BigDecimal("90"), new BigDecimal("85"), new BigDecimal("1800"),
-                new BigDecimal("2500"), new BigDecimal("400"), 110, false, true, false, "LOW"));
+                88.0, 90.0, 85.0,
+                90.0, 85.0, 1800.0,
+                2500.0, 400.0, 110, false, true, false, "LOW"));
 
         // Lower Gangetic Plain Region (AEZ-06) - West Bengal, Bihar
         dataList.add(createGaezCropData("AEZ-06", "RICE", "Rice", 
-                new BigDecimal("95"), new BigDecimal("95"), new BigDecimal("95"),
-                new BigDecimal("90"), new BigDecimal("90"), new BigDecimal("4000"),
-                new BigDecimal("5000"), new BigDecimal("1500"), 150, true, false, false, "MEDIUM"));
+                95.0, 95.0, 95.0,
+                90.0, 90.0, 4000.0,
+                5000.0, 1500.0, 150, true, false, false, "MEDIUM"));
         
         dataList.add(createGaezCropData("AEZ-06", "JUTE", "Jute", 
-                new BigDecimal("90"), new BigDecimal("85"), new BigDecimal("95"),
-                new BigDecimal("90"), new BigDecimal("85"), new BigDecimal("2500"),
-                new BigDecimal("3000"), new BigDecimal("1800"), 120, true, false, false, "LOW"));
+                90.0, 85.0, 95.0,
+                90.0, 85.0, 2500.0,
+                3000.0, 1800.0, 120, true, false, false, "LOW"));
         
         dataList.add(createGaezCropData("AEZ-06", "POTATO", "Potato", 
-                new BigDecimal("85"), new BigDecimal("80"), new BigDecimal("90"),
-                new BigDecimal("85"), new BigDecimal("80"), new BigDecimal("30000"),
-                new BigDecimal("45000"), new BigDecimal("500"), 90, false, true, false, "MEDIUM"));
+                85.0, 80.0, 90.0,
+                85.0, 80.0, 30000.0,
+                45000.0, 500.0, 90, false, true, false, "MEDIUM"));
 
         // Central Plateau and Hills Region (AEZ-09) - Madhya Pradesh, Maharashtra
         dataList.add(createGaezCropData("AEZ-09", "SOYBEAN", "Soybean", 
-                new BigDecimal("85"), new BigDecimal("90"), new BigDecimal("80"),
-                new BigDecimal("85"), new BigDecimal("75"), new BigDecimal("2000"),
-                new BigDecimal("2800"), new BigDecimal("600"), 100, true, false, false, "MEDIUM"));
+                85.0, 90.0, 80.0,
+                85.0, 75.0, 2000.0,
+                2800.0, 600.0, 100, true, false, false, "MEDIUM"));
         
         dataList.add(createGaezCropData("AEZ-09", "COTTON", "Cotton", 
-                new BigDecimal("80"), new BigDecimal("85"), new BigDecimal("75"),
-                new BigDecimal("80"), new BigDecimal("70"), new BigDecimal("2800"),
-                new BigDecimal("3800"), new BigDecimal("650"), 180, true, false, false, "HIGH"));
+                80.0, 85.0, 75.0,
+                80.0, 70.0, 2800.0,
+                3800.0, 650.0, 180, true, false, false, "HIGH"));
         
         dataList.add(createGaezCropData("AEZ-09", "PULSES", "Pulses (Tur/Arhar)", 
-                new BigDecimal("75"), new BigDecimal("80"), new BigDecimal("70"),
-                new BigDecimal("75"), new BigDecimal("65"), new BigDecimal("1500"),
-                new BigDecimal("2000"), new BigDecimal("450"), 120, true, false, false, "LOW"));
+                75.0, 80.0, 70.0,
+                75.0, 65.0, 1500.0,
+                2000.0, 450.0, 120, true, false, false, "LOW"));
 
         // Western Dry Region (AEZ-02) - Rajasthan, Gujarat
         dataList.add(createGaezCropData("AEZ-02", "PEARL_MILLET", "Pearl Millet (Bajra)", 
-                new BigDecimal("85"), new BigDecimal("90"), new BigDecimal("80"),
-                new BigDecimal("85"), new BigDecimal("75"), new BigDecimal("1500"),
-                new BigDecimal("2500"), new BigDecimal("350"), 90, true, false, false, "HIGH"));
+                85.0, 90.0, 80.0,
+                85.0, 75.0, 1500.0,
+                2500.0, 350.0, 90, true, false, false, "HIGH"));
         
         dataList.add(createGaezCropData("AEZ-02", "CLUSTER_BEAN", "Cluster Bean (Guar)", 
-                new BigDecimal("80"), new BigDecimal("85"), new BigDecimal("75"),
-                new BigDecimal("80"), new BigDecimal("70"), new BigDecimal("1200"),
-                new BigDecimal("1800"), new BigDecimal("300"), 80, true, false, false, "LOW"));
+                80.0, 85.0, 75.0,
+                80.0, 70.0, 1200.0,
+                1800.0, 300.0, 80, true, false, false, "LOW"));
         
         dataList.add(createGaezCropData("AEZ-02", "GROUNDNUT", "Groundnut", 
-                new BigDecimal("70"), new BigDecimal("75"), new BigDecimal("65"),
-                new BigDecimal("70"), new BigDecimal("60"), new BigDecimal("1500"),
-                new BigDecimal("2500"), new BigDecimal("500"), 110, true, false, false, "MEDIUM"));
+                70.0, 75.0, 65.0,
+                70.0, 60.0, 1500.0,
+                2500.0, 500.0, 110, true, false, false, "MEDIUM"));
 
         // Southern Plateau and Hills Region (AEZ-10) - Karnataka, Andhra Pradesh, Tamil Nadu
         dataList.add(createGaezCropData("AEZ-10", "RICE", "Rice", 
-                new BigDecimal("80"), new BigDecimal("85"), new BigDecimal("75"),
-                new BigDecimal("80"), new BigDecimal("70"), new BigDecimal("3500"),
-                new BigDecimal("4500"), new BigDecimal("1200"), 130, true, false, false, "MEDIUM"));
+                80.0, 85.0, 75.0,
+                80.0, 70.0, 3500.0,
+                4500.0, 1200.0, 130, true, false, false, "MEDIUM"));
         
         dataList.add(createGaezCropData("AEZ-10", "GROUNDNUT", "Groundnut", 
-                new BigDecimal("85"), new BigDecimal("90"), new BigDecimal("80"),
-                new BigDecimal("85"), new BigDecimal("75"), new BigDecimal("1800"),
-                new BigDecimal("2800"), new BigDecimal("500"), 110, true, false, false, "MEDIUM"));
+                85.0, 90.0, 80.0,
+                85.0, 75.0, 1800.0,
+                2800.0, 500.0, 110, true, false, false, "MEDIUM"));
         
         dataList.add(createGaezCropData("AEZ-10", "SUNFLOWER", "Sunflower", 
-                new BigDecimal("78"), new BigDecimal("80"), new BigDecimal("75"),
-                new BigDecimal("80"), new BigDecimal("70"), new BigDecimal("1500"),
-                new BigDecimal("2200"), new BigDecimal("450"), 100, false, true, false, "LOW"));
+                78.0, 80.0, 75.0,
+                80.0, 70.0, 1500.0,
+                2200.0, 450.0, 100, false, true, false, "LOW"));
         
         dataList.add(createGaezCropData("AEZ-10", "SUGARCANE", "Sugarcane", 
-                new BigDecimal("82"), new BigDecimal("78"), new BigDecimal("88"),
-                new BigDecimal("85"), new BigDecimal("72"), new BigDecimal("65000"),
-                new BigDecimal("85000"), new BigDecimal("1400"), 365, true, true, false, "MEDIUM"));
+                82.0, 78.0, 88.0,
+                85.0, 72.0, 65000.0,
+                85000.0, 1400.0, 365, true, true, false, "MEDIUM"));
 
         // Eastern Coastal Plain (AEZ-13) - Odisha, Andhra Pradesh (coastal)
         dataList.add(createGaezCropData("AEZ-13", "RICE", "Rice", 
-                new BigDecimal("92"), new BigDecimal("95"), new BigDecimal("90"),
-                new BigDecimal("88"), new BigDecimal("88"), new BigDecimal("4200"),
-                new BigDecimal("5200"), new BigDecimal("1300"), 145, true, false, false, "MEDIUM"));
+                92.0, 95.0, 90.0,
+                88.0, 88.0, 4200.0,
+                5200.0, 1300.0, 145, true, false, false, "MEDIUM"));
         
         dataList.add(createGaezCropData("AEZ-13", "CASHEW", "Cashew", 
-                new BigDecimal("85"), new BigDecimal("88"), new BigDecimal("82"),
-                new BigDecimal("85"), new BigDecimal("80"), new BigDecimal("800"),
-                new BigDecimal("1200"), new BigDecimal("1000"), 210, true, false, false, "LOW"));
+                85.0, 88.0, 82.0,
+                85.0, 80.0, 800.0,
+                1200.0, 1000.0, 210, true, false, false, "LOW"));
         
         dataList.add(createGaezCropData("AEZ-13", "COCONUT", "Coconut", 
-                new BigDecimal("88"), new BigDecimal("90"), new BigDecimal("85"),
-                new BigDecimal("88"), new BigDecimal("85"), new BigDecimal("6000"),
-                new BigDecimal("8000"), new BigDecimal("1600"), 365, true, false, false, "LOW"));
+                88.0, 90.0, 85.0,
+                88.0, 85.0, 6000.0,
+                8000.0, 1600.0, 365, true, false, false, "LOW"));
 
         // Western Himalayan Region (AEZ-14) - Himachal Pradesh, Jammu & Kashmir, Uttarakhand
         dataList.add(createGaezCropData("AEZ-14", "WHEAT", "Wheat", 
-                new BigDecimal("75"), new BigDecimal("80"), new BigDecimal("70"),
-                new BigDecimal("75"), new BigDecimal("70"), new BigDecimal("3000"),
-                new BigDecimal("4000"), new BigDecimal("450"), 130, false, true, false, "LOW"));
+                75.0, 80.0, 70.0,
+                75.0, 70.0, 3000.0,
+                4000.0, 450.0, 130, false, true, false, "LOW"));
         
         dataList.add(createGaezCropData("AEZ-14", "APPLE", "Apple", 
-                new BigDecimal("90"), new BigDecimal("85"), new BigDecimal("92"),
-                new BigDecimal("88"), new BigDecimal("85"), new BigDecimal("15000"),
-                new BigDecimal("25000"), new BigDecimal("800"), 200, false, false, false, "LOW"));
+                90.0, 85.0, 92.0,
+                88.0, 85.0, 15000.0,
+                25000.0, 800.0, 200, false, false, false, "LOW"));
         
         dataList.add(createGaezCropData("AEZ-14", "MAIZE", "Maize", 
-                new BigDecimal("78"), new BigDecimal("82"), new BigDecimal("75"),
-                new BigDecimal("78"), new BigDecimal("72"), new BigDecimal("3500"),
-                new BigDecimal("4500"), new BigDecimal("550"), 100, true, false, false, "MEDIUM"));
+                78.0, 82.0, 75.0,
+                78.0, 72.0, 3500.0,
+                4500.0, 550.0, 100, true, false, false, "MEDIUM"));
 
         return dataList;
     }
@@ -310,18 +310,15 @@ public class GaezDataImportService {
     /**
      * Helper method to create GaezCropData with common values.
      */
-    private GaezCropData createGaezCropData(String zoneCode, String cropCode, String cropName,
-            BigDecimal overallScore, BigDecimal climateScore, BigDecimal soilScore,
-            BigDecimal terrainScore, BigDecimal waterScore, BigDecimal rainfedYield,
-            BigDecimal irrigatedYield, BigDecimal waterRequirements, int growingDays,
+    private GaezCropData createGaezCropData(String zoneCode, String cropCode, String cropName, Double overallScore, Double climateScore, Double soilScore, Double terrainScore, Double waterScore, Double rainfedYield, Double irrigatedYield, Double waterRequirements, int growingDays,
             boolean kharif, boolean rabi, boolean zaid, String climateRisk) {
         
         GaezCropData.SuitabilityClassification classification;
-        if (overallScore.compareTo(new BigDecimal("80")) >= 0) {
+        if (overallScore.compareTo(80.0) >= 0) {
             classification = GaezCropData.SuitabilityClassification.HIGHLY_SUITABLE;
-        } else if (overallScore.compareTo(new BigDecimal("60")) >= 0) {
+        } else if (overallScore.compareTo(60.0) >= 0) {
             classification = GaezCropData.SuitabilityClassification.SUITABLE;
-        } else if (overallScore.compareTo(new BigDecimal("40")) >= 0) {
+        } else if (overallScore.compareTo(40.0) >= 0) {
             classification = GaezCropData.SuitabilityClassification.MARGINALLY_SUITABLE;
         } else {
             classification = GaezCropData.SuitabilityClassification.NOT_SUITABLE;
@@ -386,12 +383,12 @@ public class GaezDataImportService {
     }
 
     // Helper parsing methods
-    private BigDecimal parseDecimal(String value) {
+    private Double parseDecimal(String value) {
         if (value == null || value.trim().isEmpty()) {
             return null;
         }
         try {
-            return new BigDecimal(value.trim());
+            return new Double(value.trim());
         } catch (NumberFormatException e) {
             return null;
         }
@@ -426,3 +423,12 @@ public class GaezDataImportService {
         }
     }
 }
+
+
+
+
+
+
+
+
+

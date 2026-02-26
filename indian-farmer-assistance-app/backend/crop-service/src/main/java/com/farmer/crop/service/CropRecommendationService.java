@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -117,7 +116,7 @@ public class CropRecommendationService {
                         .map(GaezCropSuitabilityDto::getCropCode)
                         .collect(Collectors.toList());
                 // Default projected rainfall deviation of -10% (below normal)
-                BigDecimal projectedDeviation = new BigDecimal("-10");
+                Double projectedDeviation = new Double("-10");
                 climateRiskMap = climateRiskService.analyzeClimateRiskForCrops(cropCodes, projectedDeviation);
             }
 
@@ -260,11 +259,11 @@ public class CropRecommendationService {
             ClimateRiskDto climateRisk = climateRiskMap.get(cropCode);
             
             // Calculate irrigation-adjusted score
-            BigDecimal irrigationAdjustedScore = adjustForIrrigation(
+            Double irrigationAdjustedScore = adjustForIrrigation(
                     suitability.getOverallSuitabilityScore(), request.getIrrigationType());
             
             // Calculate soil health adjusted score
-            BigDecimal soilHealthAdjustedScore = suitability.getOverallSuitabilityScore();
+            Double soilHealthAdjustedScore = suitability.getOverallSuitabilityScore();
             List<String> soilHealthRecommendations = new ArrayList<>();
             if (request.hasSoilHealthData()) {
                 soilHealthAdjustedScore = calculateSoilHealthAdjustedScore(
@@ -272,38 +271,38 @@ public class CropRecommendationService {
             }
             
             // Calculate climate-adjusted score
-            BigDecimal climateAdjustedScore = climateRiskService.calculateClimateAdjustedScore(
+            Double climateAdjustedScore = climateRiskService.calculateClimateAdjustedScore(
                     irrigationAdjustedScore, climateRisk);
             
             // Calculate market-adjusted score
-            BigDecimal marketAdjustedScore = marketDataService.calculateMarketAdjustedScore(
+            Double marketAdjustedScore = marketDataService.calculateMarketAdjustedScore(
                     climateAdjustedScore, marketData, Boolean.TRUE.equals(request.getIncludeMarketData()));
             
             // Calculate expected yield per acre (convert from kg/ha to quintals/acre)
-            BigDecimal expectedYieldPerAcre = calculateYieldPerAcre(suitability);
+            Double expectedYieldPerAcre = calculateYieldPerAcre(suitability);
             
             // Calculate water requirement per acre (convert from mm to liters)
-            BigDecimal waterRequirementPerAcre = calculateWaterPerAcre(suitability);
+            Double waterRequirementPerAcre = calculateWaterPerAcre(suitability);
             
             // Estimate input cost and net profit
-            BigDecimal estimatedInputCost = estimateInputCost(suitability);
+            Double estimatedInputCost = estimateInputCost(suitability);
             
             // Calculate expected revenue with market data
-            BigDecimal expectedRevenuePerAcre = marketDataService.calculateExpectedRevenue(
+            Double expectedRevenuePerAcre = marketDataService.calculateExpectedRevenue(
                     expectedYieldPerAcre, marketData);
             if (expectedRevenuePerAcre == null) {
                 expectedRevenuePerAcre = calculateRevenue(expectedYieldPerAcre, cropCode);
             }
             
             // Calculate net profit (handle null case)
-            BigDecimal estimatedNetProfit = null;
+            Double estimatedNetProfit = null;
             if (expectedRevenuePerAcre != null && estimatedInputCost != null) {
-                estimatedNetProfit = expectedRevenuePerAcre.subtract(estimatedInputCost)
-                        .setScale(0, RoundingMode.HALF_UP);
+                estimatedNetProfit = expectedRevenuePerAcre - (estimatedInputCost)
+                        ;
             }
             
             // Calculate potential yield gap
-            BigDecimal potentialYieldGap = calculateYieldGap(suitability);
+            Double potentialYieldGap = calculateYieldGap(suitability);
             
             // Determine season suitability
             boolean seasonSuitable = isSeasonSuitable(suitability, request.getSeason());
@@ -365,163 +364,159 @@ public class CropRecommendationService {
     /**
      * Adjust score for irrigation type.
      */
-    private BigDecimal adjustForIrrigation(BigDecimal baseScore, 
+    private Double adjustForIrrigation(Double baseScore, 
             CropRecommendationRequestDto.IrrigationType irrigationType) {
         if (irrigationType == null) return baseScore;
         
-        BigDecimal adjustment = switch (irrigationType) {
-            case RAINFED -> new BigDecimal("-5");
-            case DRIP, SPRINKLER -> new BigDecimal("3");
-            case CANAL, BOREWELL -> new BigDecimal("2");
-            case MIXED -> BigDecimal.ZERO;
+        Double adjustment = switch (irrigationType) {
+            case RAINFED -> -5.0;
+            case DRIP, SPRINKLER -> 3.0;
+            case CANAL, BOREWELL -> 2.0;
+            case MIXED -> 0.0;
         };
         
-        return baseScore.add(adjustment).max(BigDecimal.ZERO).min(new BigDecimal("100"));
+        return Math.max(baseScore + adjustment, 0.0);
     }
 
     /**
      * Calculate soil health adjusted score.
      */
-    private BigDecimal calculateSoilHealthAdjustedScore(
+    private Double calculateSoilHealthAdjustedScore(
             GaezCropSuitabilityDto suitability,
             SoilHealthCardDto soilHealthCard,
             List<String> recommendations) {
         
-        BigDecimal adjustment = BigDecimal.ZERO;
+        Double adjustment = 0.0;
         
         if (soilHealthCard == null) return suitability.getOverallSuitabilityScore();
         
         // Check nutrient deficiencies
         if (soilHealthCard.getNitrogenKgHa() != null && 
-                soilHealthCard.getNitrogenKgHa().compareTo(new BigDecimal("280")) < 0) {
-            adjustment = adjustment.subtract(new BigDecimal("3"));
+                soilHealthCard.getNitrogenKgHa().compareTo(280.0) < 0) {
+            adjustment = adjustment - (3.0);
             recommendations.add("Low nitrogen - apply nitrogen fertilizer");
         }
         
         if (soilHealthCard.getPhosphorusKgHa() != null && 
-                soilHealthCard.getPhosphorusKgHa().compareTo(new BigDecimal("10")) < 0) {
-            adjustment = adjustment.subtract(new BigDecimal("3"));
+                soilHealthCard.getPhosphorusKgHa().compareTo(10.0) < 0) {
+            adjustment = adjustment - (3.0);
             recommendations.add("Low phosphorus - apply phosphorus fertilizer");
         }
         
         if (soilHealthCard.getPotassiumKgHa() != null && 
-                soilHealthCard.getPotassiumKgHa().compareTo(new BigDecimal("108")) < 0) {
-            adjustment = adjustment.subtract(new BigDecimal("2"));
+                soilHealthCard.getPotassiumKgHa().compareTo(108.0) < 0) {
+            adjustment = adjustment - (2.0);
             recommendations.add("Low potassium - apply potassium fertilizer");
         }
         
         if (soilHealthCard.getZincPpm() != null && 
-                soilHealthCard.getZincPpm().compareTo(new BigDecimal("0.6")) < 0) {
-            adjustment = adjustment.subtract(new BigDecimal("2"));
+                soilHealthCard.getZincPpm().compareTo(0.6) < 0) {
+            adjustment = adjustment - (2.0);
             recommendations.add("Zinc deficiency - apply zinc sulfate");
         }
         
-        return suitability.getOverallSuitabilityScore().add(adjustment)
-                .max(BigDecimal.ZERO).min(new BigDecimal("100"));
+        return Math.max(suitability.getOverallSuitabilityScore() + adjustment, 0.0);
     }
 
     /**
      * Calculate yield per acre (convert from kg/ha to quintals/acre).
      * 1 hectare = 2.47 acres, 1 quintal = 100 kg
      */
-    private BigDecimal calculateYieldPerAcre(GaezCropSuitabilityDto suitability) {
+    private Double calculateYieldPerAcre(GaezCropSuitabilityDto suitability) {
         if (suitability.getExpectedYieldExpected() == null) return null;
         
         // Convert kg/ha to quintals/acre
-        BigDecimal yieldKgPerAcre = suitability.getExpectedYieldExpected()
-                .divide(new BigDecimal("2.47"), 2, RoundingMode.HALF_UP);
+        Double yieldKgPerAcre = suitability.getExpectedYieldExpected() / 2.47;
         
-        return yieldKgPerAcre.divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+        return yieldKgPerAcre / 100.0;
     }
 
     /**
      * Calculate water requirement per acre (convert from mm to liters).
      * 1 mm = 10000 liters per hectare = 4047 liters per acre
      */
-    private BigDecimal calculateWaterPerAcre(GaezCropSuitabilityDto suitability) {
+    private Double calculateWaterPerAcre(GaezCropSuitabilityDto suitability) {
         if (suitability.getWaterRequirementsMm() == null) return null;
         
         return suitability.getWaterRequirementsMm()
-                .multiply(new BigDecimal("4047"))
-                .setScale(0, RoundingMode.HALF_UP);
+                 * (4047.0)
+                ;
     }
 
     /**
      * Estimate input cost per acre (INR).
      */
-    private BigDecimal estimateInputCost(GaezCropSuitabilityDto suitability) {
+    private Double estimateInputCost(GaezCropSuitabilityDto suitability) {
         // Base cost varies by crop type
-        BigDecimal baseCost = switch (suitability.getCropCode()) {
-            case "RICE" -> new BigDecimal("25000");
-            case "WHEAT" -> new BigDecimal("20000");
-            case "COTTON" -> new BigDecimal("35000");
-            case "SUGARCANE" -> new BigDecimal("45000");
-            case "SOYBEAN" -> new BigDecimal("15000");
-            case "GROUNDNUT" -> new BigDecimal("18000");
-            case "PULSES" -> new BigDecimal("12000");
-            case "MUSTARD" -> new BigDecimal("15000");
-            case "MAIZE" -> new BigDecimal("18000");
-            case "POTATO" -> new BigDecimal("30000");
-            default -> new BigDecimal("20000");
+        Double baseCost = switch (suitability.getCropCode()) {
+            case "RICE" -> 25000.0;
+            case "WHEAT" -> 20000.0;
+            case "COTTON" -> 35000.0;
+            case "SUGARCANE" -> 45000.0;
+            case "SOYBEAN" -> 15000.0;
+            case "GROUNDNUT" -> 18000.0;
+            case "PULSES" -> 12000.0;
+            case "MUSTARD" -> 15000.0;
+            case "MAIZE" -> 18000.0;
+            case "POTATO" -> 30000.0;
+            default -> 20000.0;
         };
         
-        return baseCost.setScale(0, RoundingMode.HALF_UP);
+        return baseCost;
     }
 
     /**
      * Estimate net profit per acre (INR).
      */
-    private BigDecimal estimateNetProfit(GaezCropSuitabilityDto suitability, BigDecimal yieldPerAcre) {
+    private Double estimateNetProfit(GaezCropSuitabilityDto suitability, Double yieldPerAcre) {
         if (yieldPerAcre == null) return null;
         
-        BigDecimal estimatedRevenue = calculateRevenue(yieldPerAcre, suitability.getCropCode());
-        BigDecimal inputCost = estimateInputCost(suitability);
+        Double estimatedRevenue = calculateRevenue(yieldPerAcre, suitability.getCropCode());
+        Double inputCost = estimateInputCost(suitability);
         
-        return estimatedRevenue.subtract(inputCost).setScale(0, RoundingMode.HALF_UP);
+        return estimatedRevenue - (inputCost);
     }
 
     /**
      * Calculate revenue from yield (INR per acre).
      */
-    private BigDecimal calculateRevenue(BigDecimal yieldPerAcre, String cropCode) {
+    private Double calculateRevenue(Double yieldPerAcre, String cropCode) {
         if (yieldPerAcre == null) return null;
         
         // Approximate prices per quintal (INR)
-        BigDecimal pricePerQuintal = switch (cropCode) {
-            case "RICE" -> new BigDecimal("2200");
-            case "WHEAT" -> new BigDecimal("2500");
-            case "COTTON" -> new BigDecimal("6000");
-            case "SUGARCANE" -> new BigDecimal("350");  // per quintal
-            case "SOYBEAN" -> new BigDecimal("5000");
-            case "GROUNDNUT" -> new BigDecimal("6200");
-            case "PULSES" -> new BigDecimal("7000");
-            case "MUSTARD" -> new BigDecimal("5500");
-            case "MAIZE" -> new BigDecimal("2100");
-            case "POTATO" -> new BigDecimal("1500");
-            default -> new BigDecimal("2000");
+        Double pricePerQuintal = switch (cropCode) {
+            case "RICE" -> 2200.0;
+            case "WHEAT" -> 2500.0;
+            case "COTTON" -> 6000.0;
+            case "SUGARCANE" -> 350.0;  // per quintal
+            case "SOYBEAN" -> 5000.0;
+            case "GROUNDNUT" -> 6200.0;
+            case "PULSES" -> 7000.0;
+            case "MUSTARD" -> 5500.0;
+            case "MAIZE" -> 2100.0;
+            case "POTATO" -> 1500.0;
+            default -> 2000.0;
         };
         
-        return yieldPerAcre.multiply(pricePerQuintal).setScale(0, RoundingMode.HALF_UP);
+        return yieldPerAcre * (pricePerQuintal);
     }
 
     /**
      * Calculate potential yield gap.
      */
-    private BigDecimal calculateYieldGap(GaezCropSuitabilityDto suitability) {
+    private Double calculateYieldGap(GaezCropSuitabilityDto suitability) {
         if (suitability.getIrrigatedPotentialYield() == null || 
                 suitability.getExpectedYieldExpected() == null) {
             return null;
         }
         
-        BigDecimal potential = suitability.getIrrigatedPotentialYield()
-                .divide(new BigDecimal("2.47"), 2, RoundingMode.HALF_UP)
-                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+        Double potential = suitability.getIrrigatedPotentialYield() / 2.47 / 100.0;
         
-        BigDecimal expected = suitability.getExpectedYieldExpected();
+        Double expected = suitability.getExpectedYieldExpected();
         
-        if (potential.compareTo(BigDecimal.ZERO) == 0) return null;
+        if (potential.compareTo(0.0) == 0) return null;
         
-        return potential.subtract(expected).setScale(2, RoundingMode.HALF_UP);
+        return potential - (expected);
     }
 
     /**
@@ -591,13 +586,13 @@ public class CropRecommendationService {
         
         // Water stress risk
         if (suitability.getWaterSuitabilityScore() != null && 
-                suitability.getWaterSuitabilityScore().compareTo(new BigDecimal("50")) < 0) {
+                suitability.getWaterSuitabilityScore().compareTo(50.0) < 0) {
             risks.add("Water stress risk - ensure adequate irrigation");
         }
         
         // Soil quality concerns
         if (suitability.getSoilSuitabilityScore() != null && 
-                suitability.getSoilSuitabilityScore().compareTo(new BigDecimal("50")) < 0) {
+                suitability.getSoilSuitabilityScore().compareTo(50.0) < 0) {
             risks.add("Soil quality concerns - consider soil amendments");
         }
         
@@ -859,3 +854,11 @@ public class CropRecommendationService {
         };
     }
 }
+
+
+
+
+
+
+
+

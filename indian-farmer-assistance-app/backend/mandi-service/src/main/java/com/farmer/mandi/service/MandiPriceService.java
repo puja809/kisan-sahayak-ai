@@ -1,6 +1,7 @@
 package com.farmer.mandi.service;
 
 import com.farmer.mandi.client.AgmarknetApiClient;
+import com.farmer.mandi.client.DataGovInApiClient;
 import com.farmer.mandi.dto.MandiPriceDto;
 import com.farmer.mandi.entity.MandiPrices;
 import com.farmer.mandi.repository.MandiPricesRepository;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 public class MandiPriceService {
 
     private final AgmarknetApiClient agmarknetApiClient;
+    private final DataGovInApiClient dataGovInApiClient;
     private final MandiPricesRepository mandiPricesRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -57,13 +60,19 @@ public class MandiPriceService {
             return Mono.just(cachedPrices);
         }
 
-        // Fetch from AGMARKNET API
-        return agmarknetApiClient.getCommodityPrices(commodity)
-                .flatMap(priceDtos -> {
-                    if (priceDtos.isEmpty()) {
-                        log.warn("No prices returned from AGMARKNET for commodity: {}", commodity);
-                        return Mono.empty();
+        // Try data.gov.in API first (real-time government data)
+        return dataGovInApiClient.getMandiPrices(null, null, null, commodity, 0, 100)
+                .flatMap(records -> {
+                    if (records.isEmpty()) {
+                        log.info("No prices from data.gov.in, falling back to AGMARKNET");
+                        // Fallback to AGMARKNET
+                        return agmarknetApiClient.getCommodityPrices(commodity);
                     }
+                    
+                    // Convert data.gov.in records to DTOs
+                    List<MandiPriceDto> priceDtos = records.stream()
+                            .map(this::mapDataGovInRecordToDto)
+                            .collect(Collectors.toList());
                     
                     // Save to database
                     savePrices(priceDtos);
@@ -74,8 +83,8 @@ public class MandiPriceService {
                     return Mono.just(priceDtos);
                 })
                 .switchIfEmpty(Mono.defer(() -> {
-                    // If API fails, try to get from database
-                    log.info("AGMARKNET API returned empty, checking database for commodity: {}", commodity);
+                    // If both APIs fail, try to get from database
+                    log.info("Both APIs failed, checking database for commodity: {}", commodity);
                     List<MandiPriceDto> dbPrices = getPricesFromDatabase(commodity);
                     if (!dbPrices.isEmpty()) {
                         log.info("Found {} prices in database for commodity: {}", dbPrices.size(), commodity);
@@ -84,7 +93,19 @@ public class MandiPriceService {
                         return Mono.just(dbPrices);
                     }
                     return Mono.empty();
-                }));
+                }))
+                .onErrorResume(error -> {
+                    log.error("Error fetching prices from data.gov.in: {}, falling back to AGMARKNET", error.getMessage());
+                    return agmarknetApiClient.getCommodityPrices(commodity)
+                            .switchIfEmpty(Mono.defer(() -> {
+                                List<MandiPriceDto> dbPrices = getPricesFromDatabase(commodity);
+                                if (!dbPrices.isEmpty()) {
+                                    dbPrices.forEach(p -> p.setIsCached(true));
+                                    return Mono.just(dbPrices);
+                                }
+                                return Mono.empty();
+                            }));
+                });
     }
 
     /**
@@ -315,6 +336,27 @@ public class MandiPriceService {
                 .unit(entity.getUnit())
                 .source(entity.getSource())
                 .fetchedAt(entity.getCreatedAt())
+                .isCached(false)
+                .build();
+    }
+
+    /**
+     * Maps data.gov.in mandi price record to DTO.
+     */
+    private MandiPriceDto mapDataGovInRecordToDto(DataGovInApiClient.MandiPriceRecord record) {
+        return MandiPriceDto.builder()
+                .commodityName(record.getCommodity())
+                .variety(record.getVariety())
+                .mandiName(record.getMarket())
+                .state(record.getState())
+                .district(record.getDistrict())
+                .priceDate(LocalDate.now())
+                .modalPrice(Double.valueOf(record.getModalPrice()))
+                .minPrice(Double.valueOf(record.getMinPrice()))
+                .maxPrice(Double.valueOf(record.getMaxPrice()))
+                .arrivalQuantityQuintals(Double.valueOf(record.getArrivalQuantity()))
+                .unit("Quintal")
+                .source("data.gov.in")
                 .isCached(false)
                 .build();
     }

@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -105,32 +104,32 @@ public class CropRecommendationResponseDto {
         /**
          * Overall suitability score (0-100), combining all factors
          */
-        private BigDecimal overallSuitabilityScore;
+        private Double overallSuitabilityScore;
         
         /**
          * Suitability score adjusted for irrigation type
          */
-        private BigDecimal irrigationAdjustedScore;
+        private Double irrigationAdjustedScore;
         
         /**
          * Suitability score adjusted for soil health (if available)
          */
-        private BigDecimal soilHealthAdjustedScore;
+        private Double soilHealthAdjustedScore;
         
         /**
          * Expected yield per acre (quintals)
          */
-        private BigDecimal expectedYieldPerAcre;
+        private Double expectedYieldPerAcre;
         
         /**
          * Expected revenue per acre (INR)
          */
-        private BigDecimal expectedRevenuePerAcre;
+        private Double expectedRevenuePerAcre;
         
         /**
          * Water requirement per acre (liters)
          */
-        private BigDecimal waterRequirementPerAcre;
+        private Double waterRequirementPerAcre;
         
         /**
          * Growing duration (days)
@@ -160,17 +159,17 @@ public class CropRecommendationResponseDto {
         /**
          * Potential yield gap (expected vs potential)
          */
-        private BigDecimal potentialYieldGap;
+        private Double potentialYieldGap;
         
         /**
          * Input cost estimate per acre (INR)
          */
-        private BigDecimal estimatedInputCost;
+        private Double estimatedInputCost;
         
         /**
          * Net profit estimate per acre (INR)
          */
-        private BigDecimal estimatedNetProfit;
+        private Double estimatedNetProfit;
         
         /**
          * Risk factors to consider

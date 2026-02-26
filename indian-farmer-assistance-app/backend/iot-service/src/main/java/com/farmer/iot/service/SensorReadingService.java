@@ -69,7 +69,7 @@ public class SensorReadingService {
         log.info("Sensor reading recorded for device: {}", request.getDeviceId());
 
         // Check thresholds and generate alerts
-        alertService.checkThresholdsAndGenerateAlerts(savedReading, device);
+        alertService.monitorThresholds(savedReading);
 
         return SensorReadingResponse.fromEntity(savedReading);
     }

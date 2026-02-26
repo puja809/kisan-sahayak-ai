@@ -2,6 +2,13 @@ package com.farmer.mandi.controller;
 
 import com.farmer.mandi.dto.*;
 import com.farmer.mandi.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
+
 import java.util.List;
 
 /**
@@ -28,6 +35,7 @@ import java.util.List;
 @RequestMapping("/api/v1/mandi")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Mandi Prices", description = "Agricultural market price and mandi management endpoints")
 public class MandiController {
 
     private final MandiPriceService mandiPriceService;
@@ -44,6 +52,12 @@ public class MandiController {
      * @return List of MandiPriceDto with current prices
      */
     @GetMapping("/prices/{commodity}")
+    @Operation(summary = "Get commodity prices", description = "Retrieves current market prices for a specified agricultural commodity")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Prices retrieved successfully",
+            content = @Content(schema = @Schema(implementation = MandiPriceDto.class))),
+        @ApiResponse(responseCode = "404", description = "Commodity not found")
+    })
     public Mono<ResponseEntity<List<MandiPriceDto>>> getCommodityPrices(
             @PathVariable String commodity) {
         log.info("Getting prices for commodity: {}", commodity);
@@ -63,9 +77,15 @@ public class MandiController {
      * @return List of MandiPriceDto with prices
      */
     @GetMapping("/prices/{commodity}/state/{state}")
+    @Operation(summary = "Get commodity prices by state", description = "Retrieves market prices for a commodity in a specific state")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Prices retrieved successfully",
+            content = @Content(schema = @Schema(implementation = MandiPriceDto.class))),
+        @ApiResponse(responseCode = "404", description = "Commodity or state not found")
+    })
     public Mono<ResponseEntity<List<MandiPriceDto>>> getCommodityPricesByState(
-            @PathVariable String commodity,
-            @PathVariable String state) {
+            @Parameter(description = "The commodity name") @PathVariable String commodity,
+            @Parameter(description = "The state name") @PathVariable String state) {
         log.info("Getting prices for commodity: {} in state: {}", commodity, state);
         
         return mandiPriceService.getCommodityPricesByState(commodity, state)
@@ -85,11 +105,17 @@ public class MandiController {
      * @return List of MandiPriceDto sorted by distance
      */
     @GetMapping("/prices/nearby")
+    @Operation(summary = "Get nearby mandi prices", description = "Retrieves commodity prices from nearby mandis sorted by distance")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Prices retrieved successfully",
+            content = @Content(schema = @Schema(implementation = MandiPriceDto.class))),
+        @ApiResponse(responseCode = "404", description = "No mandis found in range")
+    })
     public Mono<ResponseEntity<List<MandiPriceDto>>> getNearbyPrices(
-            @RequestParam String commodity,
-            @RequestParam BigDecimal latitude,
-            @RequestParam BigDecimal longitude,
-            @RequestParam(defaultValue = "50") int radiusKm) {
+            @Parameter(description = "The commodity name") @RequestParam String commodity,
+            @Parameter(description = "Farmer's latitude") @RequestParam Double latitude,
+            @Parameter(description = "Farmer's longitude") @RequestParam Double longitude,
+            @Parameter(description = "Search radius in kilometers") @RequestParam(defaultValue = "50") int radiusKm) {
         log.info("Getting nearby prices for commodity: {} within {} km", commodity, radiusKm);
         
         return mandiPriceService.getCommodityPrices(commodity)
@@ -111,9 +137,15 @@ public class MandiController {
      * @return PriceTrendDto with trend analysis
      */
     @GetMapping("/prices/trends/{commodity}")
+    @Operation(summary = "Get price trends", description = "Retrieves historical price trends for a commodity")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Trends retrieved successfully",
+            content = @Content(schema = @Schema(implementation = PriceTrendDto.class))),
+        @ApiResponse(responseCode = "404", description = "Commodity not found")
+    })
     public Mono<ResponseEntity<PriceTrendDto>> getPriceTrends(
-            @PathVariable String commodity,
-            @RequestParam(defaultValue = "30") int days) {
+            @Parameter(description = "The commodity name") @PathVariable String commodity,
+            @Parameter(description = "Number of days of historical data") @RequestParam(defaultValue = "30") int days) {
         log.info("Getting price trends for commodity: {} over {} days", commodity, days);
         
         return priceTrendService.getPriceTrend(commodity, days)
@@ -130,8 +162,14 @@ public class MandiController {
      * @return MspComparisonDto with MSP vs market price comparison
      */
     @GetMapping("/prices/msp/{commodity}")
+    @Operation(summary = "Get MSP comparison", description = "Retrieves Minimum Support Price comparison for a commodity")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "MSP comparison retrieved successfully",
+            content = @Content(schema = @Schema(implementation = PriceTrendDto.MspComparisonDto.class))),
+        @ApiResponse(responseCode = "404", description = "Commodity not found")
+    })
     public ResponseEntity<PriceTrendDto.MspComparisonDto> getMspComparison(
-            @PathVariable String commodity) {
+            @Parameter(description = "The commodity name") @PathVariable String commodity) {
         log.info("Getting MSP comparison for commodity: {}", commodity);
         
         PriceTrendDto.MspComparisonDto comparison = priceTrendService.getMspComparison(commodity);
@@ -147,8 +185,14 @@ public class MandiController {
      * @return StorageAdvisoryDto with hold/sell recommendation
      */
     @GetMapping("/prices/advisory/{commodity}")
+    @Operation(summary = "Get storage advisory", description = "Retrieves storage and selling recommendations based on price trends")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Advisory retrieved successfully",
+            content = @Content(schema = @Schema(implementation = PriceTrendDto.StorageAdvisoryDto.class))),
+        @ApiResponse(responseCode = "404", description = "Commodity not found")
+    })
     public ResponseEntity<PriceTrendDto.StorageAdvisoryDto> getStorageAdvisory(
-            @PathVariable String commodity) {
+            @Parameter(description = "The commodity name") @PathVariable String commodity) {
         log.info("Getting storage advisory for commodity: {}", commodity);
         
         PriceTrendDto.StorageAdvisoryDto advisory = priceTrendService.getStorageAdvisory(commodity);
@@ -166,10 +210,16 @@ public class MandiController {
      * @return List of MandiLocationDto sorted by distance
      */
     @GetMapping("/locations/nearby")
+    @Operation(summary = "Get nearby mandi locations", description = "Retrieves nearby agricultural market locations sorted by distance")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Locations retrieved successfully",
+            content = @Content(schema = @Schema(implementation = MandiLocationDto.class))),
+        @ApiResponse(responseCode = "404", description = "No mandis found in range")
+    })
     public ResponseEntity<List<MandiLocationDto>> getNearbyLocations(
-            @RequestParam BigDecimal latitude,
-            @RequestParam BigDecimal longitude,
-            @RequestParam(defaultValue = "50") int radiusKm) {
+            @Parameter(description = "Farmer's latitude") @RequestParam Double latitude,
+            @Parameter(description = "Farmer's longitude") @RequestParam Double longitude,
+            @Parameter(description = "Search radius in kilometers") @RequestParam(defaultValue = "50") int radiusKm) {
         log.info("Getting nearby mandis within {} km", radiusKm);
         
         List<MandiLocationDto> locations = mandiLocationService.getNearbyMandis(
@@ -185,6 +235,11 @@ public class MandiController {
      * @return List of MandiLocationDto
      */
     @GetMapping("/locations")
+    @Operation(summary = "Get all mandi locations", description = "Retrieves all active agricultural market locations")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Locations retrieved successfully",
+            content = @Content(schema = @Schema(implementation = MandiLocationDto.class)))
+    })
     public ResponseEntity<List<MandiLocationDto>> getAllLocations() {
         log.info("Getting all active mandi locations");
         
@@ -201,8 +256,14 @@ public class MandiController {
      * @return List of MandiLocationDto
      */
     @GetMapping("/locations/state/{state}")
+    @Operation(summary = "Get locations by state", description = "Retrieves mandi locations for a specific state")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Locations retrieved successfully",
+            content = @Content(schema = @Schema(implementation = MandiLocationDto.class))),
+        @ApiResponse(responseCode = "404", description = "State not found")
+    })
     public ResponseEntity<List<MandiLocationDto>> getLocationsByState(
-            @PathVariable String state) {
+            @Parameter(description = "The state name") @PathVariable String state) {
         log.info("Getting locations for state: {}", state);
         
         List<MandiLocationDto> locations = mandiLocationService.getLocationsByState(state);
@@ -218,8 +279,14 @@ public class MandiController {
      * @return The created alert DTO
      */
     @PostMapping("/alerts/subscribe")
+    @Operation(summary = "Subscribe to price alerts", description = "Creates a price alert subscription for a commodity")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Alert subscription created successfully",
+            content = @Content(schema = @Schema(implementation = PriceAlertDto.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request")
+    })
     public ResponseEntity<PriceAlertDto> subscribeToAlerts(
-            @Valid @RequestBody PriceAlertRequest request) {
+            @Parameter(description = "Alert subscription request") @Valid @RequestBody PriceAlertRequest request) {
         log.info("Subscribing to price alerts for farmer: {}, commodity: {}", 
                 request.getFarmerId(), request.getCommodity());
         
@@ -236,8 +303,13 @@ public class MandiController {
      * @return List of PriceAlertDto
      */
     @GetMapping("/alerts/{farmerId}")
+    @Operation(summary = "Get farmer alerts", description = "Retrieves all price alerts for a specific farmer")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Alerts retrieved successfully",
+            content = @Content(schema = @Schema(implementation = PriceAlertDto.class)))
+    })
     public ResponseEntity<List<PriceAlertDto>> getAlertsForFarmer(
-            @PathVariable String farmerId) {
+            @Parameter(description = "The farmer ID") @PathVariable String farmerId) {
         log.info("Getting alerts for farmer: {}", farmerId);
         
         List<PriceAlertDto> alerts = priceAlertService.getAlertsForFarmer(farmerId);
@@ -253,8 +325,13 @@ public class MandiController {
      * @return 204 No Content if successful, 404 Not Found if not found
      */
     @DeleteMapping("/alerts/{alertId}")
+    @Operation(summary = "Unsubscribe from alert", description = "Deactivates a price alert subscription")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Alert unsubscribed successfully"),
+        @ApiResponse(responseCode = "404", description = "Alert not found")
+    })
     public ResponseEntity<Void> unsubscribeFromAlert(
-            @PathVariable Long alertId) {
+            @Parameter(description = "The alert ID") @PathVariable Long alertId) {
         log.info("Unsubscribing from alert: {}", alertId);
         
         boolean deactivated = priceAlertService.deactivateAlert(alertId);
@@ -272,6 +349,10 @@ public class MandiController {
      * @return List of commodity names
      */
     @GetMapping("/commodities")
+    @Operation(summary = "Get available commodities", description = "Retrieves list of available agricultural commodities")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Commodities retrieved successfully")
+    })
     public ResponseEntity<List<String>> getCommodities() {
         log.info("Getting list of commodities");
         
@@ -287,6 +368,10 @@ public class MandiController {
      * @return List of state names
      */
     @GetMapping("/states")
+    @Operation(summary = "Get available states", description = "Retrieves list of available states with mandi data")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "States retrieved successfully")
+    })
     public ResponseEntity<List<String>> getStates() {
         log.info("Getting list of states");
         
@@ -303,8 +388,13 @@ public class MandiController {
      * @return List of district names
      */
     @GetMapping("/states/{state}/districts")
+    @Operation(summary = "Get districts by state", description = "Retrieves list of districts for a specific state")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Districts retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "State not found")
+    })
     public ResponseEntity<List<String>> getDistricts(
-            @PathVariable String state) {
+            @Parameter(description = "The state name") @PathVariable String state) {
         log.info("Getting districts for state: {}", state);
         
         List<String> districts = mandiPriceService.getDistricts(state);

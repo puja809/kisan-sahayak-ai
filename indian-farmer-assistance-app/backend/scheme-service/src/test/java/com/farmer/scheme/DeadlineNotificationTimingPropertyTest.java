@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.*;
 
@@ -96,7 +96,7 @@ class DeadlineNotificationTimingPropertyTest {
                     .schemeType(Scheme.SchemeType.CENTRAL)
                     .applicationStartDate(today.minusDays(30))
                     .applicationEndDate(today.plusDays(daysUntilDeadline))
-                    .benefitAmount(new BigDecimal("5000.00"))
+                    .benefitAmount(new Double("5000.00"))
                     .isActive(true)
                     .build();
         });
@@ -116,7 +116,7 @@ class DeadlineNotificationTimingPropertyTest {
                             .schemeType(Scheme.SchemeType.CENTRAL)
                             .applicationStartDate(today.minusDays(30))
                             .applicationEndDate(today.plusDays(7))
-                            .benefitAmount(new BigDecimal("6000.00"))
+                            .benefitAmount(new Double("6000.00"))
                             .isActive(true)
                             .build());
         });
@@ -136,7 +136,7 @@ class DeadlineNotificationTimingPropertyTest {
                             .schemeType(Scheme.SchemeType.CENTRAL)
                             .applicationStartDate(today.minusDays(30))
                             .applicationEndDate(today.plusDays(1))
-                            .benefitAmount(new BigDecimal("10000.00"))
+                            .benefitAmount(new Double("10000.00"))
                             .isActive(true)
                             .build());
         });
@@ -155,7 +155,7 @@ class DeadlineNotificationTimingPropertyTest {
                     .schemeType(Scheme.SchemeType.CENTRAL)
                     .applicationStartDate(today.minusDays(60))
                     .applicationEndDate(today.minusDays(daysExpired))
-                    .benefitAmount(new BigDecimal("5000.00"))
+                    .benefitAmount(new Double("5000.00"))
                     .isActive(true)
                     .build();
         });
@@ -417,7 +417,7 @@ class DeadlineNotificationTimingPropertyTest {
                 .schemeType(Scheme.SchemeType.CENTRAL)
                 .applicationStartDate(today.minusDays(30))
                 .applicationEndDate(today.plusDays(7))
-                .benefitAmount(new BigDecimal("5000.00"))
+                .benefitAmount(new Double("5000.00"))
                 .isActive(true)
                 .build();
         schemeRepository.save(scheme);

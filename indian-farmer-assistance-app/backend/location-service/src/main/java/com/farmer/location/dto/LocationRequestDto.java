@@ -11,7 +11,8 @@ import lombok.*;
  * 
  * Validates: Requirements 14.1, 14.2, 14.3
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,15 +21,15 @@ public class LocationRequestDto {
     /**
      * GPS latitude coordinate (India: 6° to 37° N)
      */
-    @Min(value = 6.0, message = "Latitude must be at least 6.0 for India")
-    @Max(value = 37.0, message = "Latitude must be at most 37.0 for India")
+    @Min(value = 6, message = "Latitude must be at least 6.0 for India")
+    @Max(value = 37, message = "Latitude must be at most 37.0 for India")
     private Double latitude;
 
     /**
      * GPS longitude coordinate (India: 68° to 97° E)
      */
-    @Min(value = 68.0, message = "Longitude must be at least 68.0 for India")
-    @Max(value = 97.0, message = "Longitude must be at most 97.0 for India")
+    @Min(value = 68, message = "Longitude must be at least 68.0 for India")
+    @Max(value = 97, message = "Longitude must be at most 97.0 for India")
     private Double longitude;
 
     /**

@@ -3,7 +3,7 @@ package com.farmer.user.dto;
 import com.farmer.user.entity.Crop;
 import lombok.*;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,18 +30,18 @@ public class CropResponse {
     private Double areaAcres;
     private String season;
     private String status;
-    private BigDecimal seedCost;
-    private BigDecimal fertilizerCost;
-    private BigDecimal pesticideCost;
-    private BigDecimal laborCost;
-    private BigDecimal otherCost;
-    private BigDecimal totalInputCost;
-    private BigDecimal totalYieldQuintals;
+    private Double seedCost;
+    private Double fertilizerCost;
+    private Double pesticideCost;
+    private Double laborCost;
+    private Double otherCost;
+    private Double totalInputCost;
+    private Double totalYieldQuintals;
     private String qualityGrade;
-    private BigDecimal sellingPricePerQuintal;
+    private Double sellingPricePerQuintal;
     private String mandiName;
-    private BigDecimal totalRevenue;
-    private BigDecimal profitLoss;
+    private Double totalRevenue;
+    private Double profitLoss;
     private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

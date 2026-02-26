@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 
 /**
@@ -42,21 +42,21 @@ public class CropRequest {
 
     private Crop.CropStatus status;
 
-    private BigDecimal seedCost;
+    private Double seedCost;
 
-    private BigDecimal fertilizerCost;
+    private Double fertilizerCost;
 
-    private BigDecimal pesticideCost;
+    private Double pesticideCost;
 
-    private BigDecimal laborCost;
+    private Double laborCost;
 
-    private BigDecimal otherCost;
+    private Double otherCost;
 
-    private BigDecimal totalYieldQuintals;
+    private Double totalYieldQuintals;
 
     private String qualityGrade;
 
-    private BigDecimal sellingPricePerQuintal;
+    private Double sellingPricePerQuintal;
 
     private String mandiName;
 

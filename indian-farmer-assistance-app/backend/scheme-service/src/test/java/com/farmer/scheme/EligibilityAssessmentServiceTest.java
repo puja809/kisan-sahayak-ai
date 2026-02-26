@@ -14,7 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,7 +64,7 @@ class EligibilityAssessmentServiceTest {
                 .schemeName("PM-Kisan Samman Nidhi")
                 .schemeType(SchemeType.CENTRAL)
                 .description("Income support of Rs. 6000 per year to farmer families")
-                .benefitAmount(new BigDecimal("6000"))
+                .benefitAmount(new Double("6000"))
                 .applicationStartDate(LocalDate.now().minusDays(30))
                 .applicationEndDate(LocalDate.now().plusDays(60))
                 .isActive(true)
@@ -77,7 +77,7 @@ class EligibilityAssessmentServiceTest {
                 .name("Ramesh Kumar")
                 .state("Maharashtra")
                 .district("Pune")
-                .totalLandholdingAcres(new BigDecimal("5.0"))
+                .totalLandholdingAcres(new Double("5.0"))
                 .crops(Arrays.asList("Wheat", "Soybean"))
                 .irrigationType("BOREWELL")
                 .category("OBC")
@@ -85,7 +85,7 @@ class EligibilityAssessmentServiceTest {
                 .age(45)
                 .isSmallMarginalFarmer(false)
                 .isTenantFarmer(false)
-                .annualIncome(new BigDecimal("150000"))
+                .annualIncome(new Double("150000"))
                 .hasKisanCreditCard(true)
                 .hasPMKisanRegistration(true)
                 .hasPMFBYInsurance(true)
@@ -281,7 +281,7 @@ class EligibilityAssessmentServiceTest {
             }
             """;
         testScheme.setEligibilityCriteria(eligibilityCriteria);
-        testFarmer.setAnnualIncome(new BigDecimal("40000")); // Within limit
+        testFarmer.setAnnualIncome(new Double("40000")); // Within limit
         testFarmer.setHasKisanCreditCard(false); // Missing KCC
         testFarmer.setHasPMKisanRegistration(false); // Missing PM-Kisan
 
@@ -325,7 +325,7 @@ class EligibilityAssessmentServiceTest {
     @DisplayName("Should calculate ranking score based on benefit amount and deadline")
     void assessEligibility_CalculatesRankingScore() {
         // Arrange
-        testScheme.setBenefitAmount(new BigDecimal("50000"));
+        testScheme.setBenefitAmount(new Double("50000"));
         testScheme.setApplicationEndDate(LocalDate.now().plusDays(5)); // Approaching deadline
 
         // Act
@@ -334,7 +334,7 @@ class EligibilityAssessmentServiceTest {
         // Assert
         assertNotNull(result);
         assertNotNull(result.getRankingScore());
-        assertTrue(result.getRankingScore().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(result.getRankingScore().compareTo(0.0) > 0);
     }
 
     @Test
@@ -572,7 +572,7 @@ class EligibilityAssessmentServiceTest {
                 .schemeCode("SCHEME1")
                 .schemeName("Scheme 1")
                 .schemeType(SchemeType.CENTRAL)
-                .benefitAmount(new BigDecimal("10000"))
+                .benefitAmount(new Double("10000"))
                 .applicationEndDate(LocalDate.now().plusDays(30))
                 .isActive(true)
                 .build();
@@ -582,7 +582,7 @@ class EligibilityAssessmentServiceTest {
                 .schemeCode("SCHEME2")
                 .schemeName("Scheme 2")
                 .schemeType(SchemeType.CENTRAL)
-                .benefitAmount(new BigDecimal("50000"))
+                .benefitAmount(new Double("50000"))
                 .applicationEndDate(LocalDate.now().plusDays(5))
                 .isActive(true)
                 .build();
@@ -609,7 +609,7 @@ class EligibilityAssessmentServiceTest {
                 .schemeCode("ELIGIBLE")
                 .schemeName("Eligible Scheme")
                 .schemeType(SchemeType.CENTRAL)
-                .benefitAmount(new BigDecimal("10000"))
+                .benefitAmount(new Double("10000"))
                 .applicationEndDate(LocalDate.now().plusDays(30))
                 .isActive(true)
                 .build();
@@ -620,7 +620,7 @@ class EligibilityAssessmentServiceTest {
                 .schemeName("Ineligible Scheme")
                 .schemeType(SchemeType.STATE)
                 .state("Karnataka") // Different state
-                .benefitAmount(new BigDecimal("50000"))
+                .benefitAmount(new Double("50000"))
                 .applicationEndDate(LocalDate.now().plusDays(30))
                 .isActive(true)
                 .build();
@@ -646,7 +646,7 @@ class EligibilityAssessmentServiceTest {
                 .schemeCode("HIGH")
                 .schemeName("High Confidence Scheme")
                 .schemeType(SchemeType.CENTRAL)
-                .benefitAmount(new BigDecimal("10000"))
+                .benefitAmount(new Double("10000"))
                 .applicationEndDate(LocalDate.now().plusDays(30))
                 .isActive(true)
                 .build();
@@ -672,7 +672,7 @@ class EligibilityAssessmentServiceTest {
                 .schemeCode("URGENT")
                 .schemeName("Urgent Scheme")
                 .schemeType(SchemeType.CENTRAL)
-                .benefitAmount(new BigDecimal("10000"))
+                .benefitAmount(new Double("10000"))
                 .applicationEndDate(LocalDate.now().plusDays(5))
                 .isActive(true)
                 .build();
@@ -700,7 +700,7 @@ class EligibilityAssessmentServiceTest {
                 .schemeCode("SCHEME1")
                 .schemeName("Scheme 1")
                 .schemeType(SchemeType.CENTRAL)
-                .benefitAmount(new BigDecimal("10000"))
+                .benefitAmount(new Double("10000"))
                 .applicationEndDate(LocalDate.now().plusDays(30))
                 .isActive(true)
                 .build();

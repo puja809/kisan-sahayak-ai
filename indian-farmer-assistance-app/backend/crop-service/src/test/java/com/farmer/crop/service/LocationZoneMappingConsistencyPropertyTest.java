@@ -64,8 +64,8 @@ class LocationZoneMappingConsistencyPropertyTest {
     @Provide
     Arbitrary<LocationRequestDto> validIndiaCoordinates() {
         return Combinators.combine(
-                Arbitraries.doubles().between(6.0, 37.0).unique(),
-                Arbitraries.doubles().between(68.0, 97.0).unique()
+                Arbitraries.doubles().between(6.0, 37.0),
+                Arbitraries.doubles().between(68.0, 97.0)
         ).as((lat, lon) -> LocationRequestDto.builder()
                 .latitude(lat)
                 .longitude(lon)
@@ -397,3 +397,4 @@ class LocationZoneMappingConsistencyPropertyTest {
         }
     }
 }
+

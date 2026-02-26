@@ -336,3 +336,11 @@ public class AgroEcologicalZoneService {
         return String.format("%.4f, %.4f", latitude, longitude);
     }
 }
+
+
+
+
+
+
+
+

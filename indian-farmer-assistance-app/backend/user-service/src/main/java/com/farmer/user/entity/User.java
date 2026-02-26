@@ -54,10 +54,10 @@ public class User {
     @Column(name = "pin_code", length = 10)
     private String pinCode;
 
-    @Column(name = "gps_latitude", precision = 10, scale = 8)
+    @Column(name = "gps_latitude")
     private Double gpsLatitude;
 
-    @Column(name = "gps_longitude", precision = 11, scale = 8)
+    @Column(name = "gps_longitude")
     private Double gpsLongitude;
 
     @Enumerated(EnumType.STRING)
@@ -83,7 +83,7 @@ public class User {
     @Column(name = "agristack_farmer_id", length = 100)
     private String agristackFarmerId;
 
-    @Column(name = "total_landholding_acres", precision = 10, scale = 2)
+    @Column(name = "total_landholding_acres")
     private Double totalLandholdingAcres;
 
     @Column(name = "soil_type", length = 50)

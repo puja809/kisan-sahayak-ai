@@ -30,28 +30,28 @@ public class SensorReading {
     @Column(name = "reading_timestamp", nullable = false)
     private LocalDateTime readingTimestamp;
 
-    @Column(name = "soil_moisture_percent", precision = 5, scale = 2)
+    @Column(name = "soil_moisture_percent")
     private Double soilMoisturePercent;
 
-    @Column(name = "temperature_celsius", precision = 5, scale = 2)
+    @Column(name = "temperature_celsius")
     private Double temperatureCelsius;
 
-    @Column(name = "humidity_percent", precision = 5, scale = 2)
+    @Column(name = "humidity_percent")
     private Double humidityPercent;
 
-    @Column(name = "ph_level", precision = 4, scale = 2)
+    @Column(name = "ph_level")
     private Double phLevel;
 
-    @Column(name = "ec_value", precision = 6, scale = 2)
+    @Column(name = "ec_value")
     private Double ecValue;
 
-    @Column(name = "npk_nitrogen", precision = 6, scale = 2)
+    @Column(name = "npk_nitrogen")
     private Double npkNitrogen;
 
-    @Column(name = "npk_phosphorus", precision = 6, scale = 2)
+    @Column(name = "npk_phosphorus")
     private Double npkPhosphorus;
 
-    @Column(name = "npk_potassium", precision = 6, scale = 2)
+    @Column(name = "npk_potassium")
     private Double npkPotassium;
 
     @Column(name = "is_encrypted")

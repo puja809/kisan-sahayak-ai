@@ -1,6 +1,6 @@
 package com.farmer.yield.dto;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDateTime;
 
 /**
@@ -20,34 +20,34 @@ public class FinancialProjectionDto {
     private String variety;
     
     // Yield assumptions
-    private BigDecimal estimatedYieldQuintals;
-    private BigDecimal yieldConfidencePercent;
+    private Double estimatedYieldQuintals;
+    private Double yieldConfidencePercent;
     
     // Price assumptions
-    private BigDecimal currentPricePerQuintal;
-    private BigDecimal minPricePerQuintal;
-    private BigDecimal maxPricePerQuintal;
+    private Double currentPricePerQuintal;
+    private Double minPricePerQuintal;
+    private Double maxPricePerQuintal;
     private String priceSource;
     private LocalDateTime priceFetchedAt;
     
     // Revenue projections
-    private BigDecimal estimatedRevenueMin;
-    private BigDecimal estimatedRevenueExpected;
-    private BigDecimal estimatedRevenueMax;
+    private Double estimatedRevenueMin;
+    private Double estimatedRevenueExpected;
+    private Double estimatedRevenueMax;
     
     // Cost estimates (optional - can be provided or estimated)
-    private BigDecimal estimatedInputCosts;
-    private BigDecimal estimatedLaborCosts;
-    private BigDecimal estimatedOtherCosts;
-    private BigDecimal totalEstimatedCosts;
+    private Double estimatedInputCosts;
+    private Double estimatedLaborCosts;
+    private Double estimatedOtherCosts;
+    private Double totalEstimatedCosts;
     
     // Profit projections
-    private BigDecimal estimatedProfitMin;
-    private BigDecimal estimatedProfitExpected;
-    private BigDecimal estimatedProfitMax;
+    private Double estimatedProfitMin;
+    private Double estimatedProfitExpected;
+    private Double estimatedProfitMax;
     
     // ROI
-    private BigDecimal estimatedRoiPercent;
+    private Double estimatedRoiPercent;
     
     // Market advisory
     private String marketAdvisory; // "hold", "sell now", "monitor"
@@ -70,43 +70,43 @@ public class FinancialProjectionDto {
         this.variety = variety;
     }
 
-    public BigDecimal getEstimatedYieldQuintals() {
+    public Double getEstimatedYieldQuintals() {
         return estimatedYieldQuintals;
     }
 
-    public void setEstimatedYieldQuintals(BigDecimal estimatedYieldQuintals) {
+    public void setEstimatedYieldQuintals(Double estimatedYieldQuintals) {
         this.estimatedYieldQuintals = estimatedYieldQuintals;
     }
 
-    public BigDecimal getYieldConfidencePercent() {
+    public Double getYieldConfidencePercent() {
         return yieldConfidencePercent;
     }
 
-    public void setYieldConfidencePercent(BigDecimal yieldConfidencePercent) {
+    public void setYieldConfidencePercent(Double yieldConfidencePercent) {
         this.yieldConfidencePercent = yieldConfidencePercent;
     }
 
-    public BigDecimal getCurrentPricePerQuintal() {
+    public Double getCurrentPricePerQuintal() {
         return currentPricePerQuintal;
     }
 
-    public void setCurrentPricePerQuintal(BigDecimal currentPricePerQuintal) {
+    public void setCurrentPricePerQuintal(Double currentPricePerQuintal) {
         this.currentPricePerQuintal = currentPricePerQuintal;
     }
 
-    public BigDecimal getMinPricePerQuintal() {
+    public Double getMinPricePerQuintal() {
         return minPricePerQuintal;
     }
 
-    public void setMinPricePerQuintal(BigDecimal minPricePerQuintal) {
+    public void setMinPricePerQuintal(Double minPricePerQuintal) {
         this.minPricePerQuintal = minPricePerQuintal;
     }
 
-    public BigDecimal getMaxPricePerQuintal() {
+    public Double getMaxPricePerQuintal() {
         return maxPricePerQuintal;
     }
 
-    public void setMaxPricePerQuintal(BigDecimal maxPricePerQuintal) {
+    public void setMaxPricePerQuintal(Double maxPricePerQuintal) {
         this.maxPricePerQuintal = maxPricePerQuintal;
     }
 
@@ -126,91 +126,91 @@ public class FinancialProjectionDto {
         this.priceFetchedAt = priceFetchedAt;
     }
 
-    public BigDecimal getEstimatedRevenueMin() {
+    public Double getEstimatedRevenueMin() {
         return estimatedRevenueMin;
     }
 
-    public void setEstimatedRevenueMin(BigDecimal estimatedRevenueMin) {
+    public void setEstimatedRevenueMin(Double estimatedRevenueMin) {
         this.estimatedRevenueMin = estimatedRevenueMin;
     }
 
-    public BigDecimal getEstimatedRevenueExpected() {
+    public Double getEstimatedRevenueExpected() {
         return estimatedRevenueExpected;
     }
 
-    public void setEstimatedRevenueExpected(BigDecimal estimatedRevenueExpected) {
+    public void setEstimatedRevenueExpected(Double estimatedRevenueExpected) {
         this.estimatedRevenueExpected = estimatedRevenueExpected;
     }
 
-    public BigDecimal getEstimatedRevenueMax() {
+    public Double getEstimatedRevenueMax() {
         return estimatedRevenueMax;
     }
 
-    public void setEstimatedRevenueMax(BigDecimal estimatedRevenueMax) {
+    public void setEstimatedRevenueMax(Double estimatedRevenueMax) {
         this.estimatedRevenueMax = estimatedRevenueMax;
     }
 
-    public BigDecimal getEstimatedInputCosts() {
+    public Double getEstimatedInputCosts() {
         return estimatedInputCosts;
     }
 
-    public void setEstimatedInputCosts(BigDecimal estimatedInputCosts) {
+    public void setEstimatedInputCosts(Double estimatedInputCosts) {
         this.estimatedInputCosts = estimatedInputCosts;
     }
 
-    public BigDecimal getEstimatedLaborCosts() {
+    public Double getEstimatedLaborCosts() {
         return estimatedLaborCosts;
     }
 
-    public void setEstimatedLaborCosts(BigDecimal estimatedLaborCosts) {
+    public void setEstimatedLaborCosts(Double estimatedLaborCosts) {
         this.estimatedLaborCosts = estimatedLaborCosts;
     }
 
-    public BigDecimal getEstimatedOtherCosts() {
+    public Double getEstimatedOtherCosts() {
         return estimatedOtherCosts;
     }
 
-    public void setEstimatedOtherCosts(BigDecimal estimatedOtherCosts) {
+    public void setEstimatedOtherCosts(Double estimatedOtherCosts) {
         this.estimatedOtherCosts = estimatedOtherCosts;
     }
 
-    public BigDecimal getTotalEstimatedCosts() {
+    public Double getTotalEstimatedCosts() {
         return totalEstimatedCosts;
     }
 
-    public void setTotalEstimatedCosts(BigDecimal totalEstimatedCosts) {
+    public void setTotalEstimatedCosts(Double totalEstimatedCosts) {
         this.totalEstimatedCosts = totalEstimatedCosts;
     }
 
-    public BigDecimal getEstimatedProfitMin() {
+    public Double getEstimatedProfitMin() {
         return estimatedProfitMin;
     }
 
-    public void setEstimatedProfitMin(BigDecimal estimatedProfitMin) {
+    public void setEstimatedProfitMin(Double estimatedProfitMin) {
         this.estimatedProfitMin = estimatedProfitMin;
     }
 
-    public BigDecimal getEstimatedProfitExpected() {
+    public Double getEstimatedProfitExpected() {
         return estimatedProfitExpected;
     }
 
-    public void setEstimatedProfitExpected(BigDecimal estimatedProfitExpected) {
+    public void setEstimatedProfitExpected(Double estimatedProfitExpected) {
         this.estimatedProfitExpected = estimatedProfitExpected;
     }
 
-    public BigDecimal getEstimatedProfitMax() {
+    public Double getEstimatedProfitMax() {
         return estimatedProfitMax;
     }
 
-    public void setEstimatedProfitMax(BigDecimal estimatedProfitMax) {
+    public void setEstimatedProfitMax(Double estimatedProfitMax) {
         this.estimatedProfitMax = estimatedProfitMax;
     }
 
-    public BigDecimal getEstimatedRoiPercent() {
+    public Double getEstimatedRoiPercent() {
         return estimatedRoiPercent;
     }
 
-    public void setEstimatedRoiPercent(BigDecimal estimatedRoiPercent) {
+    public void setEstimatedRoiPercent(Double estimatedRoiPercent) {
         this.estimatedRoiPercent = estimatedRoiPercent;
     }
 
@@ -233,89 +233,94 @@ public class FinancialProjectionDto {
     /**
      * Builder pattern for creating financial projections.
      */
-    public static Builder builder() {
-        return new Builder();
+    public static FinancialProjectionBuilder builder() {
+        return new FinancialProjectionBuilder();
     }
 
-    public static class Builder {
+    public static class FinancialProjectionBuilder {
         private final FinancialProjectionDto projection = new FinancialProjectionDto();
 
-        public Builder commodityName(String commodityName) {
+        public FinancialProjectionBuilder commodityName(String commodityName) {
             projection.setCommodityName(commodityName);
             return this;
         }
 
-        public Builder variety(String variety) {
+        public FinancialProjectionBuilder variety(String variety) {
             projection.setVariety(variety);
             return this;
         }
 
-        public Builder estimatedYieldQuintals(BigDecimal yield) {
+        public FinancialProjectionBuilder estimatedYieldQuintals(Double yield) {
             projection.setEstimatedYieldQuintals(yield);
             return this;
         }
 
-        public Builder currentPricePerQuintal(BigDecimal price) {
+        public FinancialProjectionBuilder currentPricePerQuintal(Double price) {
             projection.setCurrentPricePerQuintal(price);
             return this;
         }
 
-        public Builder minPricePerQuintal(BigDecimal price) {
+        public FinancialProjectionBuilder minPricePerQuintal(Double price) {
             projection.setMinPricePerQuintal(price);
             return this;
         }
 
-        public Builder maxPricePerQuintal(BigDecimal price) {
+        public FinancialProjectionBuilder maxPricePerQuintal(Double price) {
             projection.setMaxPricePerQuintal(price);
             return this;
         }
 
-        public Builder estimatedRevenueMin(BigDecimal revenue) {
+        public FinancialProjectionBuilder priceSource(String priceSource) {
+            projection.setPriceSource(priceSource);
+            return this;
+        }
+
+        public FinancialProjectionBuilder estimatedRevenueMin(Double revenue) {
             projection.setEstimatedRevenueMin(revenue);
             return this;
         }
 
-        public Builder estimatedRevenueExpected(BigDecimal revenue) {
+        public FinancialProjectionBuilder estimatedRevenueExpected(Double revenue) {
             projection.setEstimatedRevenueExpected(revenue);
             return this;
         }
 
-        public Builder estimatedRevenueMax(BigDecimal revenue) {
+        public FinancialProjectionBuilder estimatedRevenueMax(Double revenue) {
             projection.setEstimatedRevenueMax(revenue);
             return this;
         }
 
-        public Builder totalEstimatedCosts(BigDecimal costs) {
+        public FinancialProjectionBuilder totalEstimatedCosts(Double costs) {
             projection.setTotalEstimatedCosts(costs);
             return this;
         }
 
-        public Builder estimatedProfitMin(BigDecimal profit) {
+        public FinancialProjectionBuilder estimatedProfitMin(Double profit) {
             projection.setEstimatedProfitMin(profit);
             return this;
         }
 
-        public Builder estimatedProfitExpected(BigDecimal profit) {
+        public FinancialProjectionBuilder estimatedProfitExpected(Double profit) {
             projection.setEstimatedProfitExpected(profit);
             return this;
         }
 
-        public Builder estimatedProfitMax(BigDecimal profit) {
+        public FinancialProjectionBuilder estimatedProfitMax(Double profit) {
             projection.setEstimatedProfitMax(profit);
             return this;
         }
 
-        public Builder estimatedRoiPercent(BigDecimal roi) {
+        public FinancialProjectionBuilder estimatedRoiPercent(Double roi) {
             projection.setEstimatedRoiPercent(roi);
             return this;
         }
 
-        public Builder marketAdvisory(String advisory) {
+        public FinancialProjectionBuilder marketAdvisory(String advisory) {
             projection.setMarketAdvisory(advisory);
             return this;
         }
 
-        public Builder advisoryReason(String reason) {
+        public FinancialProjectionBuilder advisoryReason(String reason) {
             projection.setAdvisoryReason(reason);
             return this;
         }

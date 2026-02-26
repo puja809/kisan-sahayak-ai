@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,7 +44,7 @@ public class MandiLocationService {
      * @param radiusKm Search radius in kilometers
      * @return List of MandiLocationDto sorted by distance
      */
-    public List<MandiLocationDto> getNearbyMandis(BigDecimal latitude, BigDecimal longitude, int radiusKm) {
+    public List<MandiLocationDto> getNearbyMandis(Double latitude, Double longitude, int radiusKm) {
         log.info("Finding mandis within {} km of location: {}, {}", radiusKm, latitude, longitude);
         
         // Calculate bounding box for initial filtering
@@ -52,20 +52,20 @@ public class MandiLocationService {
         
         // Find locations in bounding box
         List<MandiLocation> locations = mandiLocationRepository.findLocationsInBoundingBox(
-                BigDecimal.valueOf(boundingBox[0]),
-                BigDecimal.valueOf(boundingBox[1]),
-                BigDecimal.valueOf(boundingBox[2]),
-                BigDecimal.valueOf(boundingBox[3])
+                Double.valueOf(boundingBox[0]),
+                Double.valueOf(boundingBox[1]),
+                Double.valueOf(boundingBox[2]),
+                Double.valueOf(boundingBox[3])
         );
         
         // Calculate distance and filter
         List<MandiLocationDto> result = locations.stream()
                 .map(location -> {
-                    BigDecimal distance = calculateDistance(latitude, longitude, 
+                    Double distance = calculateDistance(latitude, longitude, 
                             location.getLatitude(), location.getLongitude());
                     return mapToDto(location, distance);
                 })
-                .filter(location -> location.getDistanceKm().compareTo(BigDecimal.valueOf(radiusKm)) <= 0)
+                .filter(location -> location.getDistanceKm().compareTo(Double.valueOf(radiusKm)) <= 0)
                 .sorted(Comparator.comparing(MandiLocationDto::getDistanceKm))
                 .collect(Collectors.toList());
         
@@ -83,8 +83,8 @@ public class MandiLocationService {
      */
     public List<MandiPriceDto> sortPricesByDistance(
             List<MandiPriceDto> prices, 
-            BigDecimal farmerLatitude, 
-            BigDecimal farmerLongitude) {
+            Double farmerLatitude, 
+            Double farmerLongitude) {
         
         if (prices == null || prices.isEmpty()) {
             return prices;
@@ -93,7 +93,7 @@ public class MandiLocationService {
         // Sort by distance
         return prices.stream()
                 .map(price -> {
-                    BigDecimal distance = calculateDistanceForMandi(
+                    Double distance = calculateDistanceForMandi(
                             farmerLatitude, farmerLongitude, price.getMandiName());
                     return MandiPriceDto.builder()
                             .id(price.getId())
@@ -116,7 +116,7 @@ public class MandiLocationService {
                             .build();
                 })
                 .sorted(Comparator.comparing(
-                        dto -> dto.getDistanceKm() != null ? dto.getDistanceKm() : BigDecimal.valueOf(Double.MAX_VALUE)))
+                        dto -> dto.getDistanceKm() != null ? dto.getDistanceKm() : Double.valueOf(Double.MAX_VALUE)))
                 .collect(Collectors.toList());
     }
 
@@ -173,12 +173,12 @@ public class MandiLocationService {
      * @param lon2 Longitude of point 2
      * @return Distance in kilometers
      */
-    public BigDecimal calculateDistance(
-            BigDecimal lat1, BigDecimal lon1, 
-            BigDecimal lat2, BigDecimal lon2) {
+    public Double calculateDistance(
+            Double lat1, Double lon1, 
+            Double lat2, Double lon2) {
         
         if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) {
-            return BigDecimal.valueOf(Double.MAX_VALUE);
+            return Double.valueOf(Double.MAX_VALUE);
         }
 
         double dLat = Math.toRadians(lat2.doubleValue() - lat1.doubleValue());
@@ -192,7 +192,7 @@ public class MandiLocationService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double distance = EARTH_RADIUS_KM * c;
         
-        return BigDecimal.valueOf(distance).setScale(2, RoundingMode.HALF_UP);
+        return Double.valueOf(distance);
     }
 
     /**
@@ -203,14 +203,14 @@ public class MandiLocationService {
      * @param mandiName Name of the mandi
      * @return Distance in kilometers
      */
-    private BigDecimal calculateDistanceForMandi(
-            BigDecimal farmerLatitude, 
-            BigDecimal farmerLongitude, 
+    private Double calculateDistanceForMandi(
+            Double farmerLatitude, 
+            Double farmerLongitude, 
             String mandiName) {
         
         // This would need to be implemented with proper mandi location lookup
         // For now, return a default value
-        return BigDecimal.valueOf(-1);
+        return Double.valueOf(-1);
     }
 
     /**
@@ -248,7 +248,7 @@ public class MandiLocationService {
                 .longitude(entity.getLongitude())
                 .contactNumber(entity.getContactNumber())
                 .operatingHours(entity.getOperatingHours())
-                .distanceKm(BigDecimal.ZERO)
+                .distanceKm(0.0)
                 .isActive(entity.getIsActive())
                 .build();
     }
@@ -256,7 +256,7 @@ public class MandiLocationService {
     /**
      * Maps entity to DTO with distance.
      */
-    private MandiLocationDto mapToDto(MandiLocation entity, BigDecimal distance) {
+    private MandiLocationDto mapToDto(MandiLocation entity, Double distance) {
         return MandiLocationDto.builder()
                 .mandiCode(entity.getMandiCode())
                 .mandiName(entity.getMandiName())

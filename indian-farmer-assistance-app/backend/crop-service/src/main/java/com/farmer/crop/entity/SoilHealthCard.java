@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -58,14 +57,14 @@ public class SoilHealthCard {
     /**
      * GPS latitude of sample collection point
      */
-    @Column(name = "latitude", precision = 10, scale = 8)
-    private BigDecimal latitude;
+    @Column(name = "latitude")
+    private Double latitude;
 
     /**
      * GPS longitude of sample collection point
      */
-    @Column(name = "longitude", precision = 11, scale = 8)
-    private BigDecimal longitude;
+    @Column(name = "longitude")
+    private Double longitude;
 
     /**
      * District name
@@ -100,80 +99,80 @@ public class SoilHealthCard {
     /**
      * Soil pH value (0-14)
      */
-    @Column(name = "ph", precision = 4, scale = 2)
-    private BigDecimal ph;
+    @Column(name = "ph")
+    private Double ph;
 
     /**
      * Electrical conductivity (dS/m) - indicates salinity
      */
-    @Column(name = "electrical_conductivity", precision = 6, scale = 3)
-    private BigDecimal electricalConductivity;
+    @Column(name = "electrical_conductivity")
+    private Double electricalConductivity;
 
     /**
      * Organic carbon content (%)
      */
-    @Column(name = "organic_carbon", precision = 5, scale = 2)
-    private BigDecimal organicCarbon;
+    @Column(name = "organic_carbon")
+    private Double organicCarbon;
 
     // Primary Nutrients
 
     /**
      * Available Nitrogen (kg/ha)
      */
-    @Column(name = "nitrogen_kg_ha", precision = 8, scale = 2)
-    private BigDecimal nitrogenKgHa;
+    @Column(name = "nitrogen_kg_ha")
+    private Double nitrogenKgHa;
 
     /**
      * Available Phosphorus (kg/ha)
      */
-    @Column(name = "phosphorus_kg_ha", precision = 8, scale = 2)
-    private BigDecimal phosphorusKgHa;
+    @Column(name = "phosphorus_kg_ha")
+    private Double phosphorusKgHa;
 
     /**
      * Available Potassium (kg/ha)
      */
-    @Column(name = "potassium_kg_ha", precision = 8, scale = 2)
-    private BigDecimal potassiumKgHa;
+    @Column(name = "potassium_kg_ha")
+    private Double potassiumKgHa;
 
     // Secondary Nutrients
 
     /**
      * Available Sulfur (ppm)
      */
-    @Column(name = "sulfur_ppm", precision = 6, scale = 2)
-    private BigDecimal sulfurPpm;
+    @Column(name = "sulfur_ppm")
+    private Double sulfurPpm;
 
     // Micronutrients
 
     /**
      * Available Zinc (ppm)
      */
-    @Column(name = "zinc_ppm", precision = 6, scale = 2)
-    private BigDecimal zincPpm;
+    @Column(name = "zinc_ppm")
+    private Double zincPpm;
 
     /**
      * Available Iron (ppm)
      */
-    @Column(name = "iron_ppm", precision = 6, scale = 2)
-    private BigDecimal ironPpm;
+    @Column(name = "iron_ppm")
+    private Double ironPpm;
 
     /**
      * Available Copper (ppm)
      */
-    @Column(name = "copper_ppm", precision = 6, scale = 2)
-    private BigDecimal copperPpm;
+    @Column(name = "copper_ppm")
+    private Double copperPpm;
 
     /**
      * Available Manganese (ppm)
      */
-    @Column(name = "manganese_ppm", precision = 6, scale = 2)
-    private BigDecimal manganesePpm;
+    @Column(name = "manganese_ppm")
+    private Double manganesePpm;
 
     /**
      * Available Boron (ppm)
      */
-    @Column(name = "boron_ppm", precision = 6, scale = 2)
-    private BigDecimal boronPpm;
+    @Column(name = "boron_ppm")
+    private Double boronPpm;
 
     /**
      * Soil texture classification

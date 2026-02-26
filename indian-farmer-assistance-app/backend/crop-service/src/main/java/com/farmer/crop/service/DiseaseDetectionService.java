@@ -3,7 +3,7 @@ package com.farmer.crop.service;
 import com.farmer.crop.dto.DiseaseDetectionResultDto;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,7 +62,7 @@ public class DiseaseDetectionService {
      * @return Filtered list with confidence >= threshold
      */
     public List<DiseaseDetectionResultDto> filterByConfidenceThreshold(
-            List<DiseaseDetectionResultDto> detections, BigDecimal threshold) {
+            List<DiseaseDetectionResultDto> detections, Double threshold) {
         if (detections == null || detections.isEmpty()) {
             return detections;
         }
@@ -106,8 +106,7 @@ public class DiseaseDetectionService {
      * @param threshold Minimum confidence score
      * @return true if any detection is below threshold
      */
-    public boolean hasLowConfidenceDetections(List<DiseaseDetectionResultDto> detections, 
-            BigDecimal threshold) {
+    public boolean hasLowConfidenceDetections(List<DiseaseDetectionResultDto> detections, Double threshold) {
         if (detections == null || detections.isEmpty()) {
             return false;
         }
@@ -117,3 +116,11 @@ public class DiseaseDetectionService {
                         d.getConfidenceScore().compareTo(threshold) < 0);
     }
 }
+
+
+
+
+
+
+
+

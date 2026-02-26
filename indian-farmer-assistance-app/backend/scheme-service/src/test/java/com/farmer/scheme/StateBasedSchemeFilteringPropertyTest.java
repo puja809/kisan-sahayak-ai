@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -255,7 +255,7 @@ class StateBasedSchemeFilteringPropertyTest {
                 .state(state)
                 .description("Test scheme for " + name)
                 .eligibilityCriteria("{\"landholding\": \"any\"}")
-                .benefitAmount(new BigDecimal("5000.00"))
+                .benefitAmount(new Double("5000.00"))
                 .benefitDescription("Test benefit description")
                 .applicationStartDate(LocalDate.now().minusDays(30))
                 .applicationEndDate(LocalDate.now().plusDays(60))

@@ -6,11 +6,8 @@ import com.farmer.crop.repository.AgroEcologicalZoneRepository;
 import com.farmer.crop.repository.GaezCropDataRepository;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
-import net.jqwik.api.constraints.BigRange;
 import net.jqwik.api.constraints.IntRange;
-import net.jqwik.api.constraints.Size;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +47,7 @@ class CropRecommendationPropertyTest {
     @Property
     void propertyDescendingRankingOrder(
             @ForAll @IntRange(min = 1, max = 10) int numCrops,
-            @ForAll @BigRange(min = "40", max = "100") BigDecimal baseScore,
+            @ForAll Double baseScore,
             @ForAll String state
     ) {
         // Arrange - Create mock services
@@ -102,9 +99,9 @@ class CropRecommendationPropertyTest {
         List<CropRecommendationResponseDto.RecommendedCropDto> recommendations = response.getRecommendations();
         
         for (int i = 0; i < recommendations.size() - 1; i++) {
-            BigDecimal currentScore = recommendations.get(i).getOverallSuitabilityScore();
-            BigDecimal nextScore = recommendations.get(i + 1).getOverallSuitabilityScore();
-            assertTrue(currentScore.compareTo(nextScore) >= 0,
+            Double currentScore = recommendations.get(i).getOverallSuitabilityScore();
+            Double nextScore = recommendations.get(i + 1).getOverallSuitabilityScore();
+            assertTrue(currentScore >= nextScore,
                     String.format("Ranking order violated at position %d: %s >= %s expected but was %s < %s",
                             i, currentScore, nextScore, currentScore, nextScore));
         }
@@ -241,9 +238,9 @@ class CropRecommendationPropertyTest {
         assertTrue(response.isSuccess());
         
         for (CropRecommendationResponseDto.RecommendedCropDto rec : response.getRecommendations()) {
-            assertTrue(rec.getOverallSuitabilityScore().compareTo(BigDecimal.ZERO) >= 0,
+            assertTrue(rec.getOverallSuitabilityScore() >= 0.0,
                     "Suitability score should be >= 0");
-            assertTrue(rec.getOverallSuitabilityScore().compareTo(new BigDecimal("100")) <= 0,
+            assertTrue(rec.getOverallSuitabilityScore() <= 100.0,
                     "Suitability score should be <= 100");
         }
     }
@@ -311,26 +308,26 @@ class CropRecommendationPropertyTest {
     // Helper methods
 
     private List<GaezCropSuitabilityDto> createMockSuitabilityList(
-            int numCrops, BigDecimal baseScore) {
+            int numCrops, Double baseScore) {
         String[] cropCodes = {"RICE", "WHEAT", "COTTON", "SOYBEAN", "GROUNDNUT", 
                               "MUSTARD", "PULSES", "MAIZE", "SUGARCANE", "POTATO"};
         
         java.util.List<GaezCropSuitabilityDto> list = new java.util.ArrayList<>();
         
         for (int i = 0; i < numCrops; i++) {
-            BigDecimal score = baseScore.subtract(new BigDecimal(i * 5));
+            Double score = baseScore - (i * 5.0);
             list.add(GaezCropSuitabilityDto.builder()
                     .cropCode(cropCodes[i])
                     .cropName(cropCodes[i])
-                    .overallSuitabilityScore(score.max(BigDecimal.ZERO))
+                    .overallSuitabilityScore(Math.max(0.0, score))
                     .climateSuitabilityScore(score)
                     .soilSuitabilityScore(score)
                     .terrainSuitabilityScore(score)
                     .waterSuitabilityScore(score)
-                    .rainfedPotentialYield(new BigDecimal("4000"))
-                    .irrigatedPotentialYield(new BigDecimal("5000"))
-                    .expectedYieldExpected(new BigDecimal("3500"))
-                    .waterRequirementsMm(new BigDecimal("500"))
+                    .rainfedPotentialYield(4000.0)
+                    .irrigatedPotentialYield(5000.0)
+                    .expectedYieldExpected(3500.0)
+                    .waterRequirementsMm(500.0)
                     .growingSeasonDays(120)
                     .kharifSuitable(true)
                     .rabiSuitable(false)
@@ -351,7 +348,7 @@ class CropRecommendationPropertyTest {
         java.util.List<GaezCropSuitabilityDto> list = new java.util.ArrayList<>();
         
         for (int i = 0; i < numCrops; i++) {
-            BigDecimal score = new BigDecimal(90 - i * 5);
+            Double score = 90.0 - i * 5.0;
             list.add(GaezCropSuitabilityDto.builder()
                     .cropCode(cropCodes[i])
                     .cropName(cropCodes[i])
@@ -362,12 +359,12 @@ class CropRecommendationPropertyTest {
                     .soilSuitabilityScore(score)
                     .terrainSuitabilityScore(score)
                     .waterSuitabilityScore(score)
-                    .rainfedPotentialYield(new BigDecimal("4000"))
-                    .irrigatedPotentialYield(new BigDecimal("5000"))
-                    .expectedYieldMin(new BigDecimal("3000"))
-                    .expectedYieldExpected(new BigDecimal("3500"))
-                    .expectedYieldMax(new BigDecimal("4000"))
-                    .waterRequirementsMm(new BigDecimal("500"))
+                    .rainfedPotentialYield(4000.0)
+                    .irrigatedPotentialYield(5000.0)
+                    .expectedYieldMin(3000.0)
+                    .expectedYieldExpected(3500.0)
+                    .expectedYieldMax(4000.0)
+                    .waterRequirementsMm(500.0)
                     .growingSeasonDays(120)
                     .kharifSuitable(true)
                     .rabiSuitable(false)
@@ -402,3 +399,4 @@ class CropRecommendationPropertyTest {
                 .build();
     }
 }
+

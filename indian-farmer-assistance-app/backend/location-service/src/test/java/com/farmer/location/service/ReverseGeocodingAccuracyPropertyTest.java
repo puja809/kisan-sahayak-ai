@@ -9,6 +9,7 @@ import net.jqwik.api.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -17,6 +18,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -74,8 +76,8 @@ class ReverseGeocodingAccuracyPropertyTest {
     @Provide
     Arbitrary<LocationRequestDto> validIndiaCoordinates() {
         return Combinators.combine(
-                Arbitraries.doubles().between(6.0, 37.0).unique(),
-                Arbitraries.doubles().between(68.0, 97.0).unique()
+                Arbitraries.doubles().between(6.0, 37.0),
+                Arbitraries.doubles().between(68.0, 97.0)
         ).as((lat, lon) -> LocationRequestDto.builder()
                 .latitude(lat)
                 .longitude(lon)

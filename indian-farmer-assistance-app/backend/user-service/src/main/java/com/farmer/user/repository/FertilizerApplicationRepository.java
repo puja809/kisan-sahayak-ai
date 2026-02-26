@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -48,28 +48,28 @@ public interface FertilizerApplicationRepository extends JpaRepository<Fertilize
      * Requirements: 11C.7
      */
     @Query("SELECT COALESCE(SUM(f.quantityKg * f.nitrogenContentPercent / 100), 0) FROM FertilizerApplication f WHERE f.crop.id = :cropId")
-    BigDecimal calculateTotalNitrogenForCrop(@Param("cropId") Long cropId);
+    Double calculateTotalNitrogenForCrop(@Param("cropId") Long cropId);
 
     /**
      * Calculate total phosphorus applied to a crop.
      * Requirements: 11C.7
      */
     @Query("SELECT COALESCE(SUM(f.quantityKg * f.phosphorusContentPercent / 100), 0) FROM FertilizerApplication f WHERE f.crop.id = :cropId")
-    BigDecimal calculateTotalPhosphorusForCrop(@Param("cropId") Long cropId);
+    Double calculateTotalPhosphorusForCrop(@Param("cropId") Long cropId);
 
     /**
      * Calculate total potassium applied to a crop.
      * Requirements: 11C.7
      */
     @Query("SELECT COALESCE(SUM(f.quantityKg * f.potassiumContentPercent / 100), 0) FROM FertilizerApplication f WHERE f.crop.id = :cropId")
-    BigDecimal calculateTotalPotassiumForCrop(@Param("cropId") Long cropId);
+    Double calculateTotalPotassiumForCrop(@Param("cropId") Long cropId);
 
     /**
      * Calculate total cost of fertilizer applications for a crop.
      * Requirements: 11C.6
      */
     @Query("SELECT COALESCE(SUM(f.cost), 0) FROM FertilizerApplication f WHERE f.crop.id = :cropId")
-    BigDecimal calculateTotalCostForCrop(@Param("cropId") Long cropId);
+    Double calculateTotalCostForCrop(@Param("cropId") Long cropId);
 
     /**
      * Find recent fertilizer applications for a user.

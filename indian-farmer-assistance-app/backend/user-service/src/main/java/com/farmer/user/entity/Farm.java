@@ -32,7 +32,7 @@ public class Farm {
     @Column(name = "parcel_number", length = 50)
     private String parcelNumber;
 
-    @Column(name = "total_area_acres", nullable = false, precision = 10, scale = 2)
+    @Column(name = "total_area_acres", nullable = false)
     private Double totalAreaAcres;
 
     @Column(name = "soil_type", length = 50)
@@ -48,10 +48,10 @@ public class Farm {
     @Column(name = "survey_number", length = 50)
     private String surveyNumber;
 
-    @Column(name = "gps_latitude", precision = 10, scale = 8)
+    @Column(name = "gps_latitude")
     private Double gpsLatitude;
 
-    @Column(name = "gps_longitude", precision = 11, scale = 8)
+    @Column(name = "gps_longitude")
     private Double gpsLongitude;
 
     @Column(name = "village", length = 100)

@@ -1,6 +1,6 @@
 package com.farmer.yield.dto;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -24,29 +24,29 @@ public class VarianceTrackingDto {
     
     // Prediction details
     private LocalDate predictionDate;
-    private BigDecimal predictedYieldExpectedQuintals;
-    private BigDecimal predictedYieldMinQuintals;
-    private BigDecimal predictedYieldMaxQuintals;
+    private Double predictedYieldExpectedQuintals;
+    private Double predictedYieldMinQuintals;
+    private Double predictedYieldMaxQuintals;
     private String modelVersion;
     
     // Actual results
     private LocalDate harvestDate;
-    private BigDecimal actualYieldQuintals;
+    private Double actualYieldQuintals;
     private String qualityGrade;
     
     // Variance calculations
-    private BigDecimal varianceQuintals;
-    private BigDecimal variancePercent;
+    private Double varianceQuintals;
+    private Double variancePercent;
     private String varianceCategory; // "positive", "negative", "neutral"
     
     // Model improvement data
-    private BigDecimal modelAccuracyPercent;
+    private Double modelAccuracyPercent;
     private String improvementSuggestion;
     private boolean usedForModelTraining;
     private LocalDateTime processedAt;
     
     // Historical context
-    private BigDecimal averageVarianceForCrop;
+    private Double averageVarianceForCrop;
     private Integer totalPredictionsForCrop;
     private Integer predictionsWithActualData;
     
@@ -91,27 +91,27 @@ public class VarianceTrackingDto {
         this.predictionDate = predictionDate;
     }
 
-    public BigDecimal getPredictedYieldExpectedQuintals() {
+    public Double getPredictedYieldExpectedQuintals() {
         return predictedYieldExpectedQuintals;
     }
 
-    public void setPredictedYieldExpectedQuintals(BigDecimal predictedYieldExpectedQuintals) {
+    public void setPredictedYieldExpectedQuintals(Double predictedYieldExpectedQuintals) {
         this.predictedYieldExpectedQuintals = predictedYieldExpectedQuintals;
     }
 
-    public BigDecimal getPredictedYieldMinQuintals() {
+    public Double getPredictedYieldMinQuintals() {
         return predictedYieldMinQuintals;
     }
 
-    public void setPredictedYieldMinQuintals(BigDecimal predictedYieldMinQuintals) {
+    public void setPredictedYieldMinQuintals(Double predictedYieldMinQuintals) {
         this.predictedYieldMinQuintals = predictedYieldMinQuintals;
     }
 
-    public BigDecimal getPredictedYieldMaxQuintals() {
+    public Double getPredictedYieldMaxQuintals() {
         return predictedYieldMaxQuintals;
     }
 
-    public void setPredictedYieldMaxQuintals(BigDecimal predictedYieldMaxQuintals) {
+    public void setPredictedYieldMaxQuintals(Double predictedYieldMaxQuintals) {
         this.predictedYieldMaxQuintals = predictedYieldMaxQuintals;
     }
 
@@ -131,11 +131,11 @@ public class VarianceTrackingDto {
         this.harvestDate = harvestDate;
     }
 
-    public BigDecimal getActualYieldQuintals() {
+    public Double getActualYieldQuintals() {
         return actualYieldQuintals;
     }
 
-    public void setActualYieldQuintals(BigDecimal actualYieldQuintals) {
+    public void setActualYieldQuintals(Double actualYieldQuintals) {
         this.actualYieldQuintals = actualYieldQuintals;
     }
 
@@ -147,19 +147,19 @@ public class VarianceTrackingDto {
         this.qualityGrade = qualityGrade;
     }
 
-    public BigDecimal getVarianceQuintals() {
+    public Double getVarianceQuintals() {
         return varianceQuintals;
     }
 
-    public void setVarianceQuintals(BigDecimal varianceQuintals) {
+    public void setVarianceQuintals(Double varianceQuintals) {
         this.varianceQuintals = varianceQuintals;
     }
 
-    public BigDecimal getVariancePercent() {
+    public Double getVariancePercent() {
         return variancePercent;
     }
 
-    public void setVariancePercent(BigDecimal variancePercent) {
+    public void setVariancePercent(Double variancePercent) {
         this.variancePercent = variancePercent;
     }
 
@@ -171,11 +171,11 @@ public class VarianceTrackingDto {
         this.varianceCategory = varianceCategory;
     }
 
-    public BigDecimal getModelAccuracyPercent() {
+    public Double getModelAccuracyPercent() {
         return modelAccuracyPercent;
     }
 
-    public void setModelAccuracyPercent(BigDecimal modelAccuracyPercent) {
+    public void setModelAccuracyPercent(Double modelAccuracyPercent) {
         this.modelAccuracyPercent = modelAccuracyPercent;
     }
 
@@ -203,11 +203,11 @@ public class VarianceTrackingDto {
         this.processedAt = processedAt;
     }
 
-    public BigDecimal getAverageVarianceForCrop() {
+    public Double getAverageVarianceForCrop() {
         return averageVarianceForCrop;
     }
 
-    public void setAverageVarianceForCrop(BigDecimal averageVarianceForCrop) {
+    public void setAverageVarianceForCrop(Double averageVarianceForCrop) {
         this.averageVarianceForCrop = averageVarianceForCrop;
     }
 
@@ -230,64 +230,64 @@ public class VarianceTrackingDto {
     /**
      * Builder pattern for creating variance tracking DTOs.
      */
-    public static Builder builder() {
-        return new Builder();
+    public static VarianceTrackingDtoBuilder builder() {
+        return new VarianceTrackingDtoBuilder();
     }
 
-    public static class Builder {
+    public static class VarianceTrackingDtoBuilder {
         private final VarianceTrackingDto dto = new VarianceTrackingDto();
 
-        public Builder predictionId(Long predictionId) {
+        public VarianceTrackingDtoBuilder predictionId(Long predictionId) {
             dto.setPredictionId(predictionId);
             return this;
         }
 
-        public Builder cropId(Long cropId) {
+        public VarianceTrackingDtoBuilder cropId(Long cropId) {
             dto.setCropId(cropId);
             return this;
         }
 
-        public Builder farmerId(String farmerId) {
+        public VarianceTrackingDtoBuilder farmerId(String farmerId) {
             dto.setFarmerId(farmerId);
             return this;
         }
 
-        public Builder cropName(String cropName) {
+        public VarianceTrackingDtoBuilder cropName(String cropName) {
             dto.setCropName(cropName);
             return this;
         }
 
-        public Builder predictedYieldExpectedQuintals(BigDecimal predicted) {
+        public VarianceTrackingDtoBuilder predictedYieldExpectedQuintals(Double predicted) {
             dto.setPredictedYieldExpectedQuintals(predicted);
             return this;
         }
 
-        public Builder actualYieldQuintals(BigDecimal actual) {
+        public VarianceTrackingDtoBuilder actualYieldQuintals(Double actual) {
             dto.setActualYieldQuintals(actual);
             return this;
         }
 
-        public Builder varianceQuintals(BigDecimal variance) {
+        public VarianceTrackingDtoBuilder varianceQuintals(Double variance) {
             dto.setVarianceQuintals(variance);
             return this;
         }
 
-        public Builder variancePercent(BigDecimal variancePercent) {
+        public VarianceTrackingDtoBuilder variancePercent(Double variancePercent) {
             dto.setVariancePercent(variancePercent);
             return this;
         }
 
-        public Builder varianceCategory(String category) {
+        public VarianceTrackingDtoBuilder varianceCategory(String category) {
             dto.setVarianceCategory(category);
             return this;
         }
 
-        public Builder modelVersion(String modelVersion) {
+        public VarianceTrackingDtoBuilder modelVersion(String modelVersion) {
             dto.setModelVersion(modelVersion);
             return this;
         }
 
-        public Builder averageVarianceForCrop(BigDecimal avgVariance) {
+        public VarianceTrackingDtoBuilder averageVarianceForCrop(Double avgVariance) {
             dto.setAverageVarianceForCrop(avgVariance);
             return this;
         }

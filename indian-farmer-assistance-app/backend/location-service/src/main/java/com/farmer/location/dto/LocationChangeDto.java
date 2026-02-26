@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
  * 
  * Validates: Requirement 14.4 (location change detection with >10km threshold)
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

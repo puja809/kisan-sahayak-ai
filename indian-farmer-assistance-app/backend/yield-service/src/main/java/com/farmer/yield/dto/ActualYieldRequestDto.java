@@ -1,6 +1,6 @@
 package com.farmer.yield.dto;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 
 /**
@@ -17,10 +17,10 @@ public class ActualYieldRequestDto {
 
     private Long cropId;
     private String farmerId;
-    private BigDecimal actualYieldQuintals;
+    private Double actualYieldQuintals;
     private LocalDate harvestDate;
     private String qualityGrade; // "A", "B", "C" or custom grades
-    private BigDecimal sellingPricePerQuintal;
+    private Double sellingPricePerQuintal;
     private String mandiName;
     private String notes;
     
@@ -41,11 +41,11 @@ public class ActualYieldRequestDto {
         this.farmerId = farmerId;
     }
 
-    public BigDecimal getActualYieldQuintals() {
+    public Double getActualYieldQuintals() {
         return actualYieldQuintals;
     }
 
-    public void setActualYieldQuintals(BigDecimal actualYieldQuintals) {
+    public void setActualYieldQuintals(Double actualYieldQuintals) {
         this.actualYieldQuintals = actualYieldQuintals;
     }
 
@@ -65,11 +65,11 @@ public class ActualYieldRequestDto {
         this.qualityGrade = qualityGrade;
     }
 
-    public BigDecimal getSellingPricePerQuintal() {
+    public Double getSellingPricePerQuintal() {
         return sellingPricePerQuintal;
     }
 
-    public void setSellingPricePerQuintal(BigDecimal sellingPricePerQuintal) {
+    public void setSellingPricePerQuintal(Double sellingPricePerQuintal) {
         this.sellingPricePerQuintal = sellingPricePerQuintal;
     }
 

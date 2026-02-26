@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -180,11 +180,11 @@ class ProfileManagementTest {
                     .areaAcres(2.5)
                     .season(Crop.Season.KHARIF)
                     .status(Crop.CropStatus.SOWN)
-                    .seedCost(new BigDecimal("2500.00"))
-                    .fertilizerCost(new BigDecimal("1500.00"))
-                    .pesticideCost(new BigDecimal("800.00"))
-                    .laborCost(new BigDecimal("2000.00"))
-                    .otherCost(new BigDecimal("500.00"))
+                    .seedCost(Double.valueOf("2500.00"))
+                    .fertilizerCost(Double.valueOf("1500.00"))
+                    .pesticideCost(Double.valueOf("800.00"))
+                    .laborCost(Double.valueOf("2000.00"))
+                    .otherCost(Double.valueOf("500.00"))
                     .notes("Test crop")
                     .build();
 
@@ -214,11 +214,11 @@ class ProfileManagementTest {
             assertEquals(2.5, response.getAreaAcres());
             assertEquals(Crop.Season.KHARIF.name(), response.getSeason());
             assertEquals(Crop.CropStatus.SOWN.name(), response.getStatus());
-            assertEquals(0, new BigDecimal("2500.00").compareTo(response.getSeedCost()));
-            assertEquals(0, new BigDecimal("1500.00").compareTo(response.getFertilizerCost()));
-            assertEquals(0, new BigDecimal("800.00").compareTo(response.getPesticideCost()));
-            assertEquals(0, new BigDecimal("2000.00").compareTo(response.getLaborCost()));
-            assertEquals(0, new BigDecimal("500.00").compareTo(response.getOtherCost()));
+            assertEquals(0, Double.valueOf("2500.00").compareTo(response.getSeedCost()));
+            assertEquals(0, Double.valueOf("1500.00").compareTo(response.getFertilizerCost()));
+            assertEquals(0, Double.valueOf("800.00").compareTo(response.getPesticideCost()));
+            assertEquals(0, Double.valueOf("2000.00").compareTo(response.getLaborCost()));
+            assertEquals(0, Double.valueOf("500.00").compareTo(response.getOtherCost()));
             
             verify(cropRepository).save(any(Crop.class));
             verify(profileVersionRepository).save(any(ProfileVersion.class));
@@ -243,9 +243,9 @@ class ProfileManagementTest {
             HarvestRequest request = HarvestRequest.builder()
                     .cropId(crop.getId())
                     .actualHarvestDate(LocalDate.of(2024, 10, 20))
-                    .totalYieldQuintals(new BigDecimal("12.5"))
+                    .totalYieldQuintals(Double.valueOf("12.5"))
                     .qualityGrade("A")
-                    .sellingPricePerQuintal(new BigDecimal("2200.00"))
+                    .sellingPricePerQuintal(Double.valueOf("2200.00"))
                     .mandiName("Pune Mandi")
                     .build();
 
@@ -266,9 +266,9 @@ class ProfileManagementTest {
             assertNotNull(response);
             assertEquals(Crop.CropStatus.HARVESTED.name(), response.getStatus());
             assertEquals(LocalDate.of(2024, 10, 20), response.getActualHarvestDate());
-            assertEquals(0, new BigDecimal("12.5").compareTo(response.getTotalYieldQuintals()));
+            assertEquals(0, Double.valueOf("12.5").compareTo(response.getTotalYieldQuintals()));
             assertEquals("A", response.getQualityGrade());
-            assertEquals(0, new BigDecimal("2200.00").compareTo(response.getSellingPricePerQuintal()));
+            assertEquals(0, Double.valueOf("2200.00").compareTo(response.getSellingPricePerQuintal()));
             assertEquals("Pune Mandi", response.getMandiName());
             
             verify(cropRepository).save(any(Crop.class));
@@ -648,9 +648,9 @@ class ProfileManagementTest {
             assertEquals("Paddy", response.getCurrentCrops().get(0).getCropName());
             
             // Verify financial summary
-            assertEquals(0, new BigDecimal("5000.00").compareTo(response.getFinancialSummary().getTotalInputCosts()));
-            assertEquals(0, new BigDecimal("15000.00").compareTo(response.getFinancialSummary().getTotalRevenue()));
-            assertEquals(0, new BigDecimal("10000.00").compareTo(response.getFinancialSummary().getProfitLoss()));
+            assertEquals(0, Double.valueOf("5000.00").compareTo(response.getFinancialSummary().getTotalInputCosts()));
+            assertEquals(0, Double.valueOf("15000.00").compareTo(response.getFinancialSummary().getTotalRevenue()));
+            assertEquals(0, Double.valueOf("10000.00").compareTo(response.getFinancialSummary().getProfitLoss()));
         }
 
         @Test
@@ -678,9 +678,9 @@ class ProfileManagementTest {
 
             // Then
             assertNotNull(response.getFinancialSummary());
-            assertEquals(0, new BigDecimal("10000.00").compareTo(response.getFinancialSummary().getTotalInputCosts()));
-            assertEquals(0, new BigDecimal("25000.00").compareTo(response.getFinancialSummary().getTotalRevenue()));
-            assertEquals(0, new BigDecimal("15000.00").compareTo(response.getFinancialSummary().getProfitLoss()));
+            assertEquals(0, Double.valueOf("10000.00").compareTo(response.getFinancialSummary().getTotalInputCosts()));
+            assertEquals(0, Double.valueOf("25000.00").compareTo(response.getFinancialSummary().getTotalRevenue()));
+            assertEquals(0, Double.valueOf("15000.00").compareTo(response.getFinancialSummary().getProfitLoss()));
             assertEquals(150.0, response.getFinancialSummary().getProfitMargin());
         }
 
@@ -765,8 +765,8 @@ class ProfileManagementTest {
             assertEquals(0.0, response.getFarmSummary().getTotalAreaAcres());
             assertTrue(response.getCurrentCrops().isEmpty());
             assertTrue(response.getUpcomingActivities().isEmpty());
-            assertEquals(0, BigDecimal.ZERO.compareTo(response.getFinancialSummary().getTotalInputCosts()));
-            assertEquals(0, BigDecimal.ZERO.compareTo(response.getFinancialSummary().getTotalRevenue()));
+            assertEquals(0.0, response.getFinancialSummary().getTotalInputCosts());
+            assertEquals(0.0, response.getFinancialSummary().getTotalRevenue());
         }
 
         @Test

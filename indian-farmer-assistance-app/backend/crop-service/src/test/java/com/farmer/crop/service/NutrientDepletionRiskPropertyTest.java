@@ -5,10 +5,8 @@ import com.farmer.crop.dto.CropHistoryEntryDto;
 import com.farmer.crop.dto.NutrientDepletionRiskDto;
 import com.farmer.crop.enums.CropFamily;
 import net.jqwik.api.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.*;
 
@@ -91,7 +89,7 @@ class NutrientDepletionRiskPropertyTest {
         assertNotNull(risk.getCropFamily());
         assertEquals(CropFamily.CEREALS, risk.getCropFamily());
         assertTrue(risk.getConsecutiveSeasons() >= 3);
-        assertTrue(risk.getSeverityScore().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(risk.getSeverityScore().compareTo(0.0) > 0);
     }
 
     /**
@@ -213,14 +211,14 @@ class NutrientDepletionRiskPropertyTest {
         CropHistoryAnalysisResultDto result4 = analyzer.analyzeCropHistory(fourSeasons);
 
         // Get severity scores
-        BigDecimal score2 = getMaxSeverityScore(result2);
-        BigDecimal score3 = getMaxSeverityScore(result3);
-        BigDecimal score4 = getMaxSeverityScore(result4);
+        Double score2 = getMaxSeverityScore(result2);
+        Double score3 = getMaxSeverityScore(result3);
+        Double score4 = getMaxSeverityScore(result4);
 
         // Assert - Severity should increase with consecutive count
-        assertTrue(score3.compareTo(score2) >= 0, 
+        assertTrue(score3 >= score2, 
                 "3 seasons should have >= severity than 2 seasons");
-        assertTrue(score4.compareTo(score3) >= 0, 
+        assertTrue(score4 >= score3, 
                 "4 seasons should have >= severity than 3 seasons");
     }
 
@@ -391,11 +389,11 @@ class NutrientDepletionRiskPropertyTest {
     /**
      * Helper method to get the maximum severity score from analysis result.
      */
-    private BigDecimal getMaxSeverityScore(CropHistoryAnalysisResultDto result) {
+    private Double getMaxSeverityScore(CropHistoryAnalysisResultDto result) {
         return result.getNutrientDepletionRisks().stream()
                 .map(NutrientDepletionRiskDto::getSeverityScore)
-                .max(BigDecimal::compareTo)
-                .orElse(BigDecimal.ZERO);
+                .max(Double::compareTo)
+                .orElse(0.0);
     }
 
     /**
@@ -406,9 +404,10 @@ class NutrientDepletionRiskPropertyTest {
                 .cropId((long) cropName.hashCode())
                 .cropName(cropName)
                 .sowingDate(sowingDate)
-                .areaAcres(new BigDecimal("2.5"))
+                .areaAcres(2.5)
                 .season("KHARIF")
                 .status("HARVESTED")
                 .build();
     }
 }
+

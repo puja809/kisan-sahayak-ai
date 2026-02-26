@@ -38,8 +38,8 @@ public class PriceAlert {
     @Column(name = "variety", length = 100)
     private String variety;
 
-    @Column(name = "target_price", precision = 10, scale = 2)
-    private java.math.BigDecimal targetPrice;
+    @Column(name = "target_price")
+    private Double targetPrice;
 
     @Column(name = "alert_type", length = 20)
     @Builder.Default

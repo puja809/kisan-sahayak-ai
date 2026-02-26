@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -46,10 +46,10 @@ public interface MandiLocationRepository extends JpaRepository<MandiLocation, Lo
            "AND m.latitude BETWEEN :minLat AND :maxLat " +
            "AND m.longitude BETWEEN :minLon AND :maxLon")
     List<MandiLocation> findLocationsInBoundingBox(
-            @Param("minLat") BigDecimal minLat,
-            @Param("maxLat") BigDecimal maxLat,
-            @Param("minLon") BigDecimal minLon,
-            @Param("maxLon") BigDecimal maxLon);
+            @Param("minLat") Double minLat,
+            @Param("maxLat") Double maxLat,
+            @Param("minLon") Double minLon,
+            @Param("maxLon") Double maxLon);
 
     /**
      * Find locations by state.

@@ -252,7 +252,6 @@ class UserServiceTest {
 
         when(userRepository.findByFarmerId(testUser.getFarmerId())).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(jwtService.getExpirationSeconds()).thenReturn(86400L);
 
         // When
         UserResponse response = userService.updateProfile(testUser.getFarmerId(), request);

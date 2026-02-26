@@ -3,7 +3,7 @@ package com.farmer.user.dto;
 import com.farmer.user.entity.FertilizerApplication;
 import lombok.*;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -22,16 +22,16 @@ public class FertilizerApplicationResponse {
     private String cropName;
     private String fertilizerType;
     private String fertilizerCategory;
-    private BigDecimal quantityKg;
+    private Double quantityKg;
     private LocalDate applicationDate;
     private String applicationStage;
-    private BigDecimal cost;
-    private BigDecimal nitrogenContentPercent;
-    private BigDecimal phosphorusContentPercent;
-    private BigDecimal potassiumContentPercent;
-    private BigDecimal nitrogenKg;
-    private BigDecimal phosphorusKg;
-    private BigDecimal potassiumKg;
+    private Double cost;
+    private Double nitrogenContentPercent;
+    private Double phosphorusContentPercent;
+    private Double potassiumContentPercent;
+    private Double nitrogenKg;
+    private Double phosphorusKg;
+    private Double potassiumKg;
     private String notes;
     private LocalDateTime createdAt;
 

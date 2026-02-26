@@ -217,6 +217,7 @@ public class SyncStatusService {
             case IDLE -> "All data is synced.";
             case SYNCING -> "Syncing " + status.getSyncingCount() + " of " + status.getTotalToSync() + " items...";
             case PENDING_SYNC -> status.getPendingChanges() + " changes pending sync.";
+            case OFFLINE -> "You are offline.";
             case ERROR -> "Sync error: " + (status.getLastError() != null ? status.getLastError() : "Unknown error");
         };
     }

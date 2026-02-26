@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -37,9 +35,9 @@ public class AuditService {
                     .entityId(entityId)
                     .oldValue(oldValue != null ? objectMapper.writeValueAsString(oldValue) : null)
                     .newValue(newValue != null ? objectMapper.writeValueAsString(newValue) : null)
-                    .changedBy(adminId)
+                    .userId(null) // Will be set by interceptor
+                    .userName(adminId)
                     .timestamp(LocalDateTime.now())
-                    .status("SUCCESS")
                     .build();
             
             auditLogRepository.save(auditLog);
@@ -61,9 +59,9 @@ public class AuditService {
                     .entityId(entityId != null ? entityId.toString() : null)
                     .oldValue(oldValue != null ? objectMapper.writeValueAsString(oldValue) : null)
                     .newValue(newValue != null ? objectMapper.writeValueAsString(newValue) : null)
-                    .changedBy(adminId)
+                    .userId(null) // Will be set by interceptor
+                    .userName(adminId)
                     .timestamp(LocalDateTime.now())
-                    .status("SUCCESS")
                     .build();
             
             auditLogRepository.save(auditLog);
@@ -79,6 +77,16 @@ public class AuditService {
      */
     public void logAction(String action, String entityType, String entityId, 
                           Object oldValue, Object newValue, Long userId, String userName) {
+        logActionWithMetadata(action, entityType, entityId, oldValue, newValue, userId, userName, null, null);
+    }
+
+    /**
+     * Log any administrative action with IP address and user agent.
+     * Requirements: 21.11, 22.7
+     */
+    public void logActionWithMetadata(String action, String entityType, String entityId, 
+                                      Object oldValue, Object newValue, Long userId, String userName,
+                                      String ipAddress, String userAgent) {
         try {
             AuditLog auditLog = AuditLog.builder()
                     .userId(userId)
@@ -88,8 +96,9 @@ public class AuditService {
                     .entityId(entityId)
                     .oldValue(oldValue != null ? objectMapper.writeValueAsString(oldValue) : null)
                     .newValue(newValue != null ? objectMapper.writeValueAsString(newValue) : null)
+                    .ipAddress(ipAddress)
+                    .userAgent(userAgent)
                     .timestamp(LocalDateTime.now())
-                    .status("SUCCESS")
                     .build();
             
             auditLogRepository.save(auditLog);
@@ -112,8 +121,6 @@ public class AuditService {
                     .entityType(entityType)
                     .entityId(entityId)
                     .timestamp(LocalDateTime.now())
-                    .status("FAILED")
-                    .errorMessage(errorMessage)
                     .build();
             
             auditLogRepository.save(auditLog);

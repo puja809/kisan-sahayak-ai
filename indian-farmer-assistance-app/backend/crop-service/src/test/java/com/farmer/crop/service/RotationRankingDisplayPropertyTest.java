@@ -5,9 +5,8 @@ import com.farmer.crop.dto.RotationOptionDto;
 import com.farmer.crop.dto.RotationRecommendationResultDto;
 import com.farmer.crop.enums.CropFamily;
 import net.jqwik.api.*;
-import org.junit.jupiter.api.BeforeEach;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -76,9 +75,9 @@ class RotationRankingDisplayPropertyTest {
 
         // Then - verify descending order
         for (int i = 0; i < ranked.size() - 1; i++) {
-            BigDecimal current = ranked.get(i).getOverallBenefitScore();
-            BigDecimal next = ranked.get(i + 1).getOverallBenefitScore();
-            assertTrue(current.compareTo(next) >= 0,
+            Double current = ranked.get(i).getOverallBenefitScore();
+            Double next = ranked.get(i + 1).getOverallBenefitScore();
+            assertTrue(current >= next,
                     "Options should be in descending order. Found: " + current + " followed by " + next);
         }
     }
@@ -103,20 +102,18 @@ class RotationRankingDisplayPropertyTest {
         
         // Given
         RotationOptionDto option = RotationOptionDto.builder()
-                .soilHealthBenefit(new BigDecimal(soilHealth))
-                .climateResilience(new BigDecimal(climate))
-                .economicViability(new BigDecimal(economic))
+                .soilHealthBenefit((double) soilHealth)
+                .climateResilience((double) climate)
+                .economicViability((double) economic)
                 .build();
 
         // When
-        BigDecimal overall = service.calculateOverallBenefitScore(option);
+        Double overall = service.calculateOverallBenefitScore(option);
 
         // Then - verify calculation matches expected formula
-        BigDecimal expected = new BigDecimal(soilHealth).multiply(new BigDecimal("0.40"))
-                .add(new BigDecimal(climate).multiply(new BigDecimal("0.30")))
-                .add(new BigDecimal(economic).multiply(new BigDecimal("0.30")));
+        Double expected = soilHealth * 0.40 + climate * 0.30 + economic * 0.30;
 
-        assertEquals(expected.setScale(2, java.math.RoundingMode.HALF_UP), overall);
+        assertEquals(expected, overall);
     }
 
     /**
@@ -398,19 +395,19 @@ class RotationRankingDisplayPropertyTest {
 
         // Then
         for (RotationOptionDto option : defaults) {
-            assertTrue(option.getSoilHealthBenefit().compareTo(BigDecimal.ZERO) >= 0,
+            assertTrue(option.getSoilHealthBenefit().compareTo(0.0) >= 0,
                     "Soil health should be >= 0");
-            assertTrue(option.getSoilHealthBenefit().compareTo(new BigDecimal("100")) <= 0,
+            assertTrue(option.getSoilHealthBenefit().compareTo(100.0) <= 0,
                     "Soil health should be <= 100");
             
-            assertTrue(option.getClimateResilience().compareTo(BigDecimal.ZERO) >= 0,
+            assertTrue(option.getClimateResilience().compareTo(0.0) >= 0,
                     "Climate resilience should be >= 0");
-            assertTrue(option.getClimateResilience().compareTo(new BigDecimal("100")) <= 0,
+            assertTrue(option.getClimateResilience().compareTo(100.0) <= 0,
                     "Climate resilience should be <= 100");
             
-            assertTrue(option.getEconomicViability().compareTo(BigDecimal.ZERO) >= 0,
+            assertTrue(option.getEconomicViability().compareTo(0.0) >= 0,
                     "Economic viability should be >= 0");
-            assertTrue(option.getEconomicViability().compareTo(new BigDecimal("100")) <= 0,
+            assertTrue(option.getEconomicViability().compareTo(100.0) <= 0,
                     "Economic viability should be <= 100");
         }
     }
@@ -434,17 +431,17 @@ class RotationRankingDisplayPropertyTest {
         
         // Given
         RotationOptionDto option = RotationOptionDto.builder()
-                .soilHealthBenefit(new BigDecimal(soilHealth))
-                .climateResilience(new BigDecimal(climate))
-                .economicViability(new BigDecimal(economic))
+                .soilHealthBenefit((double) soilHealth)
+                .climateResilience((double) climate)
+                .economicViability((double) economic)
                 .build();
 
         // When
-        BigDecimal overall = service.calculateOverallBenefitScore(option);
+        Double overall = service.calculateOverallBenefitScore(option);
 
         // Then
-        assertTrue(overall.compareTo(BigDecimal.ZERO) >= 0, "Overall score should be >= 0");
-        assertTrue(overall.compareTo(new BigDecimal("100")) <= 0, "Overall score should be <= 100");
+        assertTrue(overall.compareTo(0.0) >= 0, "Overall score should be >= 0");
+        assertTrue(overall.compareTo(100.0) <= 0, "Overall score should be <= 100");
     }
 
     /**
@@ -541,9 +538,9 @@ class RotationRankingDisplayPropertyTest {
                                 .cropSequence(ALL_CROPS.get(i % ALL_CROPS.size()) + " -> " + 
                                         ALL_CROPS.get((i + 1) % ALL_CROPS.size()) + " -> " +
                                         ALL_CROPS.get((i + 2) % ALL_CROPS.size()))
-                                .soilHealthBenefit(new BigDecimal(50 + (i * 10) % 50))
-                                .climateResilience(new BigDecimal(50 + (i * 8) % 50))
-                                .economicViability(new BigDecimal(50 + (i * 12) % 50))
+                                .soilHealthBenefit((double) ((50 + i * 10) % 50))
+                                .climateResilience((double) ((50 + i * 8) % 50))
+                                .economicViability((double) ((50 + i * 12) % 50))
                                 .build();
                         options.add(option);
                     }
@@ -566,7 +563,7 @@ class RotationRankingDisplayPropertyTest {
                                 .cropVariety("Common")
                                 .sowingDate(baseDate.minusMonths((long) (j + 1) * 4))
                                 .expectedHarvestDate(baseDate.minusMonths((long) j * 4))
-                                .areaAcres(new BigDecimal("2.5"))
+                                .areaAcres(2.5)
                                 .season(j % 2 == 0 ? "KHARIF" : "RABI")
                                 .status("HARVESTED")
                                 .cropFamily(CropFamily.getFamilyForCrop(cropName))
@@ -578,3 +575,4 @@ class RotationRankingDisplayPropertyTest {
                 });
     }
 }
+

@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.farmer.weather.client.ImdApiClientPropertyTest$SevenDayForecastDistrictParameter
--------------------------------------------------------------------------------
-Tests run: 54, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.173 s -- in com.farmer.weather.client.ImdApiClientPropertyTest$SevenDayForecastDistrictParameter

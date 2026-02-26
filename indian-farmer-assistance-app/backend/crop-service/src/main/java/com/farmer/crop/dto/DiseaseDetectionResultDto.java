@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -24,7 +23,7 @@ public class DiseaseDetectionResultDto {
     private String diseaseNameLocal;
     
     // Confidence score (0-100)
-    private BigDecimal confidenceScore;
+    private Double confidenceScore;
     
     // Severity levels
     public enum SeverityLevel {
@@ -34,7 +33,7 @@ public class DiseaseDetectionResultDto {
     private SeverityLevel severityLevel;
     
     // Affected area
-    private BigDecimal affectedAreaPercent;
+    private Double affectedAreaPercent;
     
     // Treatment recommendations
     private String treatmentRecommendations;
@@ -43,7 +42,7 @@ public class DiseaseDetectionResultDto {
     private List<String> preventiveMeasures;
     
     // Cost information
-    private BigDecimal estimatedTreatmentCost;
+    private Double estimatedTreatmentCost;
     
     // Application details
     private String applicationTiming;

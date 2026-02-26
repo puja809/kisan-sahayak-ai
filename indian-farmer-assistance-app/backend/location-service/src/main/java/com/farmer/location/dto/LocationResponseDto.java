@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
  * 
  * Validates: Requirements 14.1, 14.2, 14.3
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

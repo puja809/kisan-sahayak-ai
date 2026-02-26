@@ -58,4 +58,6 @@ public interface SensorReadingRepository extends JpaRepository<SensorReading, Lo
                              @Param("since") LocalDateTime since);
 
     void deleteByDeviceIdAndReadingTimestampBefore(Long deviceId, LocalDateTime threshold);
+
+    void deleteByReadingTimestampBefore(LocalDateTime threshold);
 }

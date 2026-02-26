@@ -211,7 +211,7 @@ public class GovernmentBodyLocatorService {
      * Convert GovernmentBody entity to DTO.
      */
     private GovernmentBodyDto convertToDto(GovernmentBody body, double distanceKm, GovernmentBodySearchRequestDto request) {
-        GovernmentBodyDto.GovBodyDtoBuilder builder = GovernmentBodyDto.builder()
+        GovernmentBodyDto.GovernmentBodyDtoBuilder builder = GovernmentBodyDto.builder()
                 .id(body.getId())
                 .bodyType(body.getBodyType())
                 .name(body.getName())

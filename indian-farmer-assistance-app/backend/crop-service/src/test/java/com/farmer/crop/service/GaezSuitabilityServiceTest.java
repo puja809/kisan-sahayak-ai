@@ -12,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,8 +53,7 @@ class GaezSuitabilityServiceTest {
         // Arrange
         String zoneCode = "AEZ-05";
         GaezCropData wheatData = createGaezCropData("AEZ-05", "WHEAT", "Wheat", 
-                new BigDecimal("90"), new BigDecimal("95"), new BigDecimal("85"),
-                new BigDecimal("90"), new BigDecimal("85"), true, false, false, "LOW");
+                90.0, 95.0, 85.0, 90.0, 85.0, true, false, false, "LOW");
         
         when(gaezCropDataRepository.findByZoneCodeAndIsActiveTrue(zoneCode))
                 .thenReturn(Arrays.asList(wheatData));
@@ -68,7 +66,7 @@ class GaezSuitabilityServiceTest {
         assertEquals(1, result.size());
         assertEquals("WHEAT", result.get(0).getCropCode());
         assertEquals("Wheat", result.get(0).getCropName());
-        assertEquals(new BigDecimal("90"), result.get(0).getOverallSuitabilityScore());
+        assertEquals(90.0, result.get(0).getOverallSuitabilityScore());
     }
 
     @Test
@@ -101,8 +99,7 @@ class GaezSuitabilityServiceTest {
                 .build();
 
         GaezCropData wheatData = createGaezCropData("AEZ-05", "WHEAT", "Wheat", 
-                new BigDecimal("90"), new BigDecimal("95"), new BigDecimal("85"),
-                new BigDecimal("90"), new BigDecimal("85"), false, true, false, "LOW");
+                90.0, 95.0, 85.0, 90.0, 85.0, false, true, false, "LOW");
 
         when(gaezCropDataRepository.findByZoneCodeAndIsActiveTrue("AEZ-05"))
                 .thenReturn(Arrays.asList(wheatData));
@@ -117,7 +114,7 @@ class GaezSuitabilityServiceTest {
         assertEquals(1, result.size());
         assertEquals("WHEAT", result.get(0).getCropCode());
         // DRIP irrigation should add 5 to water score
-        assertTrue(result.get(0).getWaterSuitabilityScore().compareTo(new BigDecimal("85")) > 0);
+        assertTrue(result.get(0).getWaterSuitabilityScore() > 85.0);
     }
 
     @Test
@@ -127,11 +124,11 @@ class GaezSuitabilityServiceTest {
         SoilHealthCardDto soilHealthCard = SoilHealthCardDto.builder()
                 .cardId("SHC-001")
                 .farmerId("FARMER-001")
-                .nitrogenKgHa(new BigDecimal("200"))  // Low nitrogen
-                .phosphorusKgHa(new BigDecimal("8"))  // Low phosphorus
-                .potassiumKgHa(new BigDecimal("300")) // Adequate potassium
-                .zincPpm(new BigDecimal("0.4"))      // Low zinc
-                .ph(new BigDecimal("6.5"))           // Good pH
+                .nitrogenKgHa(200.0)  // Low nitrogen
+                .phosphorusKgHa(8.0)  // Low phosphorus
+                .potassiumKgHa(300.0) // Adequate potassium
+                .zincPpm(0.4)      // Low zinc
+                .ph(6.5)           // Good pH
                 .build();
 
         CropRecommendationRequestDto request = CropRecommendationRequestDto.builder()
@@ -144,8 +141,7 @@ class GaezSuitabilityServiceTest {
                 .build();
 
         GaezCropData wheatData = createGaezCropData("AEZ-05", "WHEAT", "Wheat", 
-                new BigDecimal("90"), new BigDecimal("95"), new BigDecimal("85"),
-                new BigDecimal("90"), new BigDecimal("85"), false, true, false, "LOW");
+                90.0, 95.0, 85.0, 90.0, 85.0, false, true, false, "LOW");
 
         when(gaezCropDataRepository.findByZoneCodeAndIsActiveTrue("AEZ-05"))
                 .thenReturn(Arrays.asList(wheatData));
@@ -157,7 +153,7 @@ class GaezSuitabilityServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         // Soil health adjustments should reduce the score due to nutrient deficiencies
-        assertTrue(result.get(0).getOverallSuitabilityScore().compareTo(new BigDecimal("90")) < 0);
+        assertTrue(result.get(0).getOverallSuitabilityScore() < 90.0);
     }
 
     @Test
@@ -173,12 +169,10 @@ class GaezSuitabilityServiceTest {
                 .build();
 
         GaezCropData riceData = createGaezCropData("AEZ-05", "RICE", "Rice", 
-                new BigDecimal("75"), new BigDecimal("80"), new BigDecimal("70"),
-                new BigDecimal("85"), new BigDecimal("65"), true, false, false, "MEDIUM");
+                75.0, 80.0, 70.0, 85.0, 65.0, true, false, false, "MEDIUM");
         
         GaezCropData wheatData = createGaezCropData("AEZ-05", "WHEAT", "Wheat", 
-                new BigDecimal("90"), new BigDecimal("95"), new BigDecimal("85"),
-                new BigDecimal("90"), new BigDecimal("85"), false, true, false, "LOW");
+                90.0, 95.0, 85.0, 90.0, 85.0, false, true, false, "LOW");
 
         when(gaezCropDataRepository.findByZoneCodeAndIsActiveTrue("AEZ-05"))
                 .thenReturn(Arrays.asList(riceData, wheatData));
@@ -222,12 +216,10 @@ class GaezSuitabilityServiceTest {
                 .build();
 
         GaezCropData wheatData = createGaezCropData("AEZ-05", "WHEAT", "Wheat", 
-                new BigDecimal("90"), new BigDecimal("95"), new BigDecimal("85"),
-                new BigDecimal("90"), new BigDecimal("85"), false, true, false, "LOW");
+                90.0, 95.0, 85.0, 90.0, 85.0, false, true, false, "LOW");
         
         GaezCropData cottonData = createGaezCropData("AEZ-05", "COTTON", "Cotton", 
-                new BigDecimal("50"), new BigDecimal("55"), new BigDecimal("45"),
-                new BigDecimal("60"), new BigDecimal("40"), true, false, false, "HIGH");
+                50.0, 55.0, 45.0, 60.0, 40.0, true, false, false, "HIGH");
 
         when(gaezCropDataRepository.findByZoneCodeAndIsActiveTrue("AEZ-05"))
                 .thenReturn(Arrays.asList(wheatData, cottonData));
@@ -257,8 +249,7 @@ class GaezSuitabilityServiceTest {
                 .build();
 
         GaezCropData wheatData = createGaezCropData("AEZ-05", "WHEAT", "Wheat", 
-                new BigDecimal("90"), new BigDecimal("95"), new BigDecimal("85"),
-                new BigDecimal("90"), new BigDecimal("85"), false, true, false, "LOW");
+                90.0, 95.0, 85.0, 90.0, 85.0, false, true, false, "LOW");
 
         when(gaezCropDataRepository.findByZoneCodeAndIsActiveTrue("AEZ-05"))
                 .thenReturn(Arrays.asList(wheatData));
@@ -272,7 +263,7 @@ class GaezSuitabilityServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         // RAINFED should reduce water score by 10
-        assertTrue(result.get(0).getWaterSuitabilityScore().compareTo(new BigDecimal("75")) >= 0);
+        assertTrue(result.get(0).getWaterSuitabilityScore() >= 75.0);
     }
 
     @Test
@@ -280,8 +271,7 @@ class GaezSuitabilityServiceTest {
     void testGetSuitabilityForCrop() {
         // Arrange
         GaezCropData wheatData = createGaezCropData("AEZ-05", "WHEAT", "Wheat", 
-                new BigDecimal("90"), new BigDecimal("95"), new BigDecimal("85"),
-                new BigDecimal("90"), new BigDecimal("85"), false, true, false, "LOW");
+                90.0, 95.0, 85.0, 90.0, 85.0, false, true, false, "LOW");
 
         when(gaezCropDataRepository.findByZoneCodeAndCropCodeAndIsActiveTrue("AEZ-05", "WHEAT"))
                 .thenReturn(Optional.of(wheatData));
@@ -315,16 +305,16 @@ class GaezSuitabilityServiceTest {
      * Helper method to create GaezCropData for testing.
      */
     private GaezCropData createGaezCropData(String zoneCode, String cropCode, String cropName,
-            BigDecimal overallScore, BigDecimal climateScore, BigDecimal soilScore,
-            BigDecimal terrainScore, BigDecimal waterScore, 
+            Double overallScore, Double climateScore, Double soilScore,
+            Double terrainScore, Double waterScore, 
             boolean kharif, boolean rabi, boolean zaid, String climateRisk) {
         
         GaezCropData.SuitabilityClassification classification;
-        if (overallScore.compareTo(new BigDecimal("80")) >= 0) {
+        if (overallScore >= 80.0) {
             classification = GaezCropData.SuitabilityClassification.HIGHLY_SUITABLE;
-        } else if (overallScore.compareTo(new BigDecimal("60")) >= 0) {
+        } else if (overallScore >= 60.0) {
             classification = GaezCropData.SuitabilityClassification.SUITABLE;
-        } else if (overallScore.compareTo(new BigDecimal("40")) >= 0) {
+        } else if (overallScore >= 40.0) {
             classification = GaezCropData.SuitabilityClassification.MARGINALLY_SUITABLE;
         } else {
             classification = GaezCropData.SuitabilityClassification.NOT_SUITABLE;
@@ -341,9 +331,9 @@ class GaezSuitabilityServiceTest {
                 .soilSuitabilityScore(soilScore)
                 .terrainSuitabilityScore(terrainScore)
                 .waterSuitabilityScore(waterScore)
-                .rainfedPotentialYield(new BigDecimal("4500"))
-                .irrigatedPotentialYield(new BigDecimal("5500"))
-                .waterRequirementsMm(new BigDecimal("500"))
+                .rainfedPotentialYield(4500.0)
+                .irrigatedPotentialYield(5500.0)
+                .waterRequirementsMm(500.0)
                 .growingSeasonDays(120)
                 .kharifSuitable(kharif)
                 .rabiSuitable(rabi)
@@ -355,3 +345,4 @@ class GaezSuitabilityServiceTest {
                 .build();
     }
 }
+

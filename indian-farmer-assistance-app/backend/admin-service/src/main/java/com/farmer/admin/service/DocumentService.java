@@ -3,6 +3,7 @@ package com.farmer.admin.service;
 import com.farmer.admin.dto.DocumentUploadRequest;
 import com.farmer.admin.dto.DocumentUpdateRequest;
 import com.farmer.admin.entity.Document;
+import com.farmer.admin.entity.DocumentMetadataInfo;
 import com.farmer.admin.entity.DocumentVersion;
 import com.farmer.admin.exception.DocumentNotFoundException;
 import com.farmer.admin.exception.DocumentValidationException;
@@ -16,7 +17,6 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.index.IndexDefinition;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -91,7 +91,7 @@ public class DocumentService {
                 .category(request.getCategory())
                 .content(content)
                 .contentLanguage(request.getContentLanguage() != null ? request.getContentLanguage() : "en")
-                .metadata(Document.DocumentMetadata.builder()
+                .metadata(DocumentMetadataInfo.builder()
                         .source(request.getSource())
                         .uploadDate(LocalDateTime.now())
                         .uploadedBy(adminId)
@@ -159,16 +159,12 @@ public class DocumentService {
         String extension = getFileExtension(file.getOriginalFilename()).toUpperCase();
         
         try (InputStream inputStream = file.getInputStream()) {
-            switch (extension) {
-                case "PDF":
-                    return extractPdfText(inputStream);
-                case "DOCX":
-                    return extractDocxText(inputStream);
-                case "TXT":
-                    return extractTextFromInputStream(inputStream);
-                default:
-                    throw new DocumentValidationException("Unsupported file format: " + extension);
-            }
+            return switch (extension) {
+                case "PDF" -> extractPdfText(inputStream);
+                case "DOCX" -> extractDocxText(inputStream);
+                case "TXT" -> extractTextFromInputStream(inputStream);
+                default -> throw new DocumentValidationException("Unsupported file format: " + extension);
+            };
         } catch (IOException e) {
             log.error("Error extracting text content: {}", e.getMessage());
             throw new DocumentValidationException("Failed to extract text content: " + e.getMessage(), e);
@@ -247,9 +243,9 @@ public class DocumentService {
         }
         
         // Update metadata
-        Document.DocumentMetadata metadata = document.getMetadata();
+        DocumentMetadataInfo metadata = document.getMetadata();
         if (metadata == null) {
-            metadata = new Document.DocumentMetadata();
+            metadata = new DocumentMetadataInfo();
             document.setMetadata(metadata);
         }
         if (request.getState() != null) {
@@ -420,7 +416,7 @@ public class DocumentService {
         }
     }
 
-    private String serializeMetadata(Document.DocumentMetadata metadata) {
+    private String serializeMetadata(DocumentMetadataInfo metadata) {
         if (metadata == null) return "{}";
         return String.format(
             "{\"source\":\"%s\",\"state\":\"%s\",\"version\":%d}",

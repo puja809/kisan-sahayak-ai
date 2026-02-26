@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -96,9 +95,9 @@ class CropRecommendationServiceTest {
                 .thenReturn(Optional.of(createZone("AEZ-05", "Upper Gangetic Plain Region")));
 
         List<GaezCropSuitabilityDto> suitabilityList = Arrays.asList(
-                createSuitability("WHEAT", "Wheat", new BigDecimal("90"), 
+                createSuitability("WHEAT", "Wheat", 90.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.LOW),
-                createSuitability("MUSTARD", "Mustard", new BigDecimal("88"), 
+                createSuitability("MUSTARD", "Mustard", 88.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.LOW)
         );
 
@@ -153,8 +152,8 @@ class CropRecommendationServiceTest {
         SoilHealthCardDto soilHealthCard = SoilHealthCardDto.builder()
                 .cardId("SHC-001")
                 .farmerId("FARMER-001")
-                .nitrogenKgHa(new BigDecimal("200"))
-                .phosphorusKgHa(new BigDecimal("8"))
+                .nitrogenKgHa(200.0)
+                .phosphorusKgHa(8.0)
                 .build();
 
         CropRecommendationRequestDto request = CropRecommendationRequestDto.builder()
@@ -179,7 +178,7 @@ class CropRecommendationServiceTest {
                 .thenReturn(Optional.of(createZone("AEZ-05", "Upper Gangetic Plain Region")));
 
         List<GaezCropSuitabilityDto> suitabilityList = Arrays.asList(
-                createSuitability("WHEAT", "Wheat", new BigDecimal("85"), 
+                createSuitability("WHEAT", "Wheat", 85.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.LOW)
         );
 
@@ -219,11 +218,11 @@ class CropRecommendationServiceTest {
                 .thenReturn(Optional.of(createZone("AEZ-05", "Upper Gangetic Plain Region")));
 
         List<GaezCropSuitabilityDto> suitabilityList = Arrays.asList(
-                createSuitability("RICE", "Rice", new BigDecimal("75"), 
+                createSuitability("RICE", "Rice", 75.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.MEDIUM),
-                createSuitability("WHEAT", "Wheat", new BigDecimal("90"), 
+                createSuitability("WHEAT", "Wheat", 90.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.LOW),
-                createSuitability("COTTON", "Cotton", new BigDecimal("70"), 
+                createSuitability("COTTON", "Cotton", 70.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.HIGH)
         );
 
@@ -264,11 +263,11 @@ class CropRecommendationServiceTest {
                 .thenReturn(Optional.of(createZone("AEZ-05", "Upper Gangetic Plain Region")));
 
         List<GaezCropSuitabilityDto> suitabilityList = Arrays.asList(
-                createSuitability("RICE", "Rice", new BigDecimal("75"), 
+                createSuitability("RICE", "Rice", 75.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.MEDIUM),
-                createSuitability("WHEAT", "Wheat", new BigDecimal("90"), 
+                createSuitability("WHEAT", "Wheat", 90.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.LOW),
-                createSuitability("COTTON", "Cotton", new BigDecimal("70"), 
+                createSuitability("COTTON", "Cotton", 70.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.HIGH)
         );
 
@@ -294,7 +293,7 @@ class CropRecommendationServiceTest {
                 .farmerId("FARMER-001")
                 .district("Lucknow")
                 .state("Uttar Pradesh")
-                .minSuitabilityScore(new BigDecimal("80"))
+                .minSuitabilityScore(80.0)
                 .build();
 
         ZoneLookupResponseDto zoneResponse = ZoneLookupResponseDto.builder()
@@ -311,11 +310,11 @@ class CropRecommendationServiceTest {
                 .thenReturn(Optional.of(createZone("AEZ-05", "Upper Gangetic Plain Region")));
 
         List<GaezCropSuitabilityDto> suitabilityList = Arrays.asList(
-                createSuitability("RICE", "Rice", new BigDecimal("75"), 
+                createSuitability("RICE", "Rice", 75.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.MEDIUM),
-                createSuitability("WHEAT", "Wheat", new BigDecimal("90"), 
+                createSuitability("WHEAT", "Wheat", 90.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.LOW),
-                createSuitability("COTTON", "Cotton", new BigDecimal("50"), 
+                createSuitability("COTTON", "Cotton", 50.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.HIGH)
         );
 
@@ -356,9 +355,9 @@ class CropRecommendationServiceTest {
                 .thenReturn(Optional.of(createZone("AEZ-05", "Upper Gangetic Plain Region")));
 
         List<GaezCropSuitabilityDto> suitabilityList = Arrays.asList(
-                createSuitability("WHEAT", "Wheat", new BigDecimal("90"), 
+                createSuitability("WHEAT", "Wheat", 90.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.LOW),
-                createSuitability("COTTON", "Cotton", new BigDecimal("70"), 
+                createSuitability("COTTON", "Cotton", 70.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.HIGH)
         );
 
@@ -388,7 +387,7 @@ class CropRecommendationServiceTest {
                 .thenReturn(Optional.of(createZone("AEZ-05", "Upper Gangetic Plain Region")));
 
         List<GaezCropSuitabilityDto> suitabilityList = Arrays.asList(
-                createSuitability("WHEAT", "Wheat", new BigDecimal("90"), 
+                createSuitability("WHEAT", "Wheat", 90.0, 
                         GaezCropSuitabilityDto.ClimateRiskLevel.LOW)
         );
 
@@ -417,21 +416,21 @@ class CropRecommendationServiceTest {
     }
 
     private GaezCropSuitabilityDto createSuitability(String cropCode, String cropName, 
-            BigDecimal score, GaezCropSuitabilityDto.ClimateRiskLevel climateRisk) {
+            Double score, GaezCropSuitabilityDto.ClimateRiskLevel climateRisk) {
         return GaezCropSuitabilityDto.builder()
                 .cropCode(cropCode)
                 .cropName(cropName)
                 .overallSuitabilityScore(score)
-                .suitabilityClassification(score.compareTo(new BigDecimal("80")) >= 0 ? 
+                .suitabilityClassification(score >= 80.0 ? 
                         GaezCropSuitabilityDto.SuitabilityClassification.HIGHLY_SUITABLE :
                         GaezCropSuitabilityDto.SuitabilityClassification.SUITABLE)
                 .climateSuitabilityScore(score)
                 .soilSuitabilityScore(score)
                 .terrainSuitabilityScore(score)
                 .waterSuitabilityScore(score)
-                .rainfedPotentialYield(new BigDecimal("4500"))
-                .irrigatedPotentialYield(new BigDecimal("5500"))
-                .waterRequirementsMm(new BigDecimal("500"))
+                .rainfedPotentialYield(4500.0)
+                .irrigatedPotentialYield(5500.0)
+                .waterRequirementsMm(500.0)
                 .growingSeasonDays(120)
                 .kharifSuitable(false)
                 .rabiSuitable(true)
@@ -442,3 +441,4 @@ class CropRecommendationServiceTest {
                 .build();
     }
 }
+

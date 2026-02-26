@@ -1,7 +1,7 @@
 package com.farmer.scheme.dto;
 
 import lombok.*;
-import java.math.BigDecimal;
+
 import java.util.List;
 
 /**
@@ -21,13 +21,13 @@ public class EligibilityCriteriaDTO {
      * Minimum landholding required in acres.
      * null means no minimum requirement.
      */
-    private BigDecimal minLandholdingAcres;
+    private Double minLandholdingAcres;
     
     /**
      * Maximum landholding allowed in acres.
      * null means no maximum requirement.
      */
-    private BigDecimal maxLandholdingAcres;
+    private Double maxLandholdingAcres;
     
     /**
      * Whether small/marginal farmers are specifically targeted.
@@ -84,7 +84,7 @@ public class EligibilityCriteriaDTO {
      * Maximum annual income allowed in INR.
      * null means no income limit.
      */
-    private BigDecimal maxAnnualIncome;
+    private Double maxAnnualIncome;
     
     /**
      * Required irrigation types.

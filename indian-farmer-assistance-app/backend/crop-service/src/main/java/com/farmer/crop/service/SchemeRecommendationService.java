@@ -3,7 +3,7 @@ package com.farmer.crop.service;
 import com.farmer.crop.dto.SchemeRecommendationDto;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
@@ -80,22 +80,22 @@ public class SchemeRecommendationService {
      * @param recommendation The scheme recommendation
      * @return Overall score
      */
-    public BigDecimal calculateOverallScore(SchemeRecommendationDto recommendation) {
+    public Double calculateOverallScore(SchemeRecommendationDto recommendation) {
         if (recommendation == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
         
-        BigDecimal benefit = recommendation.getBenefitAmount() != null ? 
-                normalizeBenefit(recommendation.getBenefitAmount()) : BigDecimal.ZERO;
-        BigDecimal eligibility = recommendation.getEligibilityScore() != null ? 
-                recommendation.getEligibilityScore() : BigDecimal.ZERO;
-        BigDecimal deadline = recommendation.getDeadlineProximityScore() != null ? 
-                recommendation.getDeadlineProximityScore() : BigDecimal.ZERO;
+        Double benefit = recommendation.getBenefitAmount() != null ? 
+                normalizeBenefit(recommendation.getBenefitAmount()) : 0.0;
+        Double eligibility = recommendation.getEligibilityScore() != null ? 
+                recommendation.getEligibilityScore() : 0.0;
+        Double deadline = recommendation.getDeadlineProximityScore() != null ? 
+                recommendation.getDeadlineProximityScore() : 0.0;
         
         // Weighted average: benefit 50%, eligibility 30%, deadline 20%
-        return benefit.multiply(new BigDecimal("0.5"))
-                .add(eligibility.multiply(new BigDecimal("0.3")))
-                .add(deadline.multiply(new BigDecimal("0.2")));
+        return benefit * (0.5)
+                 + (eligibility * (0.3))
+                 + (deadline * (0.2));
     }
 
     /**
@@ -125,17 +125,16 @@ public class SchemeRecommendationService {
      * @param benefit The raw benefit amount
      * @return Normalized score
      */
-    private BigDecimal normalizeBenefit(BigDecimal benefit) {
+    private Double normalizeBenefit(Double benefit) {
         if (benefit == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
         
         // Assuming max benefit is 500,000
-        BigDecimal maxBenefit = new BigDecimal("500000");
-        BigDecimal normalized = benefit.divide(maxBenefit, 4, java.math.RoundingMode.HALF_UP)
-                .multiply(new BigDecimal("100"));
+        Double maxBenefit = 500000.0;
+        Double normalized = benefit / maxBenefit * (100.0);
         
-        return normalized.min(new BigDecimal("100"));
+        return normalized;
     }
 
     /**
@@ -160,3 +159,11 @@ public class SchemeRecommendationService {
                 .collect(Collectors.toList());
     }
 }
+
+
+
+
+
+
+
+

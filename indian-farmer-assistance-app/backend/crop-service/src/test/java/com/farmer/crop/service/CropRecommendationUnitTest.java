@@ -12,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -118,14 +117,14 @@ class CropRecommendationUnitTest {
     @Test
     void testSuitabilityScoringBlackCottonSoil() {
         SoilHealthCardDto soilHealthCard = SoilHealthCardDto.builder()
-                .nitrogenKgHa(new BigDecimal("180"))
-                .phosphorusKgHa(new BigDecimal("25"))
-                .potassiumKgHa(new BigDecimal("350"))
-                .ph(new BigDecimal("8.0"))
+                .nitrogenKgHa(180.0)
+                .phosphorusKgHa(25.0)
+                .potassiumKgHa(350.0)
+                .ph(8.0)
                 .soilTexture("Clayey")
                 .build();
 
-        GaezCropData gaezData = createGaezCropData("RICE", new BigDecimal("75"), new BigDecimal("3500"));
+        GaezCropData gaezData = createGaezCropData("RICE", 75.0, 3500.0);
 
         when(gaezCropDataRepository.findByZoneCodeAndCropCodeAndIsActiveTrue(anyString(), anyString()))
                 .thenReturn(Optional.of(gaezData));
@@ -145,14 +144,14 @@ class CropRecommendationUnitTest {
     @Test
     void testSuitabilityScoringRedSoil() {
         SoilHealthCardDto soilHealthCard = SoilHealthCardDto.builder()
-                .nitrogenKgHa(new BigDecimal("150"))
-                .phosphorusKgHa(new BigDecimal("20"))
-                .potassiumKgHa(new BigDecimal("280"))
-                .ph(new BigDecimal("6.5"))
+                .nitrogenKgHa(150.0)
+                .phosphorusKgHa(20.0)
+                .potassiumKgHa(280.0)
+                .ph(6.5)
                 .soilTexture("Sandy Loam")
                 .build();
 
-        GaezCropData gaezData = createGaezCropData("COTTON", new BigDecimal("70"), new BigDecimal("4000"));
+        GaezCropData gaezData = createGaezCropData("COTTON", 70.0, 4000.0);
 
         when(gaezCropDataRepository.findByZoneCodeAndCropCodeAndIsActiveTrue(anyString(), anyString()))
                 .thenReturn(Optional.of(gaezData));
@@ -175,7 +174,7 @@ class CropRecommendationUnitTest {
                 .farmerId("FARMER001")
                 .district("Ludhiana")
                 .state("Punjab")
-                .farmAreaAcres(new BigDecimal("5.0"))
+                .farmAreaAcres(5.0)
                 .irrigationType(CropRecommendationRequestDto.IrrigationType.CANAL)
                 .season(CropRecommendationRequestDto.Season.RABI)
                 .build();
@@ -195,9 +194,9 @@ class CropRecommendationUnitTest {
                 .farmerId("FARMER007")
                 .district("Ludhiana")
                 .state("Punjab")
-                .latitude(new BigDecimal("30.9"))
-                .longitude(new BigDecimal("75.8"))
-                .farmAreaAcres(new BigDecimal("5.0"))
+                .latitude(30.9)
+                .longitude(75.8)
+                .farmAreaAcres(5.0)
                 .irrigationType(CropRecommendationRequestDto.IrrigationType.CANAL)
                 .season(CropRecommendationRequestDto.Season.RABI)
                 .build();
@@ -236,9 +235,9 @@ class CropRecommendationUnitTest {
                 .farmerId("FARMER008")
                 .district("Jaipur")
                 .state("Rajasthan")
-                .latitude(new BigDecimal("26.9124"))
-                .longitude(new BigDecimal("75.7873"))
-                .farmAreaAcres(new BigDecimal("4.0"))
+                .latitude(26.9124)
+                .longitude(75.7873)
+                .farmAreaAcres(4.0)
                 .irrigationType(CropRecommendationRequestDto.IrrigationType.BOREWELL)
                 .season(CropRecommendationRequestDto.Season.KHARIF)
                 .build();
@@ -256,7 +255,7 @@ class CropRecommendationUnitTest {
                 .farmerId("FARMER009")
                 .district("Delhi")
                 .state("Delhi")
-                .farmAreaAcres(new BigDecimal("3.0"))
+                .farmAreaAcres(3.0)
                 .irrigationType(CropRecommendationRequestDto.IrrigationType.CANAL)
                 .season(CropRecommendationRequestDto.Season.RABI)
                 .build();
@@ -265,7 +264,7 @@ class CropRecommendationUnitTest {
                 .farmerId("FARMER009")
                 .district("Mumbai")
                 .state("Maharashtra")
-                .farmAreaAcres(new BigDecimal("3.0"))
+                .farmAreaAcres(3.0)
                 .irrigationType(CropRecommendationRequestDto.IrrigationType.CANAL)
                 .season(CropRecommendationRequestDto.Season.RABI)
                 .build();
@@ -309,7 +308,7 @@ class CropRecommendationUnitTest {
         assertEquals(response1.getZone().getZoneCode(), response2.getZone().getZoneCode());
     }
 
-    private GaezCropData createGaezCropData(String cropCode, BigDecimal suitabilityScore, BigDecimal yieldPerHectare) {
+    private GaezCropData createGaezCropData(String cropCode, Double suitabilityScore, Double yieldPerHectare) {
         return GaezCropData.builder()
                 .id(1L)
                 .zoneCode("AEZ-08")
@@ -317,7 +316,7 @@ class CropRecommendationUnitTest {
                 .cropName(cropCode)
                 .overallSuitabilityScore(suitabilityScore)
                 .irrigatedPotentialYield(yieldPerHectare)
-                .waterRequirementsMm(new BigDecimal("500"))
+                .waterRequirementsMm(500.0)
                 .growingSeasonDays(120)
                 .climateRiskLevel(GaezCropData.ClimateRiskLevel.LOW)
                 .kharifSuitable(true)
@@ -326,3 +325,5 @@ class CropRecommendationUnitTest {
                 .build();
     }
 }
+
+

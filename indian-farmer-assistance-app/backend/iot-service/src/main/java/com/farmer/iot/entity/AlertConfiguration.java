@@ -32,10 +32,10 @@ public class AlertConfiguration {
     @Column(name = "sensor_type", nullable = false, length = 50)
     private String sensorType;
 
-    @Column(name = "min_threshold", precision = 10, scale = 2)
+    @Column(name = "min_threshold")
     private Double minThreshold;
 
-    @Column(name = "max_threshold", precision = 10, scale = 2)
+    @Column(name = "max_threshold")
     private Double maxThreshold;
 
     @Column(name = "threshold_unit", length = 20)

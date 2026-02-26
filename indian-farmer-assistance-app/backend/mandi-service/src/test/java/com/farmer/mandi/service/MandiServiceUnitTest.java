@@ -18,7 +18,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -51,6 +51,9 @@ class MandiServiceUnitTest {
     private AgmarknetApiClient agmarknetApiClient;
 
     @Mock
+    private com.farmer.mandi.client.DataGovInApiClient dataGovInApiClient;
+
+    @Mock
     private MandiPricesRepository mandiPricesRepository;
 
     @Mock
@@ -77,7 +80,7 @@ class MandiServiceUnitTest {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         // Create services
-        mandiPriceService = new MandiPriceService(agmarknetApiClient, mandiPricesRepository, redisTemplate);
+        mandiPriceService = new MandiPriceService(agmarknetApiClient, dataGovInApiClient, mandiPricesRepository, redisTemplate);
         mandiLocationService = new MandiLocationService(mandiLocationRepository);
         notificationService = new NotificationService();
         priceAlertService = new PriceAlertService(priceAlertRepository, mandiPriceService, notificationService);
@@ -210,13 +213,13 @@ class MandiServiceUnitTest {
         void shouldSortPricesByDistanceInAscendingOrder() {
             // Arrange
             List<MandiPriceDto> prices = new ArrayList<>();
-            prices.add(createPriceDto("Mandi A", BigDecimal.valueOf(50)));
-            prices.add(createPriceDto("Mandi B", BigDecimal.valueOf(20)));
-            prices.add(createPriceDto("Mandi C", BigDecimal.valueOf(80)));
-            prices.add(createPriceDto("Mandi D", BigDecimal.valueOf(35)));
+            prices.add(createPriceDto("Mandi A", Double.valueOf(50)));
+            prices.add(createPriceDto("Mandi B", Double.valueOf(20)));
+            prices.add(createPriceDto("Mandi C", Double.valueOf(80)));
+            prices.add(createPriceDto("Mandi D", Double.valueOf(35)));
 
-            BigDecimal farmerLat = BigDecimal.valueOf(12.9716);
-            BigDecimal farmerLon = BigDecimal.valueOf(77.5946);
+            Double farmerLat = Double.valueOf(12.9716);
+            Double farmerLon = Double.valueOf(77.5946);
 
             // Act
             List<MandiPriceDto> sorted = mandiLocationService.sortPricesByDistance(
@@ -228,9 +231,9 @@ class MandiServiceUnitTest {
             
             // Verify ascending order
             for (int i = 0; i < sorted.size() - 1; i++) {
-                BigDecimal current = sorted.get(i).getDistanceKm();
-                BigDecimal next = sorted.get(i + 1).getDistanceKm();
-                assertTrue(current.compareTo(next) <= 0,
+                Double current = sorted.get(i).getDistanceKm();
+                Double next = sorted.get(i + 1).getDistanceKm();
+                assertTrue(current <= next,
                         "Prices should be sorted in ascending order by distance");
             }
         }
@@ -240,8 +243,8 @@ class MandiServiceUnitTest {
         void shouldHandleEmptyPriceList() {
             // Arrange
             List<MandiPriceDto> prices = new ArrayList<>();
-            BigDecimal farmerLat = BigDecimal.valueOf(12.9716);
-            BigDecimal farmerLon = BigDecimal.valueOf(77.5946);
+            Double farmerLat = Double.valueOf(12.9716);
+            Double farmerLon = Double.valueOf(77.5946);
 
             // Act
             List<MandiPriceDto> sorted = mandiLocationService.sortPricesByDistance(
@@ -256,13 +259,13 @@ class MandiServiceUnitTest {
         @DisplayName("Should calculate distance using Haversine formula")
         void shouldCalculateDistanceUsingHaversineFormula() {
             // Arrange
-            BigDecimal lat1 = BigDecimal.valueOf(12.9716);
-            BigDecimal lon1 = BigDecimal.valueOf(77.5946);
-            BigDecimal lat2 = BigDecimal.valueOf(13.0000);
-            BigDecimal lon2 = BigDecimal.valueOf(77.6000);
+            Double lat1 = Double.valueOf(12.9716);
+            Double lon1 = Double.valueOf(77.5946);
+            Double lat2 = Double.valueOf(13.0000);
+            Double lon2 = Double.valueOf(77.6000);
 
             // Act
-            BigDecimal distance = mandiLocationService.calculateDistance(lat1, lon1, lat2, lon2);
+            Double distance = mandiLocationService.calculateDistance(lat1, lon1, lat2, lon2);
 
             // Assert
             assertNotNull(distance);
@@ -357,7 +360,7 @@ class MandiServiceUnitTest {
                     .farmerId("FARMER001")
                     .commodity("Paddy")
                     .variety("Hybrid")
-                    .targetPrice(BigDecimal.valueOf(2600))
+                    .targetPrice(Double.valueOf(2600))
                     .alertType("PRICE_ABOVE")
                     .neighboringDistrictsOnly(false)
                     .build();
@@ -466,10 +469,10 @@ class MandiServiceUnitTest {
                     .state(states[i % states.length])
                     .district(districts[i % districts.length])
                     .priceDate(LocalDate.now())
-                    .modalPrice(BigDecimal.valueOf(2500 + i * 50))
-                    .minPrice(BigDecimal.valueOf(2300 + i * 50))
-                    .maxPrice(BigDecimal.valueOf(2700 + i * 50))
-                    .arrivalQuantityQuintals(BigDecimal.valueOf(100 + i * 20))
+                    .modalPrice(Double.valueOf(2500 + i * 50))
+                    .minPrice(Double.valueOf(2300 + i * 50))
+                    .maxPrice(Double.valueOf(2700 + i * 50))
+                    .arrivalQuantityQuintals(Double.valueOf(100 + i * 20))
                     .unit("Quintal")
                     .source("AGMARKNET")
                     .isCached(false)
@@ -489,10 +492,10 @@ class MandiServiceUnitTest {
                     .state("Karnataka")
                     .district("Bangalore")
                     .priceDate(LocalDate.now())
-                    .modalPrice(BigDecimal.valueOf(2500 + i * 50))
-                    .minPrice(BigDecimal.valueOf(2300 + i * 50))
-                    .maxPrice(BigDecimal.valueOf(2700 + i * 50))
-                    .arrivalQuantityQuintals(BigDecimal.valueOf(100 + i * 20))
+                    .modalPrice(Double.valueOf(2500 + i * 50))
+                    .minPrice(Double.valueOf(2300 + i * 50))
+                    .maxPrice(Double.valueOf(2700 + i * 50))
+                    .arrivalQuantityQuintals(Double.valueOf(100 + i * 20))
                     .unit("Quintal")
                     .source("AGMARKNET")
                     .build());
@@ -511,10 +514,10 @@ class MandiServiceUnitTest {
                     .state("Karnataka")
                     .district("Bangalore")
                     .priceDate(LocalDate.now().minusDays(days - i - 1))
-                    .modalPrice(BigDecimal.valueOf(2500 + i * 10))
-                    .minPrice(BigDecimal.valueOf(2300 + i * 10))
-                    .maxPrice(BigDecimal.valueOf(2700 + i * 10))
-                    .arrivalQuantityQuintals(BigDecimal.valueOf(100 + i * 5))
+                    .modalPrice(Double.valueOf(2500 + i * 10))
+                    .minPrice(Double.valueOf(2300 + i * 10))
+                    .maxPrice(Double.valueOf(2700 + i * 10))
+                    .arrivalQuantityQuintals(Double.valueOf(100 + i * 5))
                     .unit("Quintal")
                     .source("AGMARKNET")
                     .isCached(false)
@@ -534,10 +537,10 @@ class MandiServiceUnitTest {
                     .state("Karnataka")
                     .district("Bangalore")
                     .priceDate(LocalDate.now().minusDays(days - i - 1))
-                    .modalPrice(BigDecimal.valueOf(2400 + i * 20)) // Increasing prices
-                    .minPrice(BigDecimal.valueOf(2200 + i * 20))
-                    .maxPrice(BigDecimal.valueOf(2600 + i * 20))
-                    .arrivalQuantityQuintals(BigDecimal.valueOf(100))
+                    .modalPrice(Double.valueOf(2400 + i * 20)) // Increasing prices
+                    .minPrice(Double.valueOf(2200 + i * 20))
+                    .maxPrice(Double.valueOf(2600 + i * 20))
+                    .arrivalQuantityQuintals(Double.valueOf(100))
                     .unit("Quintal")
                     .source("AGMARKNET")
                     .isCached(false)
@@ -546,7 +549,7 @@ class MandiServiceUnitTest {
         return prices;
     }
 
-    private MandiPriceDto createPriceDto(String mandiName, BigDecimal distance) {
+    private MandiPriceDto createPriceDto(String mandiName, Double distance) {
         return MandiPriceDto.builder()
                 .id(1L)
                 .commodityName("Paddy")
@@ -555,10 +558,10 @@ class MandiServiceUnitTest {
                 .state("Karnataka")
                 .district("Bangalore Rural")
                 .priceDate(LocalDate.now())
-                .modalPrice(BigDecimal.valueOf(2500))
-                .minPrice(BigDecimal.valueOf(2300))
-                .maxPrice(BigDecimal.valueOf(2700))
-                .arrivalQuantityQuintals(BigDecimal.valueOf(100))
+                .modalPrice(Double.valueOf(2500))
+                .minPrice(Double.valueOf(2300))
+                .maxPrice(Double.valueOf(2700))
+                .arrivalQuantityQuintals(Double.valueOf(100))
                 .unit("Quintal")
                 .source("AGMARKNET")
                 .distanceKm(distance)
@@ -572,7 +575,7 @@ class MandiServiceUnitTest {
                 .farmerId(farmerId)
                 .commodity(commodity)
                 .variety("Hybrid")
-                .targetPrice(BigDecimal.valueOf(2600))
+                .targetPrice(Double.valueOf(2600))
                 .alertType("PRICE_ABOVE")
                 .neighboringDistrictsOnly(false)
                 .isActive(true)

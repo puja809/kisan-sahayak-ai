@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -40,37 +39,37 @@ public class MarketDataDto {
     /**
      * Current modal price (INR per quintal)
      */
-    private BigDecimal currentPrice;
+    private Double currentPrice;
     
     /**
      * Minimum price (INR per quintal)
      */
-    private BigDecimal minPrice;
+    private Double minPrice;
     
     /**
      * Maximum price (INR per quintal)
      */
-    private BigDecimal maxPrice;
+    private Double maxPrice;
     
     /**
      * Price 30 days ago (for trend calculation)
      */
-    private BigDecimal price30DaysAgo;
+    private Double price30DaysAgo;
     
     /**
      * Price 7 days ago (for trend calculation)
      */
-    private BigDecimal price7DaysAgo;
+    private Double price7DaysAgo;
     
     /**
      * Price change percentage over last 30 days
      */
-    private BigDecimal priceChange30Days;
+    private Double priceChange30Days;
     
     /**
      * Price change percentage over last 7 days
      */
-    private BigDecimal priceChange7Days;
+    private Double priceChange7Days;
     
     /**
      * Price trend direction (UP, DOWN, STABLE)
@@ -80,12 +79,12 @@ public class MarketDataDto {
     /**
      * Arrival quantity in current period (quintals)
      */
-    private BigDecimal arrivalQuantity;
+    private Double arrivalQuantity;
     
     /**
      * Arrival quantity change percentage
      */
-    private BigDecimal arrivalChangePercent;
+    private Double arrivalChangePercent;
     
     /**
      * Nearest mandi name
@@ -95,12 +94,12 @@ public class MarketDataDto {
     /**
      * Distance to nearest mandi (km)
      */
-    private BigDecimal distanceToMandi;
+    private Double distanceToMandi;
     
     /**
      * Minimum Support Price (MSP) if applicable
      */
-    private BigDecimal msp;
+    private Double msp;
     
     /**
      * Whether current price is above MSP

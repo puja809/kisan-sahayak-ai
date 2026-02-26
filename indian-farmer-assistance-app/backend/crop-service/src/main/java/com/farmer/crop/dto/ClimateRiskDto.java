@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -40,7 +39,7 @@ public class ClimateRiskDto {
     /**
      * Risk score (0-100, higher = more risky)
      */
-    private BigDecimal riskScore;
+    private Double riskScore;
     
     /**
      * Rainfall deviation scenario analysis
@@ -109,13 +108,13 @@ public class ClimateRiskDto {
         /**
          * Historical average rainfall (mm)
          */
-        private BigDecimal historicalAverageMm;
+        private Double historicalAverageMm;
         
         /**
          * Projected rainfall deviation (%)
          * Negative = below normal, Positive = above normal
          */
-        private BigDecimal projectedDeviationPercent;
+        private Double projectedDeviationPercent;
         
         /**
          * Scenario type
@@ -125,12 +124,12 @@ public class ClimateRiskDto {
         /**
          * Impact on crop yield (%)
          */
-        private BigDecimal yieldImpactPercent;
+        private Double yieldImpactPercent;
         
         /**
          * Probability of this scenario (%)
          */
-        private BigDecimal probability;
+        private Double probability;
         
         /**
          * Risk level for this scenario
@@ -163,23 +162,23 @@ public class ClimateRiskDto {
         /**
          * Optimal temperature range (°C)
          */
-        private BigDecimal optimalTempMin;
-        private BigDecimal optimalTempMax;
+        private Double optimalTempMin;
+        private Double optimalTempMax;
         
         /**
          * Heat stress threshold (°C)
          */
-        private BigDecimal heatStressThreshold;
+        private Double heatStressThreshold;
         
         /**
          * Cold stress threshold (°C)
          */
-        private BigDecimal coldStressThreshold;
+        private Double coldStressThreshold;
         
         /**
          * Projected temperature deviation (°C)
          */
-        private BigDecimal projectedDeviation;
+        private Double projectedDeviation;
         
         /**
          * Number of extreme heat days projected

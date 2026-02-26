@@ -4,7 +4,7 @@ import com.farmer.user.entity.Equipment;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 
 /**
@@ -30,7 +30,7 @@ public class EquipmentRequest {
 
     private LocalDate purchaseDate;
 
-    private BigDecimal purchaseCost;
+    private Double purchaseCost;
 
     private Equipment.OwnershipType ownershipType;
 
@@ -38,7 +38,7 @@ public class EquipmentRequest {
 
     private LocalDate nextMaintenanceDate;
 
-    private BigDecimal currentValue;
+    private Double currentValue;
 
     private String status;
 

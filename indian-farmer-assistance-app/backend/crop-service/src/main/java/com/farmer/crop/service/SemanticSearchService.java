@@ -3,7 +3,7 @@ package com.farmer.crop.service;
 import com.farmer.crop.dto.SearchResultDto;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,7 +41,7 @@ public class SemanticSearchService {
      * @return Filtered list with similarity >= threshold
      */
     public List<SearchResultDto> filterBySimilarityThreshold(
-            List<SearchResultDto> results, BigDecimal threshold) {
+            List<SearchResultDto> results, Double threshold) {
         if (results == null || results.isEmpty()) {
             return results;
         }
@@ -114,7 +114,7 @@ public class SemanticSearchService {
      * @param results List of search results
      * @return Average similarity score, or null if empty
      */
-    public BigDecimal calculateAverageSimilarity(List<SearchResultDto> results) {
+    public Double calculateAverageSimilarity(List<SearchResultDto> results) {
         if (results == null || results.isEmpty()) {
             return null;
         }
@@ -122,8 +122,8 @@ public class SemanticSearchService {
         return results.stream()
                 .filter(r -> r.getSimilarityScore() != null)
                 .map(SearchResultDto::getSimilarityScore)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .divide(new BigDecimal(results.size()), 4, java.math.RoundingMode.HALF_UP);
+                .reduce(0.0, (a, b) -> a + b)
+                 / results.size();
     }
 
     /**
@@ -138,14 +138,14 @@ public class SemanticSearchService {
         }
         
         for (int i = 0; i < results.size() - 1; i++) {
-            BigDecimal current = results.get(i).getSimilarityScore();
-            BigDecimal next = results.get(i + 1).getSimilarityScore();
+            Double current = results.get(i).getSimilarityScore();
+            Double next = results.get(i + 1).getSimilarityScore();
             
             if (current == null || next == null) {
                 continue;
             }
             
-            if (current.compareTo(next) < 0) {
+            if (current < next) {
                 return false;
             }
         }
@@ -153,3 +153,11 @@ public class SemanticSearchService {
         return true;
     }
 }
+
+
+
+
+
+
+
+

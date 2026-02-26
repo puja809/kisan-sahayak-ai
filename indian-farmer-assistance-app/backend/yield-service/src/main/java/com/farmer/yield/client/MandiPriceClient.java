@@ -3,7 +3,7 @@ package com.farmer.yield.client;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.math.BigDecimal;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +34,7 @@ public class MandiPriceClient {
      * @param commodityName Commodity name (e.g., "RICE", "WHEAT")
      * @return Price data including modal, min, max prices
      */
-    public Map<String, BigDecimal> getCurrentPrice(String commodityName) {
+    public Map<String, Double> getCurrentPrice(String commodityName) {
         try {
             Map<String, Object> response = mandiServiceClient.get()
                     .uri("/api/v1/mandi/prices/{commodity}", commodityName)
@@ -42,24 +42,24 @@ public class MandiPriceClient {
                     .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {})
                     .block();
 
-            Map<String, BigDecimal> priceData = new HashMap<>();
+            Map<String, Double> priceData = new HashMap<>();
             if (response != null && response.containsKey("prices")) {
                 @SuppressWarnings("unchecked")
                 java.util.List<Map<String, Object>> prices = (java.util.List<Map<String, Object>>) response.get("prices");
                 if (!prices.isEmpty()) {
                     Map<String, Object> latestPrice = prices.get(0);
-                    priceData.put("modalPrice", new BigDecimal(latestPrice.getOrDefault("modalPrice", "2000").toString()));
-                    priceData.put("minPrice", new BigDecimal(latestPrice.getOrDefault("minPrice", "1800").toString()));
-                    priceData.put("maxPrice", new BigDecimal(latestPrice.getOrDefault("maxPrice", "2200").toString()));
+                    priceData.put("modalPrice", new Double(latestPrice.getOrDefault("modalPrice", "2000").toString()));
+                    priceData.put("minPrice", new Double(latestPrice.getOrDefault("minPrice", "1800").toString()));
+                    priceData.put("maxPrice", new Double(latestPrice.getOrDefault("maxPrice", "2200").toString()));
                 }
             }
             return priceData;
         } catch (Exception e) {
             // Return default prices on failure
-            Map<String, BigDecimal> defaultPrices = new HashMap<>();
-            defaultPrices.put("modalPrice", new BigDecimal("2000"));
-            defaultPrices.put("minPrice", new BigDecimal("1800"));
-            defaultPrices.put("maxPrice", new BigDecimal("2200"));
+            Map<String, Double> defaultPrices = new HashMap<>();
+            defaultPrices.put("modalPrice", new Double("2000"));
+            defaultPrices.put("minPrice", new Double("1800"));
+            defaultPrices.put("maxPrice", new Double("2200"));
             return defaultPrices;
         }
     }
@@ -88,7 +88,7 @@ public class MandiPriceClient {
      * @param commodityName Commodity name
      * @return MSP data
      */
-    public Map<String, BigDecimal> getMspPrice(String commodityName) {
+    public Map<String, Object> getMspPrice(String commodityName) {
         try {
             return mandiServiceClient.get()
                     .uri("/api/v1/mandi/prices/msp/{commodity}", commodityName)
@@ -108,7 +108,7 @@ public class MandiPriceClient {
      * @param longitude GPS longitude
      * @return List of nearby mandis with prices
      */
-    public Map<String, Object> getNearbyMandis(String commodityName, BigDecimal latitude, BigDecimal longitude) {
+    public Map<String, Object> getNearbyMandis(String commodityName, Double latitude, Double longitude) {
         try {
             return mandiServiceClient.get()
                     .uri("/api/v1/mandi/prices/nearby?commodity={commodity}&lat={lat}&lng={lng}", 

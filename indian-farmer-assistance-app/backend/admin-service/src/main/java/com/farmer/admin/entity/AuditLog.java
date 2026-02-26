@@ -50,19 +50,12 @@ public class AuditLog {
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
-    @Column(name = "user_agent", length = 500)
+    @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
 
-    @Column(name = "timestamp")
+    @Column(name = "timestamp", nullable = false)
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
-
-    @Column(name = "status", length = 20)
-    @Builder.Default
-    private String status = "SUCCESS";
-
-    @Column(name = "error_message", length = 1000)
-    private String errorMessage;
 
     @PrePersist
     protected void onCreate() {

@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -43,12 +42,12 @@ public class SoilHealthCardDto {
     /**
      * GPS latitude of sample collection point
      */
-    private BigDecimal latitude;
+    private Double latitude;
     
     /**
      * GPS longitude of sample collection point
      */
-    private BigDecimal longitude;
+    private Double longitude;
     
     /**
      * District name
@@ -78,68 +77,68 @@ public class SoilHealthCardDto {
     /**
      * Soil pH value (0-14)
      */
-    private BigDecimal ph;
+    private Double ph;
     
     /**
      * Electrical conductivity (dS/m) - indicates salinity
      */
-    private BigDecimal electricalConductivity;
+    private Double electricalConductivity;
     
     /**
      * Organic carbon content (%)
      */
-    private BigDecimal organicCarbon;
+    private Double organicCarbon;
     
     // Primary Nutrients
     
     /**
      * Available Nitrogen (kg/ha)
      */
-    private BigDecimal nitrogenKgHa;
+    private Double nitrogenKgHa;
     
     /**
      * Available Phosphorus (kg/ha)
      */
-    private BigDecimal phosphorusKgHa;
+    private Double phosphorusKgHa;
     
     /**
      * Available Potassium (kg/ha)
      */
-    private BigDecimal potassiumKgHa;
+    private Double potassiumKgHa;
     
     // Secondary Nutrients
     
     /**
      * Available Sulfur (ppm)
      */
-    private BigDecimal sulfurPpm;
+    private Double sulfurPpm;
     
     // Micronutrients
     
     /**
      * Available Zinc (ppm)
      */
-    private BigDecimal zincPpm;
+    private Double zincPpm;
     
     /**
      * Available Iron (ppm)
      */
-    private BigDecimal ironPpm;
+    private Double ironPpm;
     
     /**
      * Available Copper (ppm)
      */
-    private BigDecimal copperPpm;
+    private Double copperPpm;
     
     /**
      * Available Manganese (ppm)
      */
-    private BigDecimal manganesePpm;
+    private Double manganesePpm;
     
     /**
      * Available Boron (ppm)
      */
-    private BigDecimal boronPpm;
+    private Double boronPpm;
     
     /**
      * Soil texture classification
@@ -230,64 +229,64 @@ public class SoilHealthCardDto {
     
     private NutrientDeficiencyStatus getNitrogenStatus() {
         if (nitrogenKgHa == null) return NutrientDeficiencyStatus.UNKNOWN;
-        if (nitrogenKgHa.compareTo(new BigDecimal("280")) < 0) return NutrientDeficiencyStatus.DEFICIENT;
-        if (nitrogenKgHa.compareTo(new BigDecimal("560")) < 0) return NutrientDeficiencyStatus.LOW;
+        if (nitrogenKgHa.compareTo(280.0) < 0) return NutrientDeficiencyStatus.DEFICIENT;
+        if (nitrogenKgHa.compareTo(560.0) < 0) return NutrientDeficiencyStatus.LOW;
         return NutrientDeficiencyStatus.ADEQUATE;
     }
     
     private NutrientDeficiencyStatus getPhosphorusStatus() {
         if (phosphorusKgHa == null) return NutrientDeficiencyStatus.UNKNOWN;
-        if (phosphorusKgHa.compareTo(new BigDecimal("10")) < 0) return NutrientDeficiencyStatus.DEFICIENT;
-        if (phosphorusKgHa.compareTo(new BigDecimal("25")) < 0) return NutrientDeficiencyStatus.LOW;
+        if (phosphorusKgHa.compareTo(10.0) < 0) return NutrientDeficiencyStatus.DEFICIENT;
+        if (phosphorusKgHa.compareTo(25.0) < 0) return NutrientDeficiencyStatus.LOW;
         return NutrientDeficiencyStatus.ADEQUATE;
     }
     
     private NutrientDeficiencyStatus getPotassiumStatus() {
         if (potassiumKgHa == null) return NutrientDeficiencyStatus.UNKNOWN;
-        if (potassiumKgHa.compareTo(new BigDecimal("108")) < 0) return NutrientDeficiencyStatus.DEFICIENT;
-        if (potassiumKgHa.compareTo(new BigDecimal("280")) < 0) return NutrientDeficiencyStatus.LOW;
+        if (potassiumKgHa.compareTo(108.0) < 0) return NutrientDeficiencyStatus.DEFICIENT;
+        if (potassiumKgHa.compareTo(280.0) < 0) return NutrientDeficiencyStatus.LOW;
         return NutrientDeficiencyStatus.ADEQUATE;
     }
     
     private NutrientDeficiencyStatus getSulfurStatus() {
         if (sulfurPpm == null) return NutrientDeficiencyStatus.UNKNOWN;
-        if (sulfurPpm.compareTo(new BigDecimal("10")) < 0) return NutrientDeficiencyStatus.DEFICIENT;
-        if (sulfurPpm.compareTo(new BigDecimal("20")) < 0) return NutrientDeficiencyStatus.LOW;
+        if (sulfurPpm.compareTo(10.0) < 0) return NutrientDeficiencyStatus.DEFICIENT;
+        if (sulfurPpm.compareTo(20.0) < 0) return NutrientDeficiencyStatus.LOW;
         return NutrientDeficiencyStatus.ADEQUATE;
     }
     
     private NutrientDeficiencyStatus getZincStatus() {
         if (zincPpm == null) return NutrientDeficiencyStatus.UNKNOWN;
-        if (zincPpm.compareTo(new BigDecimal("0.6")) < 0) return NutrientDeficiencyStatus.DEFICIENT;
-        if (zincPpm.compareTo(new BigDecimal("1.2")) < 0) return NutrientDeficiencyStatus.LOW;
+        if (zincPpm.compareTo(0.6) < 0) return NutrientDeficiencyStatus.DEFICIENT;
+        if (zincPpm.compareTo(1.2) < 0) return NutrientDeficiencyStatus.LOW;
         return NutrientDeficiencyStatus.ADEQUATE;
     }
     
     private NutrientDeficiencyStatus getIronStatus() {
         if (ironPpm == null) return NutrientDeficiencyStatus.UNKNOWN;
-        if (ironPpm.compareTo(new BigDecimal("4.5")) < 0) return NutrientDeficiencyStatus.DEFICIENT;
-        if (ironPpm.compareTo(new BigDecimal("9.0")) < 0) return NutrientDeficiencyStatus.LOW;
+        if (ironPpm.compareTo(4.5) < 0) return NutrientDeficiencyStatus.DEFICIENT;
+        if (ironPpm.compareTo(9.0) < 0) return NutrientDeficiencyStatus.LOW;
         return NutrientDeficiencyStatus.ADEQUATE;
     }
     
     private NutrientDeficiencyStatus getCopperStatus() {
         if (copperPpm == null) return NutrientDeficiencyStatus.UNKNOWN;
-        if (copperPpm.compareTo(new BigDecimal("0.2")) < 0) return NutrientDeficiencyStatus.DEFICIENT;
-        if (copperPpm.compareTo(new BigDecimal("0.4")) < 0) return NutrientDeficiencyStatus.LOW;
+        if (copperPpm.compareTo(0.2) < 0) return NutrientDeficiencyStatus.DEFICIENT;
+        if (copperPpm.compareTo(0.4) < 0) return NutrientDeficiencyStatus.LOW;
         return NutrientDeficiencyStatus.ADEQUATE;
     }
     
     private NutrientDeficiencyStatus getManganeseStatus() {
         if (manganesePpm == null) return NutrientDeficiencyStatus.UNKNOWN;
-        if (manganesePpm.compareTo(new BigDecimal("2.0")) < 0) return NutrientDeficiencyStatus.DEFICIENT;
-        if (manganesePpm.compareTo(new BigDecimal("4.0")) < 0) return NutrientDeficiencyStatus.LOW;
+        if (manganesePpm.compareTo(2.0) < 0) return NutrientDeficiencyStatus.DEFICIENT;
+        if (manganesePpm.compareTo(4.0) < 0) return NutrientDeficiencyStatus.LOW;
         return NutrientDeficiencyStatus.ADEQUATE;
     }
     
     private NutrientDeficiencyStatus getBoronStatus() {
         if (boronPpm == null) return NutrientDeficiencyStatus.UNKNOWN;
-        if (boronPpm.compareTo(new BigDecimal("0.4")) < 0) return NutrientDeficiencyStatus.DEFICIENT;
-        if (boronPpm.compareTo(new BigDecimal("0.8")) < 0) return NutrientDeficiencyStatus.LOW;
+        if (boronPpm.compareTo(0.4) < 0) return NutrientDeficiencyStatus.DEFICIENT;
+        if (boronPpm.compareTo(0.8) < 0) return NutrientDeficiencyStatus.LOW;
         return NutrientDeficiencyStatus.ADEQUATE;
     }
     

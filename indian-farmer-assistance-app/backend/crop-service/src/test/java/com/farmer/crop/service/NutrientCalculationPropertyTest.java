@@ -1,24 +1,18 @@
 package com.farmer.crop.service;
 
-import com.farmer.crop.dto.FertilizerApplicationRequestDto;
 import com.farmer.crop.dto.FertilizerTrackingResponseDto;
 import com.farmer.crop.entity.FertilizerApplication;
 import com.farmer.crop.repository.FertilizerApplicationRepository;
 import com.farmer.crop.repository.SoilHealthCardRepository;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
-import net.jqwik.api.constraints.BigRange;
 import net.jqwik.api.constraints.IntRange;
-import net.jqwik.api.constraints.StringLength;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,12 +39,18 @@ class NutrientCalculationPropertyTest {
     @Property
     void propertyNutrientCalculationAccuracy(
             @ForAll @IntRange(min = 1, max = 5) int numApplications,
-            @ForAll @BigRange(min = "1", max = "100") BigDecimal quantityKg,
-            @ForAll @BigRange(min = "0", max = "46") BigDecimal nitrogenPercent,
-            @ForAll @BigRange(min = "0", max = "46") BigDecimal phosphorusPercent,
-            @ForAll @BigRange(min = "0", max = "60") BigDecimal potassiumPercent,
+            @ForAll Double quantityKg,
+            @ForAll Double nitrogenPercent,
+            @ForAll Double phosphorusPercent,
+            @ForAll Double potassiumPercent,
             @ForAll String farmerId
     ) {
+        // Clamp percentages to valid range
+        Double nP = Math.max(0.0, Math.min(46.0, nitrogenPercent));
+        Double pP = Math.max(0.0, Math.min(46.0, phosphorusPercent));
+        Double kP = Math.max(0.0, Math.min(60.0, potassiumPercent));
+        Double qKg = Math.max(1.0, Math.min(100.0, quantityKg));
+
         // Arrange - Create mock services
         SoilHealthCardRepository soilHealthCardRepository = mock(SoilHealthCardRepository.class);
         FertilizerApplicationRepository fertilizerApplicationRepository = mock(FertilizerApplicationRepository.class);
@@ -60,22 +60,18 @@ class NutrientCalculationPropertyTest {
 
         // Create mock applications with known values
         List<FertilizerApplication> mockApplications = new ArrayList<>();
-        BigDecimal expectedTotalN = BigDecimal.ZERO;
-        BigDecimal expectedTotalP = BigDecimal.ZERO;
-        BigDecimal expectedTotalK = BigDecimal.ZERO;
+        Double expectedTotalN = 0.0;
+        Double expectedTotalP = 0.0;
+        Double expectedTotalK = 0.0;
 
         for (int i = 0; i < numApplications; i++) {
-            BigDecimal n = nitrogenPercent.add(new BigDecimal(i)).min(new BigDecimal("46"));
-            BigDecimal p = phosphorusPercent.add(new BigDecimal(i)).min(new BigDecimal("46"));
-            BigDecimal k = potassiumPercent.add(new BigDecimal(i)).min(new BigDecimal("60"));
+            Double n = Math.min(46.0, nP + i);
+            Double p = Math.min(46.0, pP + i);
+            Double k = Math.min(60.0, kP + i);
             
-            BigDecimal nKg = quantityKg.multiply(n).divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
-            BigDecimal pKg = quantityKg.multiply(p).divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
-            BigDecimal kKg = quantityKg.multiply(k).divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
-            
-            expectedTotalN = expectedTotalN.add(nKg);
-            expectedTotalP = expectedTotalP.add(pKg);
-            expectedTotalK = expectedTotalK.add(kKg);
+            expectedTotalN += (qKg * n) / 100.0;
+            expectedTotalP += (qKg * p) / 100.0;
+            expectedTotalK += (qKg * k) / 100.0;
             
             FertilizerApplication app = FertilizerApplication.builder()
                     .id((long) (i + 1))
@@ -83,7 +79,7 @@ class NutrientCalculationPropertyTest {
                     .farmerId(farmerId)
                     .fertilizerType("Test Fertilizer " + i)
                     .fertilizerCategory(FertilizerApplication.FertilizerCategory.CHEMICAL)
-                    .quantityKg(quantityKg)
+                    .quantityKg(qKg)
                     .applicationDate(LocalDate.now().minusDays(i * 10))
                     .nitrogenPercent(n)
                     .phosphorusPercent(p)
@@ -105,21 +101,21 @@ class NutrientCalculationPropertyTest {
         FertilizerTrackingResponseDto.TotalNutrientInputDto totalInput = response.getTotalNutrientInput();
 
         // Verify nitrogen calculation
-        BigDecimal calculatedN = totalInput.getTotalNitrogenKg();
+        Double calculatedN = totalInput.getTotalNitrogenKg();
         assertNotNull(calculatedN, "Total nitrogen must be present");
-        assertEquals(0, expectedTotalN.compareTo(calculatedN),
+        assertEquals(expectedTotalN, calculatedN, 0.01,
                 String.format("Nitrogen calculation mismatch: expected %s, got %s", expectedTotalN, calculatedN));
 
         // Verify phosphorus calculation
-        BigDecimal calculatedP = totalInput.getTotalPhosphorusKg();
+        Double calculatedP = totalInput.getTotalPhosphorusKg();
         assertNotNull(calculatedP, "Total phosphorus must be present");
-        assertEquals(0, expectedTotalP.compareTo(calculatedP),
+        assertEquals(expectedTotalP, calculatedP, 0.01,
                 String.format("Phosphorus calculation mismatch: expected %s, got %s", expectedTotalP, calculatedP));
 
         // Verify potassium calculation
-        BigDecimal calculatedK = totalInput.getTotalPotassiumKg();
+        Double calculatedK = totalInput.getTotalPotassiumKg();
         assertNotNull(calculatedK, "Total potassium must be present");
-        assertEquals(0, expectedTotalK.compareTo(calculatedK),
+        assertEquals(expectedTotalK, calculatedK, 0.01,
                 String.format("Potassium calculation mismatch: expected %s, got %s", expectedTotalK, calculatedK));
     }
 
@@ -131,9 +127,11 @@ class NutrientCalculationPropertyTest {
     @Property
     void propertyNutrientCalculationWithZeroValues(
             @ForAll @IntRange(min = 1, max = 5) int numApplications,
-            @ForAll @BigRange(min = "1", max = "100") BigDecimal quantityKg,
+            @ForAll Double quantityKg,
             @ForAll String farmerId
     ) {
+        Double qKg = Math.max(1.0, Math.min(100.0, quantityKg));
+
         // Arrange
         SoilHealthCardRepository soilHealthCardRepository = mock(SoilHealthCardRepository.class);
         FertilizerApplicationRepository fertilizerApplicationRepository = mock(FertilizerApplicationRepository.class);
@@ -150,11 +148,11 @@ class NutrientCalculationPropertyTest {
                     .farmerId(farmerId)
                     .fertilizerType("Zero Nutrient Fertilizer")
                     .fertilizerCategory(FertilizerApplication.FertilizerCategory.ORGANIC)
-                    .quantityKg(quantityKg)
+                    .quantityKg(qKg)
                     .applicationDate(LocalDate.now().minusDays(i * 10))
-                    .nitrogenPercent(BigDecimal.ZERO)
-                    .phosphorusPercent(BigDecimal.ZERO)
-                    .potassiumPercent(BigDecimal.ZERO)
+                    .nitrogenPercent(0.0)
+                    .phosphorusPercent(0.0)
+                    .potassiumPercent(0.0)
                     .build();
             mockApplications.add(app);
         }
@@ -170,11 +168,11 @@ class NutrientCalculationPropertyTest {
         assertNotNull(response.getTotalNutrientInput());
 
         // All totals should be zero
-        assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalNutrientInput().getTotalNitrogenKg()),
+        assertEquals(0.0, response.getTotalNutrientInput().getTotalNitrogenKg(),
                 "Total nitrogen should be zero when all applications have 0% N");
-        assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalNutrientInput().getTotalPhosphorusKg()),
+        assertEquals(0.0, response.getTotalNutrientInput().getTotalPhosphorusKg(),
                 "Total phosphorus should be zero when all applications have 0% P");
-        assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalNutrientInput().getTotalPotassiumKg()),
+        assertEquals(0.0, response.getTotalNutrientInput().getTotalPotassiumKg(),
                 "Total potassium should be zero when all applications have 0% K");
     }
 
@@ -186,9 +184,11 @@ class NutrientCalculationPropertyTest {
     @Property
     void propertyNutrientCalculationWithNullPercentages(
             @ForAll @IntRange(min = 1, max = 5) int numApplications,
-            @ForAll @BigRange(min = "1", max = "100") BigDecimal quantityKg,
+            @ForAll Double quantityKg,
             @ForAll String farmerId
     ) {
+        Double qKg = Math.max(1.0, Math.min(100.0, quantityKg));
+
         // Arrange
         SoilHealthCardRepository soilHealthCardRepository = mock(SoilHealthCardRepository.class);
         FertilizerApplicationRepository fertilizerApplicationRepository = mock(FertilizerApplicationRepository.class);
@@ -205,7 +205,7 @@ class NutrientCalculationPropertyTest {
                     .farmerId(farmerId)
                     .fertilizerType("Unknown Nutrient Fertilizer")
                     .fertilizerCategory(FertilizerApplication.FertilizerCategory.BIO)
-                    .quantityKg(quantityKg)
+                    .quantityKg(qKg)
                     .applicationDate(LocalDate.now().minusDays(i * 10))
                     .nitrogenPercent(null)
                     .phosphorusPercent(null)
@@ -223,11 +223,11 @@ class NutrientCalculationPropertyTest {
         // Assert - Should not throw exception and should return zeros
         assertTrue(response.isSuccess());
         assertNotNull(response.getTotalNutrientInput());
-        assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalNutrientInput().getTotalNitrogenKg()),
+        assertEquals(0.0, response.getTotalNutrientInput().getTotalNitrogenKg(),
                 "Total nitrogen should be zero when percentages are null");
-        assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalNutrientInput().getTotalPhosphorusKg()),
+        assertEquals(0.0, response.getTotalNutrientInput().getTotalPhosphorusKg(),
                 "Total phosphorus should be zero when percentages are null");
-        assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalNutrientInput().getTotalPotassiumKg()),
+        assertEquals(0.0, response.getTotalNutrientInput().getTotalPotassiumKg(),
                 "Total potassium should be zero when percentages are null");
     }
 
@@ -239,9 +239,11 @@ class NutrientCalculationPropertyTest {
     @Property
     void propertyTotalQuantityCalculation(
             @ForAll @IntRange(min = 1, max = 5) int numApplications,
-            @ForAll @BigRange(min = "1", max = "50") BigDecimal quantityKg,
+            @ForAll Double quantityKg,
             @ForAll String farmerId
     ) {
+        Double qKg = Math.max(1.0, Math.min(50.0, quantityKg));
+
         // Arrange
         SoilHealthCardRepository soilHealthCardRepository = mock(SoilHealthCardRepository.class);
         FertilizerApplicationRepository fertilizerApplicationRepository = mock(FertilizerApplicationRepository.class);
@@ -250,7 +252,7 @@ class NutrientCalculationPropertyTest {
                 soilHealthCardRepository, fertilizerApplicationRepository);
 
         List<FertilizerApplication> mockApplications = new ArrayList<>();
-        BigDecimal expectedTotalQty = quantityKg.multiply(new BigDecimal(numApplications));
+        Double expectedTotalQty = qKg * numApplications;
 
         for (int i = 0; i < numApplications; i++) {
             FertilizerApplication app = FertilizerApplication.builder()
@@ -259,11 +261,11 @@ class NutrientCalculationPropertyTest {
                     .farmerId(farmerId)
                     .fertilizerType("Test Fertilizer " + i)
                     .fertilizerCategory(FertilizerApplication.FertilizerCategory.CHEMICAL)
-                    .quantityKg(quantityKg)
+                    .quantityKg(qKg)
                     .applicationDate(LocalDate.now().minusDays(i * 10))
-                    .nitrogenPercent(new BigDecimal("10"))
-                    .phosphorusPercent(new BigDecimal("10"))
-                    .potassiumPercent(new BigDecimal("10"))
+                    .nitrogenPercent(10.0)
+                    .phosphorusPercent(10.0)
+                    .potassiumPercent(10.0)
                     .build();
             mockApplications.add(app);
         }
@@ -278,9 +280,9 @@ class NutrientCalculationPropertyTest {
         assertTrue(response.isSuccess());
         assertNotNull(response.getTotalNutrientInput());
 
-        BigDecimal calculatedTotalQty = response.getTotalNutrientInput().getTotalQuantityKg();
+        Double calculatedTotalQty = response.getTotalNutrientInput().getTotalQuantityKg();
         assertNotNull(calculatedTotalQty, "Total quantity must be present");
-        assertEquals(0, expectedTotalQty.compareTo(calculatedTotalQty),
+        assertEquals(expectedTotalQty, calculatedTotalQty, 0.01,
                 String.format("Total quantity mismatch: expected %s, got %s", expectedTotalQty, calculatedTotalQty));
     }
 
@@ -313,11 +315,11 @@ class NutrientCalculationPropertyTest {
                     .farmerId(farmerId)
                     .fertilizerType("Test Fertilizer " + i)
                     .fertilizerCategory(FertilizerApplication.FertilizerCategory.CHEMICAL)
-                    .quantityKg(new BigDecimal("10"))
+                    .quantityKg(10.0)
                     .applicationDate(appDate)
-                    .nitrogenPercent(new BigDecimal("10"))
-                    .phosphorusPercent(new BigDecimal("10"))
-                    .potassiumPercent(new BigDecimal("10"))
+                    .nitrogenPercent(10.0)
+                    .phosphorusPercent(10.0)
+                    .potassiumPercent(10.0)
                     .build();
             mockApplications.add(app);
         }
@@ -350,10 +352,13 @@ class NutrientCalculationPropertyTest {
     @Property
     void propertyCostCalculation(
             @ForAll @IntRange(min = 1, max = 5) int numApplications,
-            @ForAll @BigRange(min = "1", max = "100") BigDecimal quantityKg,
-            @ForAll @BigRange(min = "5", max = "50") BigDecimal costPerKg,
+            @ForAll Double quantityKg,
+            @ForAll Double costPerKg,
             @ForAll String farmerId
     ) {
+        Double qKg = Math.max(1.0, Math.min(100.0, quantityKg));
+        Double cKg = Math.max(5.0, Math.min(50.0, costPerKg));
+
         // Arrange
         SoilHealthCardRepository soilHealthCardRepository = mock(SoilHealthCardRepository.class);
         FertilizerApplicationRepository fertilizerApplicationRepository = mock(FertilizerApplicationRepository.class);
@@ -362,11 +367,11 @@ class NutrientCalculationPropertyTest {
                 soilHealthCardRepository, fertilizerApplicationRepository);
 
         List<FertilizerApplication> mockApplications = new ArrayList<>();
-        BigDecimal expectedTotalCost = BigDecimal.ZERO;
+        Double expectedTotalCost = 0.0;
 
         for (int i = 0; i < numApplications; i++) {
-            BigDecimal appCost = quantityKg.multiply(costPerKg);
-            expectedTotalCost = expectedTotalCost.add(appCost);
+            Double appCost = qKg * cKg;
+            expectedTotalCost += appCost;
             
             FertilizerApplication app = FertilizerApplication.builder()
                     .id((long) (i + 1))
@@ -374,12 +379,12 @@ class NutrientCalculationPropertyTest {
                     .farmerId(farmerId)
                     .fertilizerType("Test Fertilizer " + i)
                     .fertilizerCategory(FertilizerApplication.FertilizerCategory.CHEMICAL)
-                    .quantityKg(quantityKg)
+                    .quantityKg(qKg)
                     .applicationDate(LocalDate.now().minusDays(i * 10))
                     .cost(appCost)
-                    .nitrogenPercent(new BigDecimal("10"))
-                    .phosphorusPercent(new BigDecimal("10"))
-                    .potassiumPercent(new BigDecimal("10"))
+                    .nitrogenPercent(10.0)
+                    .phosphorusPercent(10.0)
+                    .potassiumPercent(10.0)
                     .build();
             mockApplications.add(app);
         }
@@ -394,9 +399,10 @@ class NutrientCalculationPropertyTest {
         assertTrue(response.isSuccess());
         assertNotNull(response.getTotalNutrientInput());
 
-        BigDecimal calculatedTotalCost = response.getTotalNutrientInput().getTotalCost();
+        Double calculatedTotalCost = response.getTotalNutrientInput().getTotalCost();
         assertNotNull(calculatedTotalCost, "Total cost must be present");
-        assertEquals(0, expectedTotalCost.compareTo(calculatedTotalCost),
+        assertEquals(expectedTotalCost, calculatedTotalCost, 0.01,
                 String.format("Total cost mismatch: expected %s, got %s", expectedTotalCost, calculatedTotalCost));
     }
 }
+

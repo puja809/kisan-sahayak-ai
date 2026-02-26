@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -41,72 +41,72 @@ public class FertilizerRecommendationService {
     private final FertilizerApplicationRepository fertilizerApplicationRepository;
 
     // Standard nutrient requirements per acre for different crops (kg per acre)
-    private static final Map<String, BigDecimal[]> CROP_NUTRIENT_REQUIREMENTS = new HashMap<>();
+    private static final Map<String, Double[]> CROP_NUTRIENT_REQUIREMENTS = new HashMap<>();
     
     // Fertilizer nutrient content (percentage)
-    private static final Map<String, BigDecimal[]> FERTILIZER_COMPOSITION = new HashMap<>();
+    private static final Map<String, Double[]> FERTILIZER_COMPOSITION = new HashMap<>();
     
     // Fertilizer costs (INR per kg)
-    private static final Map<String, BigDecimal> FERTILIZER_COSTS = new HashMap<>();
+    private static final Map<String, Double> FERTILIZER_COSTS = new HashMap<>();
 
     static {
         // Crop nutrient requirements: N, P2O5, K2O (kg per acre)
-        CROP_NUTRIENT_REQUIREMENTS.put("RICE", new BigDecimal[]{
-            new BigDecimal("60"), new BigDecimal("30"), new BigDecimal("30")});
-        CROP_NUTRIENT_REQUIREMENTS.put("WHEAT", new BigDecimal[]{
-            new BigDecimal("80"), new BigDecimal("40"), new BigDecimal("30")});
-        CROP_NUTRIENT_REQUIREMENTS.put("COTTON", new BigDecimal[]{
-            new BigDecimal("100"), new BigDecimal("50"), new BigDecimal("50")});
-        CROP_NUTRIENT_REQUIREMENTS.put("SOYBEAN", new BigDecimal[]{
-            new BigDecimal("20"), new BigDecimal("60"), new BigDecimal("20")});
-        CROP_NUTRIENT_REQUIREMENTS.put("GROUNDNUT", new BigDecimal[]{
-            new BigDecimal("20"), new BigDecimal("40"), new BigDecimal("40")});
-        CROP_NUTRIENT_REQUIREMENTS.put("MUSTARD", new BigDecimal[]{
-            new BigDecimal("40"), new BigDecimal("20"), new BigDecimal("20")});
-        CROP_NUTRIENT_REQUIREMENTS.put("PULSES", new BigDecimal[]{
-            new BigDecimal("15"), new BigDecimal("40"), new BigDecimal("20")});
-        CROP_NUTRIENT_REQUIREMENTS.put("MAIZE", new BigDecimal[]{
-            new BigDecimal("80"), new BigDecimal("40"), new BigDecimal("30")});
-        CROP_NUTRIENT_REQUIREMENTS.put("SUGARCANE", new BigDecimal[]{
-            new BigDecimal("150"), new BigDecimal("50"), new BigDecimal("100")});
-        CROP_NUTRIENT_REQUIREMENTS.put("POTATO", new BigDecimal[]{
-            new BigDecimal("100"), new BigDecimal("60"), new BigDecimal("100")});
-        CROP_NUTRIENT_REQUIREMENTS.put("ONION", new BigDecimal[]{
-            new BigDecimal("80"), new BigDecimal("40"), new BigDecimal("60")});
-        CROP_NUTRIENT_REQUIREMENTS.put("TOMATO", new BigDecimal[]{
-            new BigDecimal("100"), new BigDecimal("50"), new BigDecimal("50")});
+        CROP_NUTRIENT_REQUIREMENTS.put("RICE", new Double[]{
+            60.0, 30.0, 30.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("WHEAT", new Double[]{
+            80.0, 40.0, 30.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("COTTON", new Double[]{
+            100.0, 50.0, 50.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("SOYBEAN", new Double[]{
+            20.0, 60.0, 20.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("GROUNDNUT", new Double[]{
+            20.0, 40.0, 40.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("MUSTARD", new Double[]{
+            40.0, 20.0, 20.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("PULSES", new Double[]{
+            15.0, 40.0, 20.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("MAIZE", new Double[]{
+            80.0, 40.0, 30.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("SUGARCANE", new Double[]{
+            150.0, 50.0, 100.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("POTATO", new Double[]{
+            100.0, 60.0, 100.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("ONION", new Double[]{
+            80.0, 40.0, 60.0});
+        CROP_NUTRIENT_REQUIREMENTS.put("TOMATO", new Double[]{
+            100.0, 50.0, 50.0});
 
         // Fertilizer composition: N, P2O5, K2O (percentage)
-        FERTILIZER_COMPOSITION.put("UREA", new BigDecimal[]{
-            new BigDecimal("46"), BigDecimal.ZERO, BigDecimal.ZERO});
-        FERTILIZER_COMPOSITION.put("DAP", new BigDecimal[]{
-            new BigDecimal("18"), new BigDecimal("46"), BigDecimal.ZERO});
-        FERTILIZER_COMPOSITION.put("MOP", new BigDecimal[]{
-            BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("60")});
-        FERTILIZER_COMPOSITION.put("SSP", new BigDecimal[]{
-            new BigDecimal("8"), new BigDecimal("16"), BigDecimal.ZERO});
-        FERTILIZER_COMPOSITION.put("NPK", new BigDecimal[]{
-            new BigDecimal("10"), new BigDecimal("26"), new BigDecimal("26")});
-        FERTILIZER_COMPOSITION.put("UREA_DAP_COMBO", new BigDecimal[]{
-            new BigDecimal("32"), new BigDecimal("23"), BigDecimal.ZERO});
-        FERTILIZER_COMPOSITION.put("ZINC_SULFATE", new BigDecimal[]{
-            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("21")});
-        FERTILIZER_COMPOSITION.put("BORAX", new BigDecimal[]{
-            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("11")});
+        FERTILIZER_COMPOSITION.put("UREA", new Double[]{
+            46.0, 0.0, 0.0});
+        FERTILIZER_COMPOSITION.put("DAP", new Double[]{
+            18.0, 46.0, 0.0});
+        FERTILIZER_COMPOSITION.put("MOP", new Double[]{
+            0.0, 0.0, 60.0});
+        FERTILIZER_COMPOSITION.put("SSP", new Double[]{
+            8.0, 16.0, 0.0});
+        FERTILIZER_COMPOSITION.put("NPK", new Double[]{
+            10.0, 26.0, 26.0});
+        FERTILIZER_COMPOSITION.put("UREA_DAP_COMBO", new Double[]{
+            32.0, 23.0, 0.0});
+        FERTILIZER_COMPOSITION.put("ZINC_SULFATE", new Double[]{
+            0.0, 0.0, 0.0, 21.0});
+        FERTILIZER_COMPOSITION.put("BORAX", new Double[]{
+            0.0, 0.0, 0.0, 0.0, 11.0});
 
         // Fertilizer costs (INR per kg)
-        FERTILIZER_COSTS.put("UREA", new BigDecimal("6"));
-        FERTILIZER_COSTS.put("DAP", new BigDecimal("27"));
-        FERTILIZER_COSTS.put("MOP", new BigDecimal("18"));
-        FERTILIZER_COSTS.put("SSP", new BigDecimal("12"));
-        FERTILIZER_COSTS.put("NPK", new BigDecimal("25"));
-        FERTILIZER_COSTS.put("UREA_DAP_COMBO", new BigDecimal("15"));
-        FERTILIZER_COSTS.put("ZINC_SULFATE", new BigDecimal("80"));
-        FERTILIZER_COSTS.put("BORAX", new BigDecimal("120"));
-        FERTILIZER_COSTS.put("VERMICOMPOST", new BigDecimal("8"));
-        FERTILIZER_COSTS.put("FYM", new BigDecimal("2"));
-        FERTILIZER_COSTS.put("GREEN_MANURE", new BigDecimal("3"));
-        FERTILIZER_COSTS.put("BIOFERTILIZER", new BigDecimal("150"));
+        FERTILIZER_COSTS.put("UREA", 6.0);
+        FERTILIZER_COSTS.put("DAP", 27.0);
+        FERTILIZER_COSTS.put("MOP", 18.0);
+        FERTILIZER_COSTS.put("SSP", 12.0);
+        FERTILIZER_COSTS.put("NPK", 25.0);
+        FERTILIZER_COSTS.put("UREA_DAP_COMBO", 15.0);
+        FERTILIZER_COSTS.put("ZINC_SULFATE", 80.0);
+        FERTILIZER_COSTS.put("BORAX", 120.0);
+        FERTILIZER_COSTS.put("VERMICOMPOST", 8.0);
+        FERTILIZER_COSTS.put("FYM", 2.0);
+        FERTILIZER_COSTS.put("GREEN_MANURE", 3.0);
+        FERTILIZER_COSTS.put("BIOFERTILIZER", 150.0);
     }
 
     public FertilizerRecommendationService(
@@ -132,7 +132,7 @@ public class FertilizerRecommendationService {
         
         try {
             // Step 1: Determine nutrient requirements
-            BigDecimal[] requirements = getNutrientRequirements(
+            Double[] requirements = getNutrientRequirements(
                     request.getCropName(), request.getTargetYield());
             
             // Step 2: Check for soil health card data
@@ -150,8 +150,8 @@ public class FertilizerRecommendationService {
                         .nitrogenKgPerAcre(requirements[0])
                         .phosphorusKgPerAcre(requirements[1])
                         .potassiumKgPerAcre(requirements[2])
-                        .sulfurKgPerAcre(new BigDecimal("15"))
-                        .zincKgPerAcre(new BigDecimal("5"))
+                        .sulfurKgPerAcre(15.0)
+                        .zincKgPerAcre(5.0)
                         .build();
             }
 
@@ -171,7 +171,7 @@ public class FertilizerRecommendationService {
             }
 
             // Step 6: Calculate total cost
-            BigDecimal totalCost = calculateTotalCost(recommendations, request.getAreaAcres());
+            Double totalCost = calculateTotalCost(recommendations, request.getAreaAcres());
 
             // Step 7: Build response
             return FertilizerRecommendationResponseDto.builder()
@@ -202,17 +202,17 @@ public class FertilizerRecommendationService {
     /**
      * Get nutrient requirements for a crop.
      */
-    private BigDecimal[] getNutrientRequirements(String cropName, BigDecimal targetYield) {
-        BigDecimal[] baseRequirements = CROP_NUTRIENT_REQUIREMENTS.getOrDefault(
+    private Double[] getNutrientRequirements(String cropName, Double targetYield) {
+        Double[] baseRequirements = CROP_NUTRIENT_REQUIREMENTS.getOrDefault(
                 cropName.toUpperCase(), 
-                new BigDecimal[]{new BigDecimal("50"), new BigDecimal("25"), new BigDecimal("25")});
+                new Double[]{50.0, 25.0, 25.0});
         
         // Adjust for target yield if provided
         if (targetYield != null) {
-            BigDecimal adjustment = targetYield.divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
-            baseRequirements[0] = baseRequirements[0].add(adjustment.multiply(baseRequirements[0]));
-            baseRequirements[1] = baseRequirements[1].add(adjustment.multiply(baseRequirements[1]));
-            baseRequirements[2] = baseRequirements[2].add(adjustment.multiply(baseRequirements[2]));
+            Double adjustment = targetYield / (100.0 * 2);
+            baseRequirements[0] = baseRequirements[0] + (adjustment * (baseRequirements[0]));
+            baseRequirements[1] = baseRequirements[1] + (adjustment * (baseRequirements[1]));
+            baseRequirements[2] = baseRequirements[2] + (adjustment * (baseRequirements[2]));
         }
         
         return baseRequirements;
@@ -222,74 +222,73 @@ public class FertilizerRecommendationService {
      * Adjust nutrient requirements based on soil health card data.
      */
     private FertilizerRecommendationResponseDto.NutrientRequirementsDto adjustForSoilHealth(
-            SoilHealthCardDto soilHealthCard,
-            BigDecimal[] baseRequirements,
+            SoilHealthCardDto soilHealthCard, Double[] baseRequirements,
             List<FertilizerRecommendationResponseDto.NutrientDeficiencyDto> deficiencies) {
         
-        BigDecimal nitrogen = baseRequirements[0];
-        BigDecimal phosphorus = baseRequirements[1];
-        BigDecimal potassium = baseRequirements[2];
+        Double nitrogen = baseRequirements[0];
+        Double phosphorus = baseRequirements[1];
+        Double potassium = baseRequirements[2];
         
         // Check nitrogen
         if (soilHealthCard.getNitrogenKgHa() != null) {
-            BigDecimal currentN = soilHealthCard.getNitrogenKgHa();
-            BigDecimal requiredN = new BigDecimal("280");
+            Double currentN = soilHealthCard.getNitrogenKgHa();
+            Double requiredN = 280.0;
             
-            if (currentN.compareTo(requiredN) < 0) {
-                BigDecimal deficit = requiredN.subtract(currentN);
-                nitrogen = nitrogen.add(deficit.multiply(new BigDecimal("2")));
+            if (currentN < requiredN) {
+                Double deficit = requiredN - (currentN);
+                nitrogen = nitrogen = nitrogen + (deficit * (2.0));
                 deficiencies.add(FertilizerRecommendationResponseDto.NutrientDeficiencyDto.builder()
                         .nutrient("Nitrogen")
                         .currentLevel(currentN.toString() + " kg/ha")
                         .requiredLevel(requiredN.toString() + " kg/ha")
                         .deficiency("Low")
-                        .recommendation("Increase nitrogen application by " + deficit.multiply(new BigDecimal("2")).setScale(0, RoundingMode.HALF_UP) + " kg/acre")
+                        .recommendation("Increase nitrogen application by " + deficit * (2.0) + " kg/acre")
                         .build());
             }
         }
         
         // Check phosphorus
         if (soilHealthCard.getPhosphorusKgHa() != null) {
-            BigDecimal currentP = soilHealthCard.getPhosphorusKgHa();
-            BigDecimal requiredP = new BigDecimal("10");
+            Double currentP = soilHealthCard.getPhosphorusKgHa();
+            Double requiredP = 10.0;
             
-            if (currentP.compareTo(requiredP) < 0) {
-                BigDecimal deficit = requiredP.subtract(currentP);
-                phosphorus = phosphorus.add(deficit.multiply(new BigDecimal("2")));
+            if (currentP < requiredP) {
+                Double deficit = requiredP - currentP;
+                phosphorus = phosphorus = phosphorus + (deficit * 2.0);
                 deficiencies.add(FertilizerRecommendationResponseDto.NutrientDeficiencyDto.builder()
                         .nutrient("Phosphorus")
                         .currentLevel(currentP.toString() + " kg/ha")
                         .requiredLevel(requiredP.toString() + " kg/ha")
                         .deficiency("Low")
-                        .recommendation("Increase phosphorus application by " + deficit.multiply(new BigDecimal("2")).setScale(0, RoundingMode.HALF_UP) + " kg/acre")
+                        .recommendation("Increase phosphorus application by " + Math.round(deficit * 2.0) + " kg/acre")
                         .build());
             }
         }
         
         // Check potassium
         if (soilHealthCard.getPotassiumKgHa() != null) {
-            BigDecimal currentK = soilHealthCard.getPotassiumKgHa();
-            BigDecimal requiredK = new BigDecimal("108");
+            Double currentK = soilHealthCard.getPotassiumKgHa();
+            Double requiredK = 108.0;
             
-            if (currentK.compareTo(requiredK) < 0) {
-                BigDecimal deficit = requiredK.subtract(currentK);
-                potassium = potassium.add(deficit.multiply(new BigDecimal("2")));
+            if (currentK < requiredK) {
+                Double deficit = requiredK - (currentK);
+                potassium = potassium = potassium + (deficit * (2.0));
                 deficiencies.add(FertilizerRecommendationResponseDto.NutrientDeficiencyDto.builder()
                         .nutrient("Potassium")
                         .currentLevel(currentK.toString() + " kg/ha")
                         .requiredLevel(requiredK.toString() + " kg/ha")
                         .deficiency("Low")
-                        .recommendation("Increase potassium application by " + deficit.multiply(new BigDecimal("2")).setScale(0, RoundingMode.HALF_UP) + " kg/acre")
+                        .recommendation("Increase potassium application by " + deficit * (2.0) + " kg/acre")
                         .build());
             }
         }
         
         // Check zinc
         if (soilHealthCard.getZincPpm() != null) {
-            BigDecimal currentZn = soilHealthCard.getZincPpm();
-            BigDecimal requiredZn = new BigDecimal("0.6");
+            Double currentZn = soilHealthCard.getZincPpm();
+            Double requiredZn = 0.6;
             
-            if (currentZn.compareTo(requiredZn) < 0) {
+            if (currentZn < requiredZn) {
                 deficiencies.add(FertilizerRecommendationResponseDto.NutrientDeficiencyDto.builder()
                         .nutrient("Zinc")
                         .currentLevel(currentZn.toString() + " ppm")
@@ -301,11 +300,11 @@ public class FertilizerRecommendationService {
         }
         
         return FertilizerRecommendationResponseDto.NutrientRequirementsDto.builder()
-                .nitrogenKgPerAcre(nitrogen.setScale(0, RoundingMode.HALF_UP))
-                .phosphorusKgPerAcre(phosphorus.setScale(0, RoundingMode.HALF_UP))
-                .potassiumKgPerAcre(potassium.setScale(0, RoundingMode.HALF_UP))
-                .sulfurKgPerAcre(new BigDecimal("15"))
-                .zincKgPerAcre(new BigDecimal("5"))
+                .nitrogenKgPerAcre(nitrogen)
+                .phosphorusKgPerAcre(phosphorus)
+                .potassiumKgPerAcre(potassium)
+                .sulfurKgPerAcre(15.0)
+                .zincKgPerAcre(5.0)
                 .build();
     }
 
@@ -320,63 +319,63 @@ public class FertilizerRecommendationService {
         List<FertilizerRecommendationResponseDto.RecommendedFertilizerDto> recommendations = 
                 new ArrayList<>();
         
-        BigDecimal area = request.getAreaAcres() != null ? request.getAreaAcres() : BigDecimal.ONE;
+        Double area = request.getAreaAcres() != null ? request.getAreaAcres() : 1.0;
         
         // Calculate urea requirement for nitrogen
-        BigDecimal ureaRequired = calculateFertilizerQuantity(
+        Double ureaRequired = calculateFertilizerQuantity(
                 requirements.getNitrogenKgPerAcre(), 
                 FERTILIZER_COMPOSITION.get("UREA")[0]);
-        if (ureaRequired.compareTo(BigDecimal.ZERO) > 0) {
+        if (ureaRequired > 0.0) {
             recommendations.add(FertilizerRecommendationResponseDto.RecommendedFertilizerDto.builder()
                     .fertilizerType("Urea")
                     .fertilizerCategory("CHEMICAL")
-                    .quantityKgPerAcre(ureaRequired.multiply(area).setScale(1, RoundingMode.HALF_UP))
+                    .quantityKgPerAcre(ureaRequired * (area))
                     .applicationTiming("Split application - basal and top dressing")
                     .applicationStage("Basal at sowing, Top dressing at tillering")
                     .nitrogenContent(FERTILIZER_COMPOSITION.get("UREA")[0])
-                    .phosphorusContent(BigDecimal.ZERO)
-                    .potassiumContent(BigDecimal.ZERO)
-                    .costPerAcre(ureaRequired.multiply(FERTILIZER_COSTS.get("UREA")).setScale(0, RoundingMode.HALF_UP))
+                    .phosphorusContent(0.0)
+                    .potassiumContent(0.0)
+                    .costPerAcre(ureaRequired * (FERTILIZER_COSTS.get("UREA")))
                     .notes("Apply 50% as basal and 50% as top dressing at 25-30 days after sowing")
                     .source("soil_test")
                     .build());
         }
         
         // Calculate DAP requirement for phosphorus
-        BigDecimal dapRequired = calculateFertilizerQuantity(
+        Double dapRequired = calculateFertilizerQuantity(
                 requirements.getPhosphorusKgPerAcre(), 
                 FERTILIZER_COMPOSITION.get("DAP")[1]);
-        if (dapRequired.compareTo(BigDecimal.ZERO) > 0) {
+        if (dapRequired > 0.0) {
             recommendations.add(FertilizerRecommendationResponseDto.RecommendedFertilizerDto.builder()
                     .fertilizerType("DAP (Di-Ammonium Phosphate)")
                     .fertilizerCategory("CHEMICAL")
-                    .quantityKgPerAcre(dapRequired.multiply(area).setScale(1, RoundingMode.HALF_UP))
+                    .quantityKgPerAcre(dapRequired * (area))
                     .applicationTiming("Basal application")
                     .applicationStage("At sowing")
                     .nitrogenContent(FERTILIZER_COMPOSITION.get("DAP")[0])
                     .phosphorusContent(FERTILIZER_COMPOSITION.get("DAP")[1])
-                    .potassiumContent(BigDecimal.ZERO)
-                    .costPerAcre(dapRequired.multiply(FERTILIZER_COSTS.get("DAP")).setScale(0, RoundingMode.HALF_UP))
+                    .potassiumContent(0.0)
+                    .costPerAcre(dapRequired * (FERTILIZER_COSTS.get("DAP")))
                     .notes("Apply as basal dose at the time of sowing")
                     .source("soil_test")
                     .build());
         }
         
         // Calculate MOP requirement for potassium
-        BigDecimal mopRequired = calculateFertilizerQuantity(
+        Double mopRequired = calculateFertilizerQuantity(
                 requirements.getPotassiumKgPerAcre(), 
                 FERTILIZER_COMPOSITION.get("MOP")[2]);
-        if (mopRequired.compareTo(BigDecimal.ZERO) > 0) {
+        if (mopRequired > 0.0) {
             recommendations.add(FertilizerRecommendationResponseDto.RecommendedFertilizerDto.builder()
                     .fertilizerType("MOP (Muriate of Potash)")
                     .fertilizerCategory("CHEMICAL")
-                    .quantityKgPerAcre(mopRequired.multiply(area).setScale(1, RoundingMode.HALF_UP))
+                    .quantityKgPerAcre(mopRequired * (area))
                     .applicationTiming("Split application")
                     .applicationStage("Basal and at flowering")
-                    .nitrogenContent(BigDecimal.ZERO)
-                    .phosphorusContent(BigDecimal.ZERO)
+                    .nitrogenContent(0.0)
+                    .phosphorusContent(0.0)
                     .potassiumContent(FERTILIZER_COMPOSITION.get("MOP")[2])
-                    .costPerAcre(mopRequired.multiply(FERTILIZER_COSTS.get("MOP")).setScale(0, RoundingMode.HALF_UP))
+                    .costPerAcre(mopRequired * (FERTILIZER_COSTS.get("MOP")))
                     .notes("Apply 50% as basal and 50% at flowering stage")
                     .source("soil_test")
                     .build());
@@ -384,17 +383,17 @@ public class FertilizerRecommendationService {
         
         // Add zinc sulfate if required
         if (requirements.getZincKgPerAcre() != null && 
-                requirements.getZincKgPerAcre().compareTo(BigDecimal.ZERO) > 0) {
+                requirements.getZincKgPerAcre() > 0.0) {
             recommendations.add(FertilizerRecommendationResponseDto.RecommendedFertilizerDto.builder()
                     .fertilizerType("Zinc Sulfate")
                     .fertilizerCategory("CHEMICAL")
-                    .quantityKgPerAcre(new BigDecimal("25").multiply(area))
+                    .quantityKgPerAcre(25.0 * (area))
                     .applicationTiming("Soil application")
                     .applicationStage("At sowing or as foliar spray")
-                    .nitrogenContent(BigDecimal.ZERO)
-                    .phosphorusContent(BigDecimal.ZERO)
-                    .potassiumContent(BigDecimal.ZERO)
-                    .costPerAcre(new BigDecimal("2000"))
+                    .nitrogenContent(0.0)
+                    .phosphorusContent(0.0)
+                    .potassiumContent(0.0)
+                    .costPerAcre(2000.0)
                     .notes("Apply 25 kg/acre as soil application or 0.5% solution as foliar spray")
                     .source("soil_test")
                     .build());
@@ -406,13 +405,12 @@ public class FertilizerRecommendationService {
     /**
      * Calculate fertilizer quantity based on nutrient requirement and fertilizer composition.
      */
-    private BigDecimal calculateFertilizerQuantity(BigDecimal nutrientRequired, BigDecimal nutrientPercent) {
+    private Double calculateFertilizerQuantity(Double nutrientRequired, Double nutrientPercent) {
         if (nutrientRequired == null || nutrientPercent == null || 
-                nutrientPercent.compareTo(BigDecimal.ZERO) == 0) {
-            return BigDecimal.ZERO;
+                nutrientPercent == 0.0) {
+            return 0.0;
         }
-        return nutrientRequired.multiply(new BigDecimal("100"))
-                .divide(nutrientPercent, 2, RoundingMode.HALF_UP);
+        return nutrientRequired * (100.0) / nutrientPercent;
     }
 
     /**
@@ -436,9 +434,9 @@ public class FertilizerRecommendationService {
                         .toList();
         
         if (!basalFertilizers.isEmpty()) {
-            BigDecimal basalCost = basalFertilizers.stream()
+            Double basalCost = basalFertilizers.stream()
                     .map(FertilizerRecommendationResponseDto.RecommendedFertilizerDto::getCostPerAcre)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .reduce(0.0, (a, b) -> a + b);
             
             schedule.add(FertilizerRecommendationResponseDto.ApplicationScheduleDto.builder()
                     .applicationName("Basal Dose")
@@ -458,9 +456,9 @@ public class FertilizerRecommendationService {
                         .toList();
         
         if (!topDressing1.isEmpty()) {
-            BigDecimal topDressing1Cost = topDressing1.stream()
+            Double topDressing1Cost = topDressing1.stream()
                     .map(FertilizerRecommendationResponseDto.RecommendedFertilizerDto::getCostPerAcre)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .reduce(0.0, (a, b) -> a + b);
             
             schedule.add(FertilizerRecommendationResponseDto.ApplicationScheduleDto.builder()
                     .applicationName("First Top Dressing")
@@ -481,9 +479,9 @@ public class FertilizerRecommendationService {
                         .toList();
         
         if (!topDressing2.isEmpty()) {
-            BigDecimal topDressing2Cost = topDressing2.stream()
+            Double topDressing2Cost = topDressing2.stream()
                     .map(FertilizerRecommendationResponseDto.RecommendedFertilizerDto::getCostPerAcre)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .reduce(0.0, (a, b) -> a + b);
             
             schedule.add(FertilizerRecommendationResponseDto.ApplicationScheduleDto.builder()
                     .applicationName("Second Top Dressing")
@@ -509,16 +507,16 @@ public class FertilizerRecommendationService {
         List<FertilizerRecommendationResponseDto.OrganicAlternativeDto> alternatives = 
                 new ArrayList<>();
         
-        BigDecimal area = request.getAreaAcres() != null ? request.getAreaAcres() : BigDecimal.ONE;
+        Double area = request.getAreaAcres() != null ? request.getAreaAcres() : 1.0;
         
         // Vermicompost
         alternatives.add(FertilizerRecommendationResponseDto.OrganicAlternativeDto.builder()
                 .alternativeType("VERMICOMPOST")
                 .name("Vermicompost")
-                .quantityKgPerAcre(new BigDecimal("2000").multiply(area))
+                .quantityKgPerAcre(2000.0 * (area))
                 .benefits("Improves soil structure, water holding capacity, and microbial activity")
                 .applicationMethod("Apply and mix with soil before sowing")
-                .costPerAcre(new BigDecimal("16000"))
+                .costPerAcre(16000.0)
                 .notes("Can replace 25-50% of chemical fertilizer requirement")
                 .build());
         
@@ -526,10 +524,10 @@ public class FertilizerRecommendationService {
         alternatives.add(FertilizerRecommendationResponseDto.OrganicAlternativeDto.builder()
                 .alternativeType("FYM")
                 .name("Farm Yard Manure (FYM)")
-                .quantityKgPerAcre(new BigDecimal("5000").multiply(area))
+                .quantityKgPerAcre(5000.0 * (area))
                 .benefits("Adds organic matter, improves soil fertility gradually")
                 .applicationMethod("Apply 15-20 days before sowing and incorporate into soil")
-                .costPerAcre(new BigDecimal("10000"))
+                .costPerAcre(10000.0)
                 .notes("Well-decomposed FYM is recommended")
                 .build());
         
@@ -537,10 +535,10 @@ public class FertilizerRecommendationService {
         alternatives.add(FertilizerRecommendationResponseDto.OrganicAlternativeDto.builder()
                 .alternativeType("GREEN_MANURE")
                 .name("Green Manure (Sesbania/Dhaincha)")
-                .quantityKgPerAcre(new BigDecimal("20").multiply(area))
+                .quantityKgPerAcre(20.0 * (area))
                 .benefits("Fixes atmospheric nitrogen, adds organic matter, improves soil structure")
                 .applicationMethod("Sow 6-8 weeks before main crop, incorporate at flowering")
-                .costPerAcre(new BigDecimal("600"))
+                .costPerAcre(600.0)
                 .notes("Can provide 40-60 kg N per hectare")
                 .build());
         
@@ -548,10 +546,10 @@ public class FertilizerRecommendationService {
         alternatives.add(FertilizerRecommendationResponseDto.OrganicAlternativeDto.builder()
                 .alternativeType("BIOFERTILIZER")
                 .name("Biofertilizers (Rhizobium/PSM/Azotobacter)")
-                .quantityKgPerAcre(new BigDecimal("2").multiply(area))
+                .quantityKgPerAcre(2.0 * (area))
                 .benefits("Biological nitrogen fixation, phosphorus solubilization")
                 .applicationMethod("Seed treatment or soil application")
-                .costPerAcre(new BigDecimal("300"))
+                .costPerAcre(300.0)
                 .notes("Use with organic manures for best results")
                 .build());
         
@@ -561,18 +559,17 @@ public class FertilizerRecommendationService {
     /**
      * Calculate total cost of recommendations.
      */
-    private BigDecimal calculateTotalCost(
-            List<FertilizerRecommendationResponseDto.RecommendedFertilizerDto> recommendations,
-            BigDecimal area) {
-        BigDecimal totalCost = recommendations.stream()
-                .map(r -> r.getCostPerAcre() != null ? r.getCostPerAcre() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private Double calculateTotalCost(
+            List<FertilizerRecommendationResponseDto.RecommendedFertilizerDto> recommendations, Double area) {
+        Double totalCost = recommendations.stream()
+                .map(r -> r.getCostPerAcre() != null ? r.getCostPerAcre() : 0.0)
+                .reduce(0.0, (a, b) -> a + b);
         
-        if (area != null && area.compareTo(BigDecimal.ONE) != 0) {
-            totalCost = totalCost.multiply(area);
+        if (area != null && area.compareTo(1.0) != 0) {
+            totalCost = totalCost * (area);
         }
         
-        return totalCost.setScale(0, RoundingMode.HALF_UP);
+        return totalCost;
     }
 
     /**
@@ -628,33 +625,33 @@ public class FertilizerRecommendationService {
                     fertilizerApplicationRepository.findByCropIdOrderByApplicationDateAsc(cropId);
             
             // Calculate total nutrient input
-            BigDecimal totalN = BigDecimal.ZERO;
-            BigDecimal totalP = BigDecimal.ZERO;
-            BigDecimal totalK = BigDecimal.ZERO;
-            BigDecimal totalS = BigDecimal.ZERO;
-            BigDecimal totalZn = BigDecimal.ZERO;
-            BigDecimal totalQty = BigDecimal.ZERO;
-            BigDecimal totalCost = BigDecimal.ZERO;
+            Double totalN = 0.0;
+            Double totalP = 0.0;
+            Double totalK = 0.0;
+            Double totalS = 0.0;
+            Double totalZn = 0.0;
+            Double totalQty = 0.0;
+            Double totalCost = 0.0;
             
             List<FertilizerTrackingResponseDto.FertilizerApplicationDto> applicationDtos = 
                     new ArrayList<>();
             
             for (FertilizerApplication app : applications) {
-                BigDecimal n = app.getNitrogenKg();
-                BigDecimal p = app.getPhosphorusKg();
-                BigDecimal k = app.getPotassiumKg();
+                Double n = app.getNitrogenKg();
+                Double p = app.getPhosphorusKg();
+                Double k = app.getPotassiumKg();
                 
-                totalN = totalN.add(n);
-                totalP = totalP.add(p);
-                totalK = totalK.add(k);
-                totalS = totalS.add(app.getSulfurPercent() != null ? 
-                        app.getQuantityKg().multiply(app.getSulfurPercent())
-                                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-                totalZn = totalZn.add(app.getZincPercent() != null ? 
-                        app.getQuantityKg().multiply(app.getZincPercent())
-                                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-                totalQty = totalQty.add(app.getQuantityKg());
-                totalCost = totalCost.add(app.getCost() != null ? app.getCost() : BigDecimal.ZERO);
+                totalN = totalN = totalN + (n);
+                totalP = totalP = totalP + (p);
+                totalK = totalK = totalK + (k);
+                totalS = totalS = totalS + (app.getSulfurPercent() != null ? 
+                        app.getQuantityKg() * (app.getSulfurPercent())
+                                 / (100.0 * 2) : 0.0);
+                totalZn = totalZn + (app.getZincPercent() != null ? 
+                        app.getQuantityKg() * (app.getZincPercent())
+                                 / (100.0 * 2) : 0.0);
+                totalQty = totalQty + (app.getQuantityKg());
+                totalCost = totalCost + (app.getCost() != null ? app.getCost() : 0.0);
                 
                 applicationDtos.add(FertilizerTrackingResponseDto.FertilizerApplicationDto.builder()
                         .id(app.getId())
@@ -675,28 +672,27 @@ public class FertilizerRecommendationService {
             // Build total nutrient input
             FertilizerTrackingResponseDto.TotalNutrientInputDto totalNutrientInput = 
                     FertilizerTrackingResponseDto.TotalNutrientInputDto.builder()
-                            .totalNitrogenKg(totalN.setScale(2, RoundingMode.HALF_UP))
-                            .totalPhosphorusKg(totalP.setScale(2, RoundingMode.HALF_UP))
-                            .totalPotassiumKg(totalK.setScale(2, RoundingMode.HALF_UP))
-                            .totalSulfurKg(totalS.setScale(2, RoundingMode.HALF_UP))
-                            .totalZincKg(totalZn.setScale(2, RoundingMode.HALF_UP))
-                            .totalQuantityKg(totalQty.setScale(2, RoundingMode.HALF_UP))
-                            .totalCost(totalCost.setScale(2, RoundingMode.HALF_UP))
+                            .totalNitrogenKg(totalN)
+                            .totalPhosphorusKg(totalP)
+                            .totalPotassiumKg(totalK)
+                            .totalSulfurKg(totalS)
+                            .totalZincKg(totalZn)
+                            .totalQuantityKg(totalQty)
+                            .totalCost(totalCost)
                             .build();
             
             // Build cost summary
             FertilizerTrackingResponseDto.CostSummaryDto costSummary = 
                     FertilizerTrackingResponseDto.CostSummaryDto.builder()
-                            .totalCost(totalCost.setScale(0, RoundingMode.HALF_UP))
-                            .costPerAcre(totalCost.setScale(0, RoundingMode.HALF_UP))
-                            .costPerKgNutrient(totalNutrientInput.getTotalNitrogenKg().add(
-                                    totalNutrientInput.getTotalPhosphorusKg()).add(
-                                    totalNutrientInput.getTotalPotassiumKg()).compareTo(BigDecimal.ZERO) > 0 ?
-                                    totalCost.divide(
-                                            totalNutrientInput.getTotalNitrogenKg().add(
-                                                    totalNutrientInput.getTotalPhosphorusKg()).add(
-                                                    totalNutrientInput.getTotalPotassiumKg()),
-                                            2, RoundingMode.HALF_UP) : BigDecimal.ZERO)
+                            .totalCost(totalCost)
+                            .costPerAcre(totalCost)
+                            .costPerKgNutrient((totalNutrientInput.getTotalNitrogenKg() + 
+                                    totalNutrientInput.getTotalPhosphorusKg() + 
+                                    totalNutrientInput.getTotalPotassiumKg()) > 0.0 ?
+                                    totalCost / (
+                                            totalNutrientInput.getTotalNitrogenKg() + 
+                                                    totalNutrientInput.getTotalPhosphorusKg() + 
+                                                    totalNutrientInput.getTotalPotassiumKg()) : 0.0)
                             .costTrend("stable")
                             .build();
             
@@ -718,3 +714,23 @@ public class FertilizerRecommendationService {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

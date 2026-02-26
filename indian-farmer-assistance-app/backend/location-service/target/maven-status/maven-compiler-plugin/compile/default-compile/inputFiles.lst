@@ -8,6 +8,7 @@ D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\location-service\s
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\location-service\src\main\java\com\farmer\location\service\GovernmentBodyLocatorService.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\location-service\src\main\java\com\farmer\location\repository\LocationCacheRepository.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\location-service\src\main\java\com\farmer\location\config\WebClientConfig.java
+D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\location-service\src\main\java\com\farmer\location\config\RedisConfig.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\location-service\src\main\java\com\farmer\location\entity\LocationCache.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\location-service\src\main\java\com\farmer\location\dto\LocationChangeDto.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\location-service\src\main\java\com\farmer\location\repository\GovernmentBodyRepository.java

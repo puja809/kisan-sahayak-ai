@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,16 +53,16 @@ class FertilizerRecommendationUnitTest {
     void testRecommendationWithSoilData() {
         // Arrange
         SoilHealthCardDto soilHealthCard = SoilHealthCardDto.builder()
-                .nitrogenKgHa(new BigDecimal("200"))  // Low nitrogen
-                .phosphorusKgHa(new BigDecimal("8"))  // Low phosphorus
-                .potassiumKgHa(new BigDecimal("100")) // Low potassium
-                .zincPpm(new BigDecimal("0.4"))      // Low zinc
+                .nitrogenKgHa(200.0)  // Low nitrogen
+                .phosphorusKgHa(8.0)  // Low phosphorus
+                .potassiumKgHa(100.0) // Low potassium
+                .zincPpm(0.4)      // Low zinc
                 .build();
 
         FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                 .farmerId("FARMER-001")
                 .cropName("RICE")
-                .areaAcres(new BigDecimal("2"))
+                .areaAcres(2.0)
                 .soilHealthCard(soilHealthCard)
                 .includeOrganicAlternatives(true)
                 .includeSplitApplication(true)
@@ -97,7 +96,7 @@ class FertilizerRecommendationUnitTest {
         FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                 .farmerId("FARMER-002")
                 .cropName("WHEAT")
-                .areaAcres(new BigDecimal("1"))
+                .areaAcres(1.0)
                 .includeOrganicAlternatives(false)
                 .includeSplitApplication(true)
                 .build();
@@ -113,9 +112,9 @@ class FertilizerRecommendationUnitTest {
         assertFalse(response.getRecommendations().isEmpty());
         
         // Verify default nutrient requirements for wheat
-        assertTrue(response.getNutrientRequirements().getNitrogenKgPerAcre().compareTo(BigDecimal.ZERO) > 0);
-        assertTrue(response.getNutrientRequirements().getPhosphorusKgPerAcre().compareTo(BigDecimal.ZERO) > 0);
-        assertTrue(response.getNutrientRequirements().getPotassiumKgPerAcre().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(response.getNutrientRequirements().getNitrogenKgPerAcre() > 0.0);
+        assertTrue(response.getNutrientRequirements().getPhosphorusKgPerAcre() > 0.0);
+        assertTrue(response.getNutrientRequirements().getPotassiumKgPerAcre() > 0.0);
     }
 
     @Test
@@ -123,12 +122,12 @@ class FertilizerRecommendationUnitTest {
     void testNutrientCalculation() {
         // Arrange
         List<FertilizerApplication> applications = Arrays.asList(
-                createFertilizerApplication(1L, "Urea", new BigDecimal("50"), 
-                        new BigDecimal("46"), BigDecimal.ZERO, BigDecimal.ZERO),
-                createFertilizerApplication(2L, "DAP", new BigDecimal("30"), 
-                        new BigDecimal("18"), new BigDecimal("46"), BigDecimal.ZERO),
-                createFertilizerApplication(3L, "MOP", new BigDecimal("25"), 
-                        BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("60"))
+                createFertilizerApplication(1L, "Urea", 50.0, 
+                        46.0, 0.0, 0.0),
+                createFertilizerApplication(2L, "DAP", 30.0, 
+                        18.0, 46.0, 0.0),
+                createFertilizerApplication(3L, "MOP", 25.0, 
+                        0.0, 0.0, 60.0)
         );
 
         when(fertilizerApplicationRepository.findByCropIdOrderByApplicationDateAsc(1L))
@@ -142,18 +141,18 @@ class FertilizerRecommendationUnitTest {
         assertNotNull(response.getTotalNutrientInput());
         
         // Verify nitrogen: 50 * 0.46 + 30 * 0.18 = 23 + 5.4 = 28.4 kg
-        BigDecimal expectedN = new BigDecimal("28.40");
-        assertEquals(0, expectedN.compareTo(response.getTotalNutrientInput().getTotalNitrogenKg()),
+        Double expectedN = 28.40;
+        assertEquals(expectedN, response.getTotalNutrientInput().getTotalNitrogenKg(), 0.01,
                 "Nitrogen calculation should be correct");
         
         // Verify phosphorus: 30 * 0.46 = 13.8 kg
-        BigDecimal expectedP = new BigDecimal("13.80");
-        assertEquals(0, expectedP.compareTo(response.getTotalNutrientInput().getTotalPhosphorusKg()),
+        Double expectedP = 13.80;
+        assertEquals(expectedP, response.getTotalNutrientInput().getTotalPhosphorusKg(), 0.01,
                 "Phosphorus calculation should be correct");
         
         // Verify potassium: 25 * 0.60 = 15 kg
-        BigDecimal expectedK = new BigDecimal("15.00");
-        assertEquals(0, expectedK.compareTo(response.getTotalNutrientInput().getTotalPotassiumKg()),
+        Double expectedK = 15.00;
+        assertEquals(expectedK, response.getTotalNutrientInput().getTotalPotassiumKg(), 0.01,
                 "Potassium calculation should be correct");
     }
 
@@ -162,10 +161,10 @@ class FertilizerRecommendationUnitTest {
     void testOverApplicationDetection() {
         // Arrange - Create applications with excessive nutrients
         List<FertilizerApplication> applications = Arrays.asList(
-                createFertilizerApplication(1L, "Urea", new BigDecimal("200"), 
-                        new BigDecimal("46"), BigDecimal.ZERO, BigDecimal.ZERO), // 92 kg N - excessive
-                createFertilizerApplication(2L, "DAP", new BigDecimal("100"), 
-                        new BigDecimal("18"), new BigDecimal("46"), BigDecimal.ZERO) // 46 kg P - excessive
+                createFertilizerApplication(1L, "Urea", 200.0, 
+                        46.0, 0.0, 0.0), // 92 kg N - excessive
+                createFertilizerApplication(2L, "DAP", 100.0, 
+                        18.0, 46.0, 0.0) // 46 kg P - excessive
         );
 
         when(fertilizerApplicationRepository.findByCropIdOrderByApplicationDateAsc(1L))
@@ -179,13 +178,11 @@ class FertilizerRecommendationUnitTest {
         assertNotNull(response.getTotalNutrientInput());
         
         // Verify excessive nitrogen (92 kg vs typical 60 kg for rice)
-        assertTrue(response.getTotalNutrientInput().getTotalNitrogenKg()
-                .compareTo(new BigDecimal("60")) > 0, 
+        assertTrue(response.getTotalNutrientInput().getTotalNitrogenKg() > 60.0, 
                 "Should detect over-application of nitrogen");
         
         // Verify excessive phosphorus (46 kg vs typical 30 kg for rice)
-        assertTrue(response.getTotalNutrientInput().getTotalPhosphorusKg()
-                .compareTo(new BigDecimal("30")) > 0, 
+        assertTrue(response.getTotalNutrientInput().getTotalPhosphorusKg() > 30.0, 
                 "Should detect over-application of phosphorus");
     }
 
@@ -194,10 +191,10 @@ class FertilizerRecommendationUnitTest {
     void testUnderApplicationDetection() {
         // Arrange - Create applications with insufficient nutrients
         List<FertilizerApplication> applications = Arrays.asList(
-                createFertilizerApplication(1L, "Urea", new BigDecimal("20"), 
-                        new BigDecimal("46"), BigDecimal.ZERO, BigDecimal.ZERO), // 9.2 kg N - insufficient
-                createFertilizerApplication(2L, "DAP", new BigDecimal("10"), 
-                        new BigDecimal("18"), new BigDecimal("46"), BigDecimal.ZERO) // 4.6 kg P - insufficient
+                createFertilizerApplication(1L, "Urea", 20.0, 
+                        46.0, 0.0, 0.0), // 9.2 kg N - insufficient
+                createFertilizerApplication(2L, "DAP", 10.0, 
+                        18.0, 46.0, 0.0) // 4.6 kg P - insufficient
         );
 
         when(fertilizerApplicationRepository.findByCropIdOrderByApplicationDateAsc(1L))
@@ -211,13 +208,11 @@ class FertilizerRecommendationUnitTest {
         assertNotNull(response.getTotalNutrientInput());
         
         // Verify insufficient nitrogen (9.2 kg vs typical 60 kg for rice)
-        assertTrue(response.getTotalNutrientInput().getTotalNitrogenKg()
-                .compareTo(new BigDecimal("60")) < 0, 
+        assertTrue(response.getTotalNutrientInput().getTotalNitrogenKg() < 60.0, 
                 "Should detect under-application of nitrogen");
         
         // Verify insufficient phosphorus (4.6 kg vs typical 30 kg for rice)
-        assertTrue(response.getTotalNutrientInput().getTotalPhosphorusKg()
-                .compareTo(new BigDecimal("30")) < 0, 
+        assertTrue(response.getTotalNutrientInput().getTotalPhosphorusKg() < 30.0, 
                 "Should detect under-application of phosphorus");
     }
 
@@ -228,7 +223,7 @@ class FertilizerRecommendationUnitTest {
         FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                 .farmerId("FARMER-003")
                 .cropName("COTTON")
-                .areaAcres(new BigDecimal("1"))
+                .areaAcres(1.0)
                 .includeOrganicAlternatives(true)
                 .build();
 
@@ -258,7 +253,7 @@ class FertilizerRecommendationUnitTest {
         FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                 .farmerId("FARMER-004")
                 .cropName("RICE")
-                .areaAcres(new BigDecimal("1"))
+                .areaAcres(1.0)
                 .includeSplitApplication(true)
                 .build();
 
@@ -294,7 +289,7 @@ class FertilizerRecommendationUnitTest {
         FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                 .farmerId("FARMER-005")
                 .cropName("RICE")
-                .areaAcres(new BigDecimal("2"))
+                .areaAcres(2.0)
                 .build();
 
         // Act
@@ -303,11 +298,11 @@ class FertilizerRecommendationUnitTest {
         // Assert
         assertTrue(response.isSuccess());
         assertNotNull(response.getEstimatedCost());
-        assertTrue(response.getEstimatedCost().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(response.getEstimatedCost() > 0.0);
         
         // Cost should scale with area (2 acres)
-        BigDecimal costPerAcre = response.getEstimatedCost().divide(new BigDecimal("2"), 0, java.math.RoundingMode.HALF_UP);
-        assertTrue(costPerAcre.compareTo(BigDecimal.ZERO) > 0);
+        Double costPerAcre = response.getEstimatedCost() / 2.0;
+        assertTrue(costPerAcre > 0.0);
     }
 
     @Test
@@ -319,11 +314,11 @@ class FertilizerRecommendationUnitTest {
                 .farmerId("FARMER-006")
                 .fertilizerType("Urea")
                 .fertilizerCategory("CHEMICAL")
-                .quantityKg(new BigDecimal("50"))
+                .quantityKg(50.0)
                 .applicationDate(LocalDate.now())
                 .applicationStage("Basal")
-                .cost(new BigDecimal("300"))
-                .nitrogenPercent(new BigDecimal("46"))
+                .cost(300.0)
+                .nitrogenPercent(46.0)
                 .build();
 
         FertilizerApplication savedApplication = FertilizerApplication.builder()
@@ -349,8 +344,8 @@ class FertilizerRecommendationUnitTest {
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("Urea", result.getFertilizerType());
-        assertEquals(new BigDecimal("50"), result.getQuantityKg());
-        assertEquals(new BigDecimal("46"), result.getNitrogenPercent());
+        assertEquals(50.0, result.getQuantityKg());
+        assertEquals(46.0, result.getNitrogenPercent());
         
         verify(fertilizerApplicationRepository).save(any(FertilizerApplication.class));
     }
@@ -370,9 +365,9 @@ class FertilizerRecommendationUnitTest {
         assertNotNull(response.getApplications());
         assertTrue(response.getApplications().isEmpty());
         assertNotNull(response.getTotalNutrientInput());
-        assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalNutrientInput().getTotalNitrogenKg()));
-        assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalNutrientInput().getTotalPhosphorusKg()));
-        assertEquals(0, BigDecimal.ZERO.compareTo(response.getTotalNutrientInput().getTotalPotassiumKg()));
+        assertEquals(0.0, response.getTotalNutrientInput().getTotalNitrogenKg());
+        assertEquals(0.0, response.getTotalNutrientInput().getTotalPhosphorusKg());
+        assertEquals(0.0, response.getTotalNutrientInput().getTotalPotassiumKg());
     }
 
     @Test
@@ -385,7 +380,7 @@ class FertilizerRecommendationUnitTest {
             FertilizerRecommendationRequestDto request = FertilizerRecommendationRequestDto.builder()
                     .farmerId("FARMER-007")
                     .cropName(crop)
-                    .areaAcres(new BigDecimal("1"))
+                    .areaAcres(1.0)
                     .build();
 
             // Act
@@ -405,8 +400,8 @@ class FertilizerRecommendationUnitTest {
      * Helper method to create a fertilizer application for testing.
      */
     private FertilizerApplication createFertilizerApplication(
-            Long id, String type, BigDecimal quantity, 
-            BigDecimal n, BigDecimal p, BigDecimal k) {
+            Long id, String type, Double quantity, 
+            Double n, Double p, Double k) {
         return FertilizerApplication.builder()
                 .id(id)
                 .cropId(1L)
@@ -421,3 +416,4 @@ class FertilizerRecommendationUnitTest {
                 .build();
     }
 }
+

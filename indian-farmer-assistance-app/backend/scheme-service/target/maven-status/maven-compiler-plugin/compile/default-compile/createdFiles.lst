@@ -17,6 +17,7 @@ com\farmer\scheme\service\SchemeDeadlineScheduler.class
 com\farmer\scheme\service\DeadlineNotificationService$DeadlineNotificationType.class
 com\farmer\scheme\service\SchemeApplicationService.class
 com\farmer\scheme\dto\EligibilityResultDTO$EligibilityStatus.class
+com\farmer\scheme\config\ScheduledJobConfig.class
 com\farmer\scheme\dto\PersonalizedSchemeDTO.class
 com\farmer\scheme\config\SecurityConfig.class
 com\farmer\scheme\controller\EligibilityController.class
@@ -26,6 +27,7 @@ com\farmer\scheme\service\SchemeService.class
 com\farmer\scheme\dto\EligibilityResultDTO$EligibilityResultDTOBuilder.class
 com\farmer\scheme\dto\FarmerProfileDTO$FarmerProfileDTOBuilder.class
 com\farmer\scheme\controller\SchemeController.class
+com\farmer\scheme\service\UserService.class
 com\farmer\scheme\repository\SchemeRepository.class
 com\farmer\scheme\service\NotificationService$NotificationType.class
 com\farmer\scheme\dto\EligibilityCriteriaDTO.class

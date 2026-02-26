@@ -183,7 +183,7 @@ public class GpsLocationService {
                 .zoneCode(extractZoneCode(zone))
                 .zoneDescription(getZoneDescription(zone))
                 .region(region)
-                .locationSource(request.isManual() ? "MANUAL" : "GPS")
+                .locationSource(Boolean.TRUE.equals(request.getIsManual()) ? "MANUAL" : "GPS")
                 .timestamp(LocalDateTime.now())
                 .dataSource("ICAR")
                 .build();

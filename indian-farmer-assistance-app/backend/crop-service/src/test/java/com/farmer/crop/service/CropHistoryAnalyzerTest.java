@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -215,17 +215,17 @@ class CropHistoryAnalyzerTest {
             CropHistoryAnalysisResultDto result2 = analyzer.analyzeCropHistory(twoSeasons);
             CropHistoryAnalysisResultDto result3 = analyzer.analyzeCropHistory(threeSeasons);
 
-            BigDecimal score2 = result2.getNutrientDepletionRisks().stream()
+            Double score2 = result2.getNutrientDepletionRisks().stream()
                     .map(NutrientDepletionRiskDto::getSeverityScore)
                     .findFirst()
-                    .orElse(BigDecimal.ZERO);
+                    .orElse(0.0);
             
-            BigDecimal score3 = result3.getNutrientDepletionRisks().stream()
+            Double score3 = result3.getNutrientDepletionRisks().stream()
                     .map(NutrientDepletionRiskDto::getSeverityScore)
                     .findFirst()
-                    .orElse(BigDecimal.ZERO);
+                    .orElse(0.0);
 
-            assertTrue(score3.compareTo(score2) > 0, 
+            assertTrue(score3 > score2, 
                     "Severity score should increase with more consecutive seasons");
         }
     }
@@ -442,9 +442,10 @@ class CropHistoryAnalyzerTest {
                 .cropId((long) cropName.hashCode())
                 .cropName(cropName)
                 .sowingDate(sowingDate)
-                .areaAcres(new BigDecimal("2.5"))
+                .areaAcres(2.5)
                 .season("KHARIF")
                 .status("HARVESTED")
                 .build();
     }
 }
+

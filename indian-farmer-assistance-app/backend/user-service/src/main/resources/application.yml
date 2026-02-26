@@ -1,13 +1,17 @@
+server:
+  port: ${USER_SERVICE_PORT:8099}
+  address: ${USER_SERVICE_ADDRESS:0.0.0.0}
+
 spring:
   application:
     name: user-service
   config:
     import: optional:file:./config.yaml
   datasource:
-    url: jdbc:mysql://${database.host:localhost}:${database.port:3306}/${database.name:indian_farmer_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: ${database.username:root}
-    password: ${database.password:password}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${USER_DB_URL:jdbc:postgresql://localhost:5432/indian_farmer_db}
+    username: ${USER_DB_USERNAME:postgres}
+    password: ${USER_DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: ${database.pool.maximum_size:10}
       minimum-idle: ${database.pool.minimum_idle:5}
@@ -20,22 +24,27 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   data:
     redis:
-      host: ${redis.host:localhost}
-      port: ${redis.port:6379}
-      password: ${redis.password:}
+      url: ${USER_REDIS_URL:redis://localhost:6379}
+      database: 6
   jackson:
     serialization:
       write-dates-as-timestamps: false
     deserialization:
       fail-on-unknown-properties: false
 
-server:
-  port: ${app.port:8081}
-  address: ${app.host:0.0.0.0}
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
 # Custom application properties
 app:
@@ -43,7 +52,7 @@ app:
   redis:
     key-prefix: ${redis.key_prefix:sess:c05a946fe:}
   jwt:
-    secret: ${jwt.secret:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long}
+    secret: ${USER_JWT_SECRET:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long}
     expiration: ${jwt.expiration:86400000}
     refresh-expiration: ${jwt.refresh_expiration:604800000}
     issuer: ${jwt.issuer:indian-farmer-assistance}
@@ -54,7 +63,7 @@ app:
     geo-map-registry-endpoint: ${agristack.geo_map_registry.endpoint:/geo-map-registry/v1}
     crop-sown-registry-endpoint: ${agristack.crop_sown_registry.endpoint:/crop-sown-registry/v1}
     timeout: ${agristack.timeout:30000}
-    api-key: ${agristack.api_key:}
+    api-key: ${USER_AGRISTACK_API_KEY:}
 
 logging:
   level:
@@ -70,3 +79,18 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    show-common-extensions: true
+  show-actuator: true
+  use-fqn: true

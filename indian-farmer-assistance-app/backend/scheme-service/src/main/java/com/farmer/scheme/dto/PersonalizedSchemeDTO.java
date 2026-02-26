@@ -2,7 +2,7 @@ package com.farmer.scheme.dto;
 
 import com.farmer.scheme.entity.Scheme;
 import lombok.*;
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -77,12 +77,12 @@ public class PersonalizedSchemeDTO {
     /**
      * Benefit amount in INR.
      */
-    private BigDecimal benefitAmount;
+    private Double benefitAmount;
     
     /**
      * Maximum benefit amount cap if applicable.
      */
-    private BigDecimal maxBenefitAmount;
+    private Double maxBenefitAmount;
     
     /**
      * Benefit description.
@@ -130,7 +130,7 @@ public class PersonalizedSchemeDTO {
      * Ranking score based on benefit amount and deadline proximity.
      * Requirements: 11D.2
      */
-    private BigDecimal rankingScore;
+    private Double rankingScore;
     
     /**
      * Rank among all recommended schemes.
@@ -205,7 +205,7 @@ public class PersonalizedSchemeDTO {
         }
         
         List<HighlightReason> reasons = new java.util.ArrayList<>();
-        if (eligibilityResult.getRankingScore() != null && eligibilityResult.getRankingScore().compareTo(new BigDecimal("50")) > 0) {
+        if (eligibilityResult.getRankingScore() != null && eligibilityResult.getRankingScore().compareTo(50.0) > 0) {
             reasons.add(HighlightReason.HIGH_BENEFIT);
         }
         if (isDeadlineApproaching) {

@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
     @Index(name = "idx_location_history_user", columnList = "user_id"),
     @Index(name = "idx_location_history_timestamp", columnList = "recorded_at")
 })
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,10 +28,10 @@ public class LocationHistory {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "latitude", nullable = false, precision = 10, scale = 8)
+    @Column(name = "latitude", nullable = false)
     private Double latitude;
 
-    @Column(name = "longitude", nullable = false, precision = 11, scale = 8)
+    @Column(name = "longitude", nullable = false)
     private Double longitude;
 
     @Column(name = "district", length = 100)

@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,7 @@ public class SearchResultDto {
     private String contentLanguage;
     
     // Similarity score (0-1)
-    private BigDecimal similarityScore;
+    private Double similarityScore;
     
     // Metadata
     private Map<String, Object> metadata;

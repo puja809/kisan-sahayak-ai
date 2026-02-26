@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -27,10 +27,10 @@ public class CropHistoryEntryDto {
     private LocalDate sowingDate;
     private LocalDate expectedHarvestDate;
     private LocalDate actualHarvestDate;
-    private BigDecimal areaAcres;
+    private Double areaAcres;
     private String season; // KHARIF, RABI, ZAID
     private String status;
-    private BigDecimal totalYieldQuintals;
+    private Double totalYieldQuintals;
     
     // Derived fields for analysis
     private CropFamily cropFamily;

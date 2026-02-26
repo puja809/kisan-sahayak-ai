@@ -5,14 +5,10 @@ import com.farmer.crop.entity.AgroEcologicalZone;
 import com.farmer.crop.repository.AgroEcologicalZoneRepository;
 import com.farmer.crop.repository.GaezCropDataRepository;
 import net.jqwik.api.*;
-import net.jqwik.api.constraints.BigRange;
 import net.jqwik.api.constraints.IntRange;
-import net.jqwik.api.constraints.Size;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,45 +50,40 @@ class DescendingRankingOrderPropertyTest {
      * Generator for valid suitability scores (0-100).
      */
     @Provide
-    Arbitrary<BigDecimal> suitabilityScores() {
-        return Arbitraries.doubles().between(0, 100)
-                .map(BigDecimal::new);
+    Arbitrary<Double> suitabilityScores() {
+        return Arbitraries.doubles().between(0, 100);
     }
 
     /**
      * Generator for benefit amounts.
      */
     @Provide
-    Arbitrary<BigDecimal> benefitAmounts() {
-        return Arbitraries.doubles().between(1000, 500000)
-                .map(BigDecimal::new);
+    Arbitrary<Double> benefitAmounts() {
+        return Arbitraries.doubles().between(1000, 500000);
     }
 
     /**
      * Generator for confidence scores (0-100).
      */
     @Provide
-    Arbitrary<BigDecimal> confidenceScores() {
-        return Arbitraries.doubles().between(0, 100)
-                .map(BigDecimal::new);
+    Arbitrary<Double> confidenceScores() {
+        return Arbitraries.doubles().between(0, 100);
     }
 
     /**
      * Generator for similarity scores (0-1).
      */
     @Provide
-    Arbitrary<BigDecimal> similarityScores() {
-        return Arbitraries.doubles().between(0, 1)
-                .map(BigDecimal::new);
+    Arbitrary<Double> similarityScores() {
+        return Arbitraries.doubles().between(0, 1);
     }
 
     /**
      * Generator for rotation benefit scores.
      */
     @Provide
-    Arbitrary<BigDecimal> benefitScores() {
-        return Arbitraries.doubles().between(0, 100)
-                .map(BigDecimal::new);
+    Arbitrary<Double> benefitScores() {
+        return Arbitraries.doubles().between(0, 100);
     }
 
     // ==================== CROP RECOMMENDATIONS (Requirement 2.5) ====================
@@ -157,9 +148,9 @@ class DescendingRankingOrderPropertyTest {
         List<CropRecommendationResponseDto.RecommendedCropDto> recommendations = response.getRecommendations();
         
         for (int i = 0; i < recommendations.size() - 1; i++) {
-            BigDecimal currentScore = recommendations.get(i).getOverallSuitabilityScore();
-            BigDecimal nextScore = recommendations.get(i + 1).getOverallSuitabilityScore();
-            assertTrue(currentScore.compareTo(nextScore) >= 0,
+            Double currentScore = recommendations.get(i).getOverallSuitabilityScore();
+            Double nextScore = recommendations.get(i + 1).getOverallSuitabilityScore();
+            assertTrue(currentScore >= nextScore,
                     String.format("Crop ranking order violated at position %d: %s >= %s expected but was %s < %s",
                             i, currentScore, nextScore, currentScore, nextScore));
         }
@@ -174,7 +165,7 @@ class DescendingRankingOrderPropertyTest {
     @Property
     void propertyCropRecommendationsEqualScores(
             @ForAll @IntRange(min = 2, max = 5) int numCrops,
-            @ForAll @BigRange(min = "50", max = "90") BigDecimal score,
+            @ForAll Double score,
             @ForAll String state
     ) {
         // Arrange
@@ -223,9 +214,9 @@ class DescendingRankingOrderPropertyTest {
         List<CropRecommendationResponseDto.RecommendedCropDto> recommendations = response.getRecommendations();
         
         for (int i = 0; i < recommendations.size() - 1; i++) {
-            BigDecimal currentScore = recommendations.get(i).getOverallSuitabilityScore();
-            BigDecimal nextScore = recommendations.get(i + 1).getOverallSuitabilityScore();
-            assertTrue(currentScore.compareTo(nextScore) >= 0,
+            Double currentScore = recommendations.get(i).getOverallSuitabilityScore();
+            Double nextScore = recommendations.get(i + 1).getOverallSuitabilityScore();
+            assertTrue(currentScore >= nextScore,
                     "Equal scores should satisfy >= condition");
         }
     }
@@ -256,9 +247,9 @@ class DescendingRankingOrderPropertyTest {
         assertFalse(sortedOptions.isEmpty(), "Sorted options should not be empty");
         
         for (int i = 0; i < sortedOptions.size() - 1; i++) {
-            BigDecimal currentScore = sortedOptions.get(i).getOverallBenefitScore();
-            BigDecimal nextScore = sortedOptions.get(i + 1).getOverallBenefitScore();
-            assertTrue(currentScore.compareTo(nextScore) >= 0,
+            Double currentScore = sortedOptions.get(i).getOverallBenefitScore();
+            Double nextScore = sortedOptions.get(i + 1).getOverallBenefitScore();
+            assertTrue(currentScore >= nextScore,
                     String.format("Rotation ranking order violated at position %d: %s >= %s expected",
                             i, currentScore, nextScore));
         }
@@ -281,9 +272,9 @@ class DescendingRankingOrderPropertyTest {
 
         // Assert - Verify descending order by soil health benefit
         for (int i = 0; i < sortedOptions.size() - 1; i++) {
-            BigDecimal currentScore = sortedOptions.get(i).getSoilHealthBenefit();
-            BigDecimal nextScore = sortedOptions.get(i + 1).getSoilHealthBenefit();
-            assertTrue(currentScore.compareTo(nextScore) >= 0,
+            Double currentScore = sortedOptions.get(i).getSoilHealthBenefit();
+            Double nextScore = sortedOptions.get(i + 1).getSoilHealthBenefit();
+            assertTrue(currentScore >= nextScore,
                     "Rotation should be sorted by soil health benefit in descending order");
         }
     }
@@ -314,9 +305,9 @@ class DescendingRankingOrderPropertyTest {
         assertFalse(sortedDetections.isEmpty(), "Sorted detections should not be empty");
         
         for (int i = 0; i < sortedDetections.size() - 1; i++) {
-            BigDecimal currentConfidence = sortedDetections.get(i).getConfidenceScore();
-            BigDecimal nextConfidence = sortedDetections.get(i + 1).getConfidenceScore();
-            assertTrue(currentConfidence.compareTo(nextConfidence) >= 0,
+            Double currentConfidence = sortedDetections.get(i).getConfidenceScore();
+            Double nextConfidence = sortedDetections.get(i + 1).getConfidenceScore();
+            assertTrue(currentConfidence >= nextConfidence,
                     String.format("Disease detection ranking violated at position %d: %s >= %s expected",
                             i, currentConfidence, nextConfidence));
         }
@@ -328,7 +319,7 @@ class DescendingRankingOrderPropertyTest {
     @Property
     void propertyDiseaseDetectionsSeveritySecondary(
             @ForAll @IntRange(min = 2, max = 5) int numDetections,
-            @ForAll @BigRange(min = "70", max = "95") BigDecimal confidence
+            @ForAll Double confidence
     ) {
         // Arrange
         DiseaseDetectionService diseaseService = new DiseaseDetectionService();
@@ -340,9 +331,9 @@ class DescendingRankingOrderPropertyTest {
 
         // Assert - When confidence is equal, severity should determine order (higher severity first)
         for (int i = 0; i < sortedDetections.size() - 1; i++) {
-            BigDecimal currentConfidence = sortedDetections.get(i).getConfidenceScore();
-            BigDecimal nextConfidence = sortedDetections.get(i + 1).getConfidenceScore();
-            assertTrue(currentConfidence.compareTo(nextConfidence) >= 0,
+            Double currentConfidence = sortedDetections.get(i).getConfidenceScore();
+            Double nextConfidence = sortedDetections.get(i + 1).getConfidenceScore();
+            assertTrue(currentConfidence >= nextConfidence,
                     "Confidence scores should be in descending order");
         }
     }
@@ -373,9 +364,9 @@ class DescendingRankingOrderPropertyTest {
         assertFalse(sortedRecommendations.isEmpty(), "Sorted recommendations should not be empty");
         
         for (int i = 0; i < sortedRecommendations.size() - 1; i++) {
-            BigDecimal currentBenefit = sortedRecommendations.get(i).getBenefitAmount();
-            BigDecimal nextBenefit = sortedRecommendations.get(i + 1).getBenefitAmount();
-            assertTrue(currentBenefit.compareTo(nextBenefit) >= 0,
+            Double currentBenefit = sortedRecommendations.get(i).getBenefitAmount();
+            Double nextBenefit = sortedRecommendations.get(i + 1).getBenefitAmount();
+            assertTrue(currentBenefit >= nextBenefit,
                     String.format("Scheme recommendation ranking violated at position %d: %s >= %s expected",
                             i, currentBenefit, nextBenefit));
         }
@@ -387,7 +378,7 @@ class DescendingRankingOrderPropertyTest {
     @Property
     void propertySchemeRecommendationsDeadlineSecondary(
             @ForAll @IntRange(min = 2, max = 5) int numSchemes,
-            @ForAll @BigRange(min = "10000", max = "100000") BigDecimal benefit
+            @ForAll Double benefit
     ) {
         // Arrange
         SchemeRecommendationService schemeService = new SchemeRecommendationService();
@@ -399,9 +390,9 @@ class DescendingRankingOrderPropertyTest {
 
         // Assert
         for (int i = 0; i < sortedRecommendations.size() - 1; i++) {
-            BigDecimal currentBenefit = sortedRecommendations.get(i).getBenefitAmount();
-            BigDecimal nextBenefit = sortedRecommendations.get(i + 1).getBenefitAmount();
-            assertTrue(currentBenefit.compareTo(nextBenefit) >= 0,
+            Double currentBenefit = sortedRecommendations.get(i).getBenefitAmount();
+            Double nextBenefit = sortedRecommendations.get(i + 1).getBenefitAmount();
+            assertTrue(currentBenefit >= nextBenefit,
                     "Benefit amounts should be in descending order");
         }
     }
@@ -432,9 +423,9 @@ class DescendingRankingOrderPropertyTest {
         assertFalse(sortedResults.isEmpty(), "Sorted results should not be empty");
         
         for (int i = 0; i < sortedResults.size() - 1; i++) {
-            BigDecimal currentSimilarity = sortedResults.get(i).getSimilarityScore();
-            BigDecimal nextSimilarity = sortedResults.get(i + 1).getSimilarityScore();
-            assertTrue(currentSimilarity.compareTo(nextSimilarity) >= 0,
+            Double currentSimilarity = sortedResults.get(i).getSimilarityScore();
+            Double nextSimilarity = sortedResults.get(i + 1).getSimilarityScore();
+            assertTrue(currentSimilarity >= nextSimilarity,
                     String.format("Search result ranking violated at position %d: %s >= %s expected",
                             i, currentSimilarity, nextSimilarity));
         }
@@ -446,7 +437,7 @@ class DescendingRankingOrderPropertyTest {
     @Property
     void propertySearchResultsEqualSimilarity(
             @ForAll @IntRange(min = 2, max = 5) int numResults,
-            @ForAll @BigRange(min = "0.5", max = "0.9") BigDecimal similarity
+            @ForAll Double similarity
     ) {
         // Arrange
         SemanticSearchService searchService = new SemanticSearchService();
@@ -458,9 +449,9 @@ class DescendingRankingOrderPropertyTest {
 
         // Assert
         for (int i = 0; i < sortedResults.size() - 1; i++) {
-            BigDecimal currentSimilarity = sortedResults.get(i).getSimilarityScore();
-            BigDecimal nextSimilarity = sortedResults.get(i + 1).getSimilarityScore();
-            assertTrue(currentSimilarity.compareTo(nextSimilarity) >= 0,
+            Double currentSimilarity = sortedResults.get(i).getSimilarityScore();
+            Double nextSimilarity = sortedResults.get(i + 1).getSimilarityScore();
+            assertTrue(currentSimilarity >= nextSimilarity,
                     "Equal similarity scores should satisfy >= condition");
         }
     }
@@ -475,7 +466,7 @@ class DescendingRankingOrderPropertyTest {
         java.util.Random random = new java.util.Random();
         
         for (int i = 0; i < numCrops; i++) {
-            BigDecimal score = new BigDecimal(random.nextDouble() * 100);
+            Double score = random.nextDouble() * 100;
             list.add(GaezCropSuitabilityDto.builder()
                     .cropCode(cropCodes[i % cropCodes.length])
                     .cropName(cropCodes[i % cropCodes.length])
@@ -484,10 +475,10 @@ class DescendingRankingOrderPropertyTest {
                     .soilSuitabilityScore(score)
                     .terrainSuitabilityScore(score)
                     .waterSuitabilityScore(score)
-                    .rainfedPotentialYield(new BigDecimal("4000"))
-                    .irrigatedPotentialYield(new BigDecimal("5000"))
-                    .expectedYieldExpected(new BigDecimal("3500"))
-                    .waterRequirementsMm(new BigDecimal("500"))
+                    .rainfedPotentialYield(4000.0)
+                    .irrigatedPotentialYield(5000.0)
+                    .expectedYieldExpected(3500.0)
+                    .waterRequirementsMm(500.0)
                     .growingSeasonDays(120)
                     .kharifSuitable(true)
                     .rabiSuitable(false)
@@ -501,7 +492,7 @@ class DescendingRankingOrderPropertyTest {
         return list;
     }
 
-    private List<GaezCropSuitabilityDto> createMockSuitabilityListEqualScores(int numCrops, BigDecimal score) {
+    private List<GaezCropSuitabilityDto> createMockSuitabilityListEqualScores(int numCrops, Double score) {
         String[] cropCodes = {"RICE", "WHEAT", "COTTON", "SOYBEAN", "GROUNDNUT"};
         
         List<GaezCropSuitabilityDto> list = new ArrayList<>();
@@ -515,10 +506,10 @@ class DescendingRankingOrderPropertyTest {
                     .soilSuitabilityScore(score)
                     .terrainSuitabilityScore(score)
                     .waterSuitabilityScore(score)
-                    .rainfedPotentialYield(new BigDecimal("4000"))
-                    .irrigatedPotentialYield(new BigDecimal("5000"))
-                    .expectedYieldExpected(new BigDecimal("3500"))
-                    .waterRequirementsMm(new BigDecimal("500"))
+                    .rainfedPotentialYield(4000.0)
+                    .irrigatedPotentialYield(5000.0)
+                    .expectedYieldExpected(3500.0)
+                    .waterRequirementsMm(500.0)
                     .growingSeasonDays(120)
                     .kharifSuitable(true)
                     .rabiSuitable(false)
@@ -540,11 +531,10 @@ class DescendingRankingOrderPropertyTest {
         java.util.Random random = new java.util.Random();
         
         for (int i = 0; i < numOptions; i++) {
-            BigDecimal soilHealth = new BigDecimal(random.nextDouble() * 100);
-            BigDecimal climateResilience = new BigDecimal(random.nextDouble() * 100);
-            BigDecimal economicViability = new BigDecimal(random.nextDouble() * 100);
-            BigDecimal overall = soilHealth.add(climateResilience).add(economicViability)
-                    .divide(new BigDecimal("3"), 2, java.math.RoundingMode.HALF_UP);
+            Double soilHealth = random.nextDouble() * 100;
+            Double climateResilience = random.nextDouble() * 100;
+            Double economicViability = random.nextDouble() * 100;
+            Double overall = (soilHealth + climateResilience + economicViability) / 3.0;
             
             list.add(RotationOptionDto.builder()
                     .id((long) (i + 1))
@@ -572,7 +562,7 @@ class DescendingRankingOrderPropertyTest {
         java.util.Random random = new java.util.Random();
         
         for (int i = 0; i < numDetections; i++) {
-            BigDecimal confidence = new BigDecimal(random.nextDouble() * 100);
+            Double confidence = random.nextDouble() * 100;
             DiseaseDetectionResultDto.SeverityLevel severity = severities[random.nextInt(severities.length)];
             
             list.add(DiseaseDetectionResultDto.builder()
@@ -580,7 +570,7 @@ class DescendingRankingOrderPropertyTest {
                     .diseaseName(diseases[i % diseases.length])
                     .confidenceScore(confidence)
                     .severityLevel(severity)
-                    .affectedAreaPercent(new BigDecimal(random.nextDouble() * 100))
+                    .affectedAreaPercent(random.nextDouble() * 100)
                     .treatmentRecommendations("Treatment for " + diseases[i % diseases.length])
                     .build());
         }
@@ -589,7 +579,7 @@ class DescendingRankingOrderPropertyTest {
     }
 
     private List<DiseaseDetectionResultDto> createMockDiseaseDetectionsEqualConfidence(
-            int numDetections, BigDecimal confidence) {
+            int numDetections, Double confidence) {
         String[] diseases = {"Bacterial Blight", "Leaf Spot", "Powdery Mildew", "Fungal Infection", "Rust", "Wilt"};
         DiseaseDetectionResultDto.SeverityLevel[] severities = {
                 DiseaseDetectionResultDto.SeverityLevel.LOW,
@@ -609,7 +599,7 @@ class DescendingRankingOrderPropertyTest {
                     .diseaseName(diseases[index])
                     .confidenceScore(confidence)
                     .severityLevel(severities[index])
-                    .affectedAreaPercent(new BigDecimal("50"))
+                    .affectedAreaPercent(50.0)
                     .treatmentRecommendations("Treatment for " + diseases[index])
                     .build());
         }
@@ -625,7 +615,7 @@ class DescendingRankingOrderPropertyTest {
         java.util.Random random = new java.util.Random();
         
         for (int i = 0; i < numSchemes; i++) {
-            BigDecimal benefit = new BigDecimal(random.nextDouble() * 500000);
+            Double benefit = random.nextDouble() * 500000;
             LocalDate deadline = LocalDate.now().plusDays(random.nextInt(180) + 30);
             
             list.add(SchemeRecommendationDto.builder()
@@ -634,8 +624,8 @@ class DescendingRankingOrderPropertyTest {
                     .schemeType(SchemeRecommendationDto.SchemeType.CENTRAL)
                     .benefitAmount(benefit)
                     .applicationDeadline(deadline)
-                    .eligibilityScore(new BigDecimal(random.nextDouble() * 100))
-                    .deadlineProximityScore(new BigDecimal(random.nextDouble() * 100))
+                    .eligibilityScore(random.nextDouble() * 100)
+                    .deadlineProximityScore(random.nextDouble() * 100)
                     .build());
         }
         
@@ -643,7 +633,7 @@ class DescendingRankingOrderPropertyTest {
     }
 
     private List<SchemeRecommendationDto> createMockSchemeRecommendationsEqualBenefit(
-            int numSchemes, BigDecimal benefit) {
+            int numSchemes, Double benefit) {
         String[] schemeNames = {"PM-Kisan", "PMFBY", "KCC", "Sub-Mission on Agricultural Mechanization", 
                 "PMKSY", "National Mission on Sustainable Agriculture"};
         
@@ -659,8 +649,8 @@ class DescendingRankingOrderPropertyTest {
                     .schemeType(SchemeRecommendationDto.SchemeType.CENTRAL)
                     .benefitAmount(benefit)
                     .applicationDeadline(deadline)
-                    .eligibilityScore(new BigDecimal("80"))
-                    .deadlineProximityScore(new BigDecimal("70"))
+                    .eligibilityScore(80.0)
+                    .deadlineProximityScore(70.0)
                     .build());
         }
         
@@ -676,7 +666,7 @@ class DescendingRankingOrderPropertyTest {
         java.util.Random random = new java.util.Random();
         
         for (int i = 0; i < numResults; i++) {
-            BigDecimal similarity = new BigDecimal(random.nextDouble());
+            Double similarity = random.nextDouble();
             
             list.add(SearchResultDto.builder()
                     .id((long) (i + 1))
@@ -691,7 +681,7 @@ class DescendingRankingOrderPropertyTest {
         return list;
     }
 
-    private List<SearchResultDto> createMockSearchResultsEqualSimilarity(int numResults, BigDecimal similarity) {
+    private List<SearchResultDto> createMockSearchResultsEqualSimilarity(int numResults, Double similarity) {
         String[] documentTitles = {"PM-Kisan Scheme Guidelines", "Crop Disease Management",
                 "Weather Advisory for Kharif", "Soil Health Card Procedure", 
                 "Irrigation Water Management", "Organic Farming Techniques"};
@@ -734,3 +724,4 @@ class DescendingRankingOrderPropertyTest {
                 .build();
     }
 }
+

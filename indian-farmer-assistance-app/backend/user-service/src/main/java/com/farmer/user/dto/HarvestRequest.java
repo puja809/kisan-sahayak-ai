@@ -3,7 +3,7 @@ package com.farmer.user.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 
 /**
@@ -21,11 +21,11 @@ public class HarvestRequest {
 
     private LocalDate actualHarvestDate;
 
-    private BigDecimal totalYieldQuintals;
+    private Double totalYieldQuintals;
 
     private String qualityGrade;
 
-    private BigDecimal sellingPricePerQuintal;
+    private Double sellingPricePerQuintal;
 
     private String mandiName;
 }

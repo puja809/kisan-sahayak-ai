@@ -4,6 +4,7 @@ import com.farmer.admin.dto.DocumentResponse;
 import com.farmer.admin.dto.DocumentUpdateRequest;
 import com.farmer.admin.dto.DocumentUploadRequest;
 import com.farmer.admin.entity.Document;
+import com.farmer.admin.entity.DocumentMetadataInfo;
 import com.farmer.admin.entity.DocumentVersion;
 import com.farmer.admin.service.AuditService;
 import com.farmer.admin.service.DocumentService;
@@ -172,7 +173,7 @@ public class AdminDocumentController {
     private DocumentResponse toResponse(Document document) {
         DocumentResponse.DocumentMetadataDto metadataDto = null;
         if (document.getMetadata() != null) {
-            Document.DocumentMetadata metadata = document.getMetadata();
+            DocumentMetadataInfo metadata = document.getMetadata();
             metadataDto = DocumentResponse.DocumentMetadataDto.builder()
                     .source(metadata.getSource())
                     .uploadDate(metadata.getUploadDate())

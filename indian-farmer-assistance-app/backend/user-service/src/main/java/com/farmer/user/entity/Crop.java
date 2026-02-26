@@ -2,7 +2,6 @@ package com.farmer.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,7 +45,7 @@ public class Crop {
     @Column(name = "actual_harvest_date")
     private LocalDate actualHarvestDate;
 
-    @Column(name = "area_acres", nullable = false, precision = 10, scale = 2)
+    @Column(name = "area_acres", nullable = false)
     private Double areaAcres;
 
     @Enumerated(EnumType.STRING)
@@ -58,38 +57,38 @@ public class Crop {
     @Builder.Default
     private CropStatus status = CropStatus.SOWN;
 
-    @Column(name = "seed_cost", precision = 10, scale = 2)
-    private BigDecimal seedCost;
+    @Column(name = "seed_cost")
+    private Double seedCost;
 
-    @Column(name = "fertilizer_cost", precision = 10, scale = 2)
-    private BigDecimal fertilizerCost;
+    @Column(name = "fertilizer_cost")
+    private Double fertilizerCost;
 
-    @Column(name = "pesticide_cost", precision = 10, scale = 2)
-    private BigDecimal pesticideCost;
+    @Column(name = "pesticide_cost")
+    private Double pesticideCost;
 
-    @Column(name = "labor_cost", precision = 10, scale = 2)
-    private BigDecimal laborCost;
+    @Column(name = "labor_cost")
+    private Double laborCost;
 
-    @Column(name = "other_cost", precision = 10, scale = 2)
-    private BigDecimal otherCost;
+    @Column(name = "other_cost")
+    private Double otherCost;
 
-    @Column(name = "total_input_cost", precision = 10, scale = 2)
-    private BigDecimal totalInputCost;
+    @Column(name = "total_input_cost")
+    private Double totalInputCost;
 
-    @Column(name = "total_yield_quintals", precision = 10, scale = 2)
-    private BigDecimal totalYieldQuintals;
+    @Column(name = "total_yield_quintals")
+    private Double totalYieldQuintals;
 
     @Column(name = "quality_grade", length = 20)
     private String qualityGrade;
 
-    @Column(name = "selling_price_per_quintal", precision = 10, scale = 2)
-    private BigDecimal sellingPricePerQuintal;
+    @Column(name = "selling_price_per_quintal")
+    private Double sellingPricePerQuintal;
 
     @Column(name = "mandi_name", length = 100)
     private String mandiName;
 
-    @Column(name = "total_revenue", precision = 12, scale = 2)
-    private BigDecimal totalRevenue;
+    @Column(name = "total_revenue")
+    private Double totalRevenue;
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
@@ -105,12 +104,6 @@ public class Crop {
     @OneToMany(mappedBy = "crop", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<FertilizerApplication> fertilizerApplications = new ArrayList<>();
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-        calculateTotalInputCost();
-    }
 
     /**
      * Crop seasons in Indian agriculture.
@@ -134,18 +127,34 @@ public class Crop {
     }
 
     /**
-     * Calculate total input cost from individual cost components.
+     * Lifecycle callback to update timestamp and calculate total input cost.
      * Requirements: 11A.4
      */
     @PrePersist
     @PreUpdate
+    public void onSaveOrUpdate() {
+        this.updatedAt = LocalDateTime.now();
+
+        Double total = 0.0;
+        if (seedCost != null) total += seedCost;
+        if (fertilizerCost != null) total += fertilizerCost;
+        if (pesticideCost != null) total += pesticideCost;
+        if (laborCost != null) total += laborCost;
+        if (otherCost != null) total += otherCost;
+        this.totalInputCost = total;
+    }
+
+    /**
+     * Calculate total input cost from all cost components.
+     * Requirements: 11A.4
+     */
     public void calculateTotalInputCost() {
-        BigDecimal total = BigDecimal.ZERO;
-        if (seedCost != null) total = total.add(seedCost);
-        if (fertilizerCost != null) total = total.add(fertilizerCost);
-        if (pesticideCost != null) total = total.add(pesticideCost);
-        if (laborCost != null) total = total.add(laborCost);
-        if (otherCost != null) total = total.add(otherCost);
+        Double total = 0.0;
+        if (seedCost != null) total += seedCost;
+        if (fertilizerCost != null) total += fertilizerCost;
+        if (pesticideCost != null) total += pesticideCost;
+        if (laborCost != null) total += laborCost;
+        if (otherCost != null) total += otherCost;
         this.totalInputCost = total;
     }
 
@@ -155,7 +164,7 @@ public class Crop {
      */
     public void calculateTotalRevenue() {
         if (totalYieldQuintals != null && sellingPricePerQuintal != null) {
-            this.totalRevenue = totalYieldQuintals.multiply(sellingPricePerQuintal);
+            this.totalRevenue = totalYieldQuintals * sellingPricePerQuintal;
         }
     }
 
@@ -170,10 +179,10 @@ public class Crop {
     /**
      * Get profit/loss for this crop.
      */
-    public BigDecimal getProfitLoss() {
+    public Double getProfitLoss() {
         if (totalRevenue == null || totalInputCost == null) {
             return null;
         }
-        return totalRevenue.subtract(totalInputCost);
+        return totalRevenue - totalInputCost;
     }
 }

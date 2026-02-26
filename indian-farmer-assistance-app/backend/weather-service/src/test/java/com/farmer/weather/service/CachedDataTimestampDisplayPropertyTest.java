@@ -1,5 +1,6 @@
 package com.farmer.weather.service;
 
+import com.farmer.weather.client.WeatherApiClient;
 import com.farmer.weather.dto.*;
 import com.farmer.weather.entity.WeatherCache;
 import com.farmer.weather.repository.WeatherCacheRepository;
@@ -60,7 +61,7 @@ class CachedDataTimestampDisplayPropertyTest {
     private WeatherCacheRepository weatherCacheRepository;
 
     @Mock
-    private com.farmer.weather.client.ImdApiClient imdApiClient;
+    private com.farmer.weather.client.WeatherApiClient WeatherApiClient;
 
     private WeatherCacheService weatherCacheService;
     private WeatherService weatherService;
@@ -68,7 +69,7 @@ class CachedDataTimestampDisplayPropertyTest {
     @BeforeEach
     void setUp() {
         weatherCacheService = new WeatherCacheService(redisTemplate, weatherCacheRepository, 30);
-        weatherService = new WeatherService(imdApiClient, weatherCacheService, weatherCacheRepository);
+        weatherService = new WeatherService(WeatherApiClient, weatherCacheService, weatherCacheRepository);
     }
 
     /**
@@ -554,7 +555,7 @@ class CachedDataTimestampDisplayPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
 
             // Mock API to fail
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.error(new RuntimeException("API unavailable")));
 
             // Mock database to return cached data

@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
+
 import java.util.List;
 
 /**
@@ -29,7 +29,7 @@ public class NutrientDepletionRiskDto {
     private Integer consecutiveSeasons;
     private List<String> affectedCrops;
     private String recommendation;
-    private BigDecimal severityScore; // 0-100 scale
+    private Double severityScore; // 0-100 scale
     
     /**
      * Risk level for nutrient depletion.

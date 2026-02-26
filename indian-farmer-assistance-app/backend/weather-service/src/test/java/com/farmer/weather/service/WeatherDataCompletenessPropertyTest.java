@@ -1,6 +1,6 @@
 package com.farmer.weather.service;
 
-import com.farmer.weather.client.ImdApiClient;
+import com.farmer.weather.client.WeatherApiClient;
 import com.farmer.weather.dto.*;
 import com.farmer.weather.repository.WeatherCacheRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +59,7 @@ class WeatherDataCompletenessPropertyTest {
     private WeatherCacheRepository weatherCacheRepository;
 
     @Mock
-    private ImdApiClient imdApiClient;
+    private WeatherApiClient WeatherApiClient;
 
     private WeatherCacheService weatherCacheService;
     private WeatherService weatherService;
@@ -68,7 +68,7 @@ class WeatherDataCompletenessPropertyTest {
     void setUp() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         weatherCacheService = new WeatherCacheService(redisTemplate, weatherCacheRepository, 30);
-        weatherService = new WeatherService(imdApiClient, weatherCacheService, weatherCacheRepository);
+        weatherService = new WeatherService(WeatherApiClient, weatherCacheService, weatherCacheRepository);
     }
 
     /**
@@ -159,7 +159,7 @@ class WeatherDataCompletenessPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.empty());
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.just(completeForecast));
 
             // Act
@@ -236,7 +236,7 @@ class WeatherDataCompletenessPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.empty());
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.just(completeForecast));
 
             // Act
@@ -301,7 +301,7 @@ class WeatherDataCompletenessPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.empty());
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.just(forecast));
 
             // Act
@@ -332,7 +332,7 @@ class WeatherDataCompletenessPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.empty());
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.just(forecast));
 
             // Act
@@ -370,7 +370,7 @@ class WeatherDataCompletenessPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.empty());
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.just(forecast));
 
             // Act
@@ -417,7 +417,7 @@ class WeatherDataCompletenessPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.empty());
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.just(forecast));
 
             // Act - Make multiple requests
@@ -466,7 +466,7 @@ class WeatherDataCompletenessPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.empty());
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.just(forecast));
 
             // Act
@@ -527,7 +527,7 @@ class WeatherDataCompletenessPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.empty());
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.just(forecast));
 
             // Act
@@ -571,7 +571,7 @@ class WeatherDataCompletenessPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(Optional.empty());
-            when(imdApiClient.getSevenDayForecast(district, state))
+            when(WeatherApiClient.getSevenDayForecast(district, state))
                 .thenReturn(Mono.just(forecast));
 
             // Act

@@ -2,7 +2,7 @@
 # Environment: ${SPRING_PROFILES_ACTIVE:dev}
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${GATEWAY_SERVICE_PORT:8080}
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
@@ -17,11 +17,15 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   main:
     web-application-type: reactive
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      host: ${GATEWAY_REDIS_HOST:localhost}
+      port: ${GATEWAY_REDIS_PORT:6379}
+      password: ${GATEWAY_REDIS_PASSWORD:}
       timeout: 5000ms
       lettuce:
         pool:
@@ -42,64 +46,120 @@ spring:
           predicates:
             - Path=/api/v1/users/**
           filters:
+            - AuthenticationFilter
+            - AuthorizationFilter
+            - RateLimitingFilter
+            - RequestResponseTransformationFilter
             - RewritePath=/api/v1/users/(?<segment>.*), /$\{segment}
-            - CircuitBreaker=usersCircuitBreaker, fallbackUri: forward:/fallback/users
+            - name: CircuitBreaker
+              args:
+                name: usersCircuitBreaker
+                fallbackUri: forward:/fallback/users
             - Retry=3
         - id: weather-service
           uri: lb://weather-service
           predicates:
             - Path=/api/v1/weather/**
           filters:
+            - AuthenticationFilter
+            - AuthorizationFilter
+            - RateLimitingFilter
+            - RequestResponseTransformationFilter
             - RewritePath=/api/v1/weather/(?<segment>.*), /$\{segment}
-            - CircuitBreaker=weatherCircuitBreaker, fallbackUri: forward:/fallback/weather
+            - name: CircuitBreaker
+              args:
+                name: weatherCircuitBreaker
+                fallbackUri: forward:/fallback/weather
             - Retry=3
         - id: crop-service
           uri: lb://crop-service
           predicates:
             - Path=/api/v1/crops/**
           filters:
+            - AuthenticationFilter
+            - AuthorizationFilter
+            - RateLimitingFilter
+            - RequestResponseTransformationFilter
             - RewritePath=/api/v1/crops/(?<segment>.*), /$\{segment}
-            - CircuitBreaker=cropCircuitBreaker, fallbackUri: forward:/fallback/crops
+            - name: CircuitBreaker
+              args:
+                name: cropCircuitBreaker
+                fallbackUri: forward:/fallback/crops
             - Retry=3
         - id: scheme-service
           uri: lb://scheme-service
           predicates:
             - Path=/api/v1/schemes/**
           filters:
+            - AuthenticationFilter
+            - AuthorizationFilter
+            - RateLimitingFilter
+            - RequestResponseTransformationFilter
             - RewritePath=/api/v1/schemes/(?<segment>.*), /$\{segment}
-            - CircuitBreaker=schemeCircuitBreaker, fallbackUri: forward:/fallback/schemes
+            - name: CircuitBreaker
+              args:
+                name: schemeCircuitBreaker
+                fallbackUri: forward:/fallback/schemes
             - Retry=3
         - id: mandi-service
           uri: lb://mandi-service
           predicates:
             - Path=/api/v1/mandi/**
           filters:
+            - AuthenticationFilter
+            - AuthorizationFilter
+            - RateLimitingFilter
+            - RequestResponseTransformationFilter
             - RewritePath=/api/v1/mandi/(?<segment>.*), /$\{segment}
-            - CircuitBreaker=mandiCircuitBreaker, fallbackUri: forward:/fallback/mandi
+            - name: CircuitBreaker
+              args:
+                name: mandiCircuitBreaker
+                fallbackUri: forward:/fallback/mandi
             - Retry=3
         - id: iot-service
           uri: lb://iot-service
           predicates:
             - Path=/api/v1/iot/**
           filters:
+            - AuthenticationFilter
+            - AuthorizationFilter
+            - RateLimitingFilter
+            - RequestResponseTransformationFilter
             - RewritePath=/api/v1/iot/(?<segment>.*), /$\{segment}
-            - CircuitBreaker=iotCircuitBreaker, fallbackUri: forward:/fallback/iot
+            - name: CircuitBreaker
+              args:
+                name: iotCircuitBreaker
+                fallbackUri: forward:/fallback/iot
             - Retry=3
         - id: admin-service
           uri: lb://admin-service
           predicates:
             - Path=/api/v1/admin/**
           filters:
+            - AuthenticationFilter
+            - AuthorizationFilter
+            - RateLimitingFilter
+            - RequestResponseTransformationFilter
             - RewritePath=/api/v1/admin/(?<segment>.*), /$\{segment}
-            - CircuitBreaker=adminCircuitBreaker, fallbackUri: forward:/fallback/admin
+            - name: CircuitBreaker
+              args:
+                name: adminCircuitBreaker
+                fallbackUri: forward:/fallback/admin
             - Retry=3
         - id: ai-service
           uri: lb://ai-service
           predicates:
             - Path=/api/v1/ai/**
           filters:
+            - AuthenticationFilter
+            - AuthorizationFilter
+            - RateLimitingFilter
+            - RequestResponseTransformationFilter
             - RewritePath=/api/v1/ai/(?<segment>.*), /$\{segment}
-            - CircuitBreaker=aiCircuitBreaker, fallbackUri: forward:/fallback/ai
+            - name: CircuitBreaker
+              args:
+                name: aiCircuitBreaker
+                fallbackUri: forward:/fallback/ai
             - Retry=3
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
@@ -113,6 +173,16 @@ spring:
             allowed-headers: "*"
             allow-credentials: true
             max-age: 3600
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
 # Resilience4j Circuit Breaker Configuration
 resilience4j:
@@ -240,6 +310,9 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    mongo:
+      enabled: false
   metrics:
     tags:
       application: ${spring.application.name}
@@ -253,3 +326,32 @@ logging:
     org.springframework.data.redis: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# JWT Configuration
+jwt:
+  secret: ${GATEWAY_JWT_SECRET:your-secret-key-change-in-production-with-at-least-32-characters}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    show-common-extensions: true
+    doc-expansion: list
+    deep-linking: true
+    presets:
+      - swaggerPresets.apis
+      - SwaggerUIBundle.presets.layouts
+    layout: StandaloneLayout
+  show-actuator: true
+  use-fqn: true
+  cache:
+    disabled: false
+

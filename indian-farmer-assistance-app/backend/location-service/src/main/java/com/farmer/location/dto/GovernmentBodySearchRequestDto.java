@@ -12,7 +12,8 @@ import java.util.List;
  * 
  * Validates: Requirements 7.1, 7.2
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,16 +23,16 @@ public class GovernmentBodySearchRequestDto {
      * Farmer's current latitude
      */
     @NotNull(message = "Latitude is required")
-    @Min(value = 6.0, message = "Latitude must be at least 6.0 for India")
-    @Max(value = 37.0, message = "Latitude must be at most 37.0 for India")
+    @Min(value = 6, message = "Latitude must be at least 6.0 for India")
+    @Max(value = 37, message = "Latitude must be at most 37.0 for India")
     private Double latitude;
 
     /**
      * Farmer's current longitude
      */
     @NotNull(message = "Longitude is required")
-    @Min(value = 68.0, message = "Longitude must be at least 68.0 for India")
-    @Max(value = 97.0, message = "Longitude must be at most 97.0 for India")
+    @Min(value = 68, message = "Longitude must be at least 68.0 for India")
+    @Max(value = 97, message = "Longitude must be at most 97.0 for India")
     private Double longitude;
 
     /**

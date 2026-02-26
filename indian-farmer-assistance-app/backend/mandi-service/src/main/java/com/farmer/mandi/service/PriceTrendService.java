@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+
+
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,27 +29,27 @@ public class PriceTrendService {
     private final MandiPriceService mandiPriceService;
 
     // MSP data for common commodities (would typically come from a database or API)
-    private static final Map<String, BigDecimal> MSP_DATA = new HashMap<>();
+    private static final Map<String, Double> MSP_DATA = new HashMap<>();
     
     static {
         // Common MSP prices per quintal (2024-2025)
-        MSP_DATA.put("Paddy", BigDecimal.valueOf(2300));
-        MSP_DATA.put("Wheat", BigDecimal.valueOf(2650));
-        MSP_DATA.put("Cotton", BigDecimal.valueOf(6620));
-        MSP_DATA.put("Groundnut", BigDecimal.valueOf(6375));
-        MSP_DATA.put("Soybean", BigDecimal.valueOf(4892));
-        MSP_DATA.put("Sunflower", BigDecimal.valueOf(6760));
-        MSP_DATA.put("Mustard", BigDecimal.valueOf(5950));
-        MSP_DATA.put("Gram", BigDecimal.valueOf(5440));
-        MSP_DATA.put("Masoor", BigDecimal.valueOf(6000));
-        MSP_DATA.put("Moong", BigDecimal.valueOf(8559));
-        MSP_DATA.put("Urad", BigDecimal.valueOf(8600));
-        MSP_DATA.put("Rice", BigDecimal.valueOf(2900));
-        MSP_DATA.put("Bajra", BigDecimal.valueOf(2500));
-        MSP_DATA.put("Jowar", BigDecimal.valueOf(3180));
-        MSP_DATA.put("Ragi", BigDecimal.valueOf(4290));
-        MSP_DATA.put("Maize", BigDecimal.valueOf(2250));
-        MSP_DATA.put("Sugarcane", BigDecimal.valueOf(315)); // per quintal
+        MSP_DATA.put("Paddy", Double.valueOf(2300));
+        MSP_DATA.put("Wheat", Double.valueOf(2650));
+        MSP_DATA.put("Cotton", Double.valueOf(6620));
+        MSP_DATA.put("Groundnut", Double.valueOf(6375));
+        MSP_DATA.put("Soybean", Double.valueOf(4892));
+        MSP_DATA.put("Sunflower", Double.valueOf(6760));
+        MSP_DATA.put("Mustard", Double.valueOf(5950));
+        MSP_DATA.put("Gram", Double.valueOf(5440));
+        MSP_DATA.put("Masoor", Double.valueOf(6000));
+        MSP_DATA.put("Moong", Double.valueOf(8559));
+        MSP_DATA.put("Urad", Double.valueOf(8600));
+        MSP_DATA.put("Rice", Double.valueOf(2900));
+        MSP_DATA.put("Bajra", Double.valueOf(2500));
+        MSP_DATA.put("Jowar", Double.valueOf(3180));
+        MSP_DATA.put("Ragi", Double.valueOf(4290));
+        MSP_DATA.put("Maize", Double.valueOf(2250));
+        MSP_DATA.put("Sugarcane", Double.valueOf(315)); // per quintal
     }
 
     /**
@@ -98,28 +98,27 @@ public class PriceTrendService {
     public PriceTrendDto.MspComparisonDto getMspComparison(String commodity) {
         log.info("Getting MSP comparison for commodity: {}", commodity);
         
-        BigDecimal msp = MSP_DATA.getOrDefault(commodity, BigDecimal.ZERO);
+        Double msp = MSP_DATA.getOrDefault(commodity, 0.0);
         
         // Get latest market price
         List<MandiPriceDto> latestPrices = mandiPriceService.getLatestPricesFromDatabase(commodity);
-        BigDecimal currentMarketPrice = BigDecimal.ZERO;
+        Double currentMarketPrice = 0.0;
         
         if (!latestPrices.isEmpty()) {
             currentMarketPrice = latestPrices.stream()
                     .map(MandiPriceDto::getModalPrice)
                     .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)
-                    .divide(BigDecimal.valueOf(latestPrices.size()), 2, RoundingMode.HALF_UP);
+                    .reduce(0.0, (a, b) -> a + b) / latestPrices.size();
         }
         
-        BigDecimal difference = currentMarketPrice.subtract(msp);
+        Double difference = currentMarketPrice - msp;
         String comparisonResult;
         String recommendation;
         
-        if (currentMarketPrice.compareTo(msp) > 0) {
+        if (currentMarketPrice > msp) {
             comparisonResult = "ABOVE_MSP";
             recommendation = "Current market prices are above MSP. Consider selling if prices meet your expectations.";
-        } else if (currentMarketPrice.compareTo(msp) < 0) {
+        } else if (currentMarketPrice < msp) {
             comparisonResult = "BELOW_MSP";
             recommendation = "Current market prices are below MSP. Consider holding if storage is available.";
         } else {
@@ -172,9 +171,8 @@ public class PriceTrendService {
                     .build();
         }
         
-        BigDecimal priceChange = latest.getModalPrice().subtract(oldest.getModalPrice());
-        BigDecimal priceChangePercent = priceChange.multiply(BigDecimal.valueOf(100))
-                .divide(oldest.getModalPrice(), 2, RoundingMode.HALF_UP);
+        Double priceChange = latest.getModalPrice() - oldest.getModalPrice();
+        Double priceChangePercent = priceChange * 100.0 / oldest.getModalPrice();
         
         String recommendation;
         String reasoning;
@@ -182,7 +180,7 @@ public class PriceTrendService {
         int suggestedHoldingDays;
         double confidenceLevel;
         
-        if (priceChangePercent.compareTo(BigDecimal.valueOf(5)) > 0) {
+        if (priceChangePercent.compareTo(5.0) > 0) {
             // Prices are rising
             recommendation = "HOLD";
             reasoning = String.format("Prices have increased by %.2f%% in the last %d days. " +
@@ -191,12 +189,12 @@ public class PriceTrendService {
             expectedPriceChange = "POTENTIAL_INCREASE";
             suggestedHoldingDays = 14;
             confidenceLevel = 0.7;
-        } else if (priceChangePercent.compareTo(BigDecimal.valueOf(-5)) < 0) {
+        } else if (priceChangePercent.compareTo(-5.0) < 0) {
             // Prices are falling
             recommendation = "SELL";
             reasoning = String.format("Prices have decreased by %.2f%% in the last %d days. " +
                     "Consider selling to avoid further losses.",
-                    priceChangePercent.abs(), recentPrices.size());
+                    Math.abs(priceChangePercent), recentPrices.size());
             expectedPriceChange = "POTENTIAL_DECREASE";
             suggestedHoldingDays = 0;
             confidenceLevel = 0.75;
@@ -232,28 +230,25 @@ public class PriceTrendService {
         
         for (Map.Entry<LocalDate, List<MandiPriceDto>> entry : byDate.entrySet()) {
             List<MandiPriceDto> dayPrices = entry.getValue();
-            BigDecimal avgModal = dayPrices.stream()
+            Double avgModal = dayPrices.stream()
                     .map(MandiPriceDto::getModalPrice)
                     .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)
-                    .divide(BigDecimal.valueOf(dayPrices.size()), 2, RoundingMode.HALF_UP);
+                    .reduce(0.0, (a, b) -> a + b) / dayPrices.size();
             
-            BigDecimal avgMin = dayPrices.stream()
+            Double avgMin = dayPrices.stream()
                     .map(MandiPriceDto::getMinPrice)
                     .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)
-                    .divide(BigDecimal.valueOf(dayPrices.size()), 2, RoundingMode.HALF_UP);
+                    .reduce(0.0, (a, b) -> a + b) / dayPrices.size();
             
-            BigDecimal avgMax = dayPrices.stream()
+            Double avgMax = dayPrices.stream()
                     .map(MandiPriceDto::getMaxPrice)
                     .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add)
-                    .divide(BigDecimal.valueOf(dayPrices.size()), 2, RoundingMode.HALF_UP);
+                    .reduce(0.0, (a, b) -> a + b) / dayPrices.size();
             
-            BigDecimal totalArrival = dayPrices.stream()
+            Double totalArrival = dayPrices.stream()
                     .map(MandiPriceDto::getArrivalQuantityQuintals)
                     .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .reduce(0.0, (a, b) -> a + b);
             
             String mandiName = dayPrices.get(0).getMandiName();
             
@@ -304,59 +299,56 @@ public class PriceTrendService {
         if (pricePoints.size() < 2) {
             return PriceTrendDto.TrendAnalysisDto.builder()
                     .trendDirection("UNKNOWN")
-                    .priceChangePercent(BigDecimal.ZERO)
-                    .averagePrice(BigDecimal.ZERO)
-                    .highestPrice(BigDecimal.ZERO)
-                    .lowestPrice(BigDecimal.ZERO)
-                    .priceVolatility(BigDecimal.ZERO)
+                    .priceChangePercent(0.0)
+                    .averagePrice(0.0)
+                    .highestPrice(0.0)
+                    .lowestPrice(0.0)
+                    .priceVolatility(0.0)
                     .build();
         }
         
-        BigDecimal firstPrice = pricePoints.get(0).getModalPrice();
-        BigDecimal lastPrice = pricePoints.get(pricePoints.size() - 1).getModalPrice();
+        Double firstPrice = pricePoints.get(0).getModalPrice();
+        Double lastPrice = pricePoints.get(pricePoints.size() - 1).getModalPrice();
         
-        BigDecimal priceChange = lastPrice.subtract(firstPrice);
-        BigDecimal priceChangePercent = firstPrice.compareTo(BigDecimal.ZERO) != 0 
-                ? priceChange.multiply(BigDecimal.valueOf(100)).divide(firstPrice, 2, RoundingMode.HALF_UP)
-                : BigDecimal.ZERO;
+        Double priceChange = lastPrice - firstPrice;
+        Double priceChangePercent = firstPrice.compareTo(0.0) != 0 
+                ? priceChange * 100.0 / firstPrice
+                : 0.0;
         
         String trendDirection;
-        if (priceChangePercent.compareTo(BigDecimal.valueOf(2)) > 0) {
+        if (priceChangePercent.compareTo(2.0) > 0) {
             trendDirection = "INCREASING";
-        } else if (priceChangePercent.compareTo(BigDecimal.valueOf(-2)) < 0) {
+        } else if (priceChangePercent.compareTo(-2.0) < 0) {
             trendDirection = "DECREASING";
         } else {
             trendDirection = "STABLE";
         }
         
-        BigDecimal averagePrice = pricePoints.stream()
+        Double averagePrice = pricePoints.stream()
                 .map(PriceTrendDto.PricePointDto::getModalPrice)
                 .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .divide(BigDecimal.valueOf(pricePoints.size()), 2, RoundingMode.HALF_UP);
+                .reduce(0.0, (a, b) -> a + b) / pricePoints.size();
         
-        BigDecimal highestPrice = pricePoints.stream()
+        Double highestPrice = pricePoints.stream()
                 .map(PriceTrendDto.PricePointDto::getModalPrice)
                 .filter(Objects::nonNull)
-                .max(BigDecimal::compareTo)
-                .orElse(BigDecimal.ZERO);
+                .max(Double::compareTo)
+                .orElse(0.0);
         
-        BigDecimal lowestPrice = pricePoints.stream()
+        Double lowestPrice = pricePoints.stream()
                 .map(PriceTrendDto.PricePointDto::getModalPrice)
                 .filter(Objects::nonNull)
-                .min(BigDecimal::compareTo)
-                .orElse(BigDecimal.ZERO);
+                .min(Double::compareTo)
+                .orElse(0.0);
         
         // Calculate volatility (standard deviation)
-        BigDecimal mean = averagePrice;
-        BigDecimal sumSquaredDiff = pricePoints.stream()
-                .map(p -> p.getModalPrice() != null ? p.getModalPrice() : BigDecimal.ZERO)
-                .map(price -> price.subtract(mean).pow(2))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal variance = sumSquaredDiff.divide(
-                BigDecimal.valueOf(pricePoints.size()), 4, RoundingMode.HALF_UP);
-        BigDecimal volatility = BigDecimal.valueOf(Math.sqrt(variance.doubleValue()))
-                .setScale(2, RoundingMode.HALF_UP);
+        Double mean = averagePrice;
+        Double sumSquaredDiff = pricePoints.stream()
+                .map(p -> p.getModalPrice() != null ? p.getModalPrice() : 0.0)
+                .map(price -> Math.pow(price - mean, 2))
+                .reduce(0.0, (a, b) -> a + b);
+        Double variance = sumSquaredDiff / pricePoints.size();
+        Double volatility = Math.sqrt(variance);
         
         return PriceTrendDto.TrendAnalysisDto.builder()
                 .trendDirection(trendDirection)
@@ -380,16 +372,16 @@ public class PriceTrendService {
                 .priceHistory(Collections.emptyList())
                 .trendAnalysis(PriceTrendDto.TrendAnalysisDto.builder()
                         .trendDirection("UNKNOWN")
-                        .priceChangePercent(BigDecimal.ZERO)
-                        .averagePrice(BigDecimal.ZERO)
-                        .highestPrice(BigDecimal.ZERO)
-                        .lowestPrice(BigDecimal.ZERO)
-                        .priceVolatility(BigDecimal.ZERO)
+                        .priceChangePercent(0.0)
+                        .averagePrice(0.0)
+                        .highestPrice(0.0)
+                        .lowestPrice(0.0)
+                        .priceVolatility(0.0)
                         .build())
                 .mspComparison(PriceTrendDto.MspComparisonDto.builder()
-                        .msp(MSP_DATA.getOrDefault(commodity, BigDecimal.ZERO))
-                        .currentMarketPrice(BigDecimal.ZERO)
-                        .difference(BigDecimal.ZERO)
+                        .msp(MSP_DATA.getOrDefault(commodity, 0.0))
+                        .currentMarketPrice(0.0)
+                        .difference(0.0)
                         .comparisonResult("UNKNOWN")
                         .recommendation("No market data available")
                         .build())

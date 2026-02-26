@@ -2,7 +2,6 @@ package com.farmer.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -48,8 +47,8 @@ public class Equipment {
     @Column(name = "purchase_date")
     private LocalDate purchaseDate;
 
-    @Column(name = "purchase_cost", precision = 12, scale = 2)
-    private BigDecimal purchaseCost;
+    @Column(name = "purchase_cost")
+    private Double purchaseCost;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ownership_type")
@@ -62,8 +61,8 @@ public class Equipment {
     @Column(name = "next_maintenance_date")
     private LocalDate nextMaintenanceDate;
 
-    @Column(name = "current_value", precision = 12, scale = 2)
-    private BigDecimal currentValue;
+    @Column(name = "current_value")
+    private Double currentValue;
 
     @Column(name = "status", length = 50)
     @Builder.Default

@@ -2,7 +2,7 @@ package com.farmer.scheme.dto;
 
 import com.farmer.scheme.entity.Scheme;
 import lombok.*;
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -52,12 +52,12 @@ public class EligibilityResultDTO {
     /**
      * Benefit amount in INR.
      */
-    private BigDecimal benefitAmount;
+    private Double benefitAmount;
     
     /**
      * Maximum benefit amount cap if applicable.
      */
-    private BigDecimal maxBenefitAmount;
+    private Double maxBenefitAmount;
     
     /**
      * Application deadline.
@@ -103,7 +103,7 @@ public class EligibilityResultDTO {
      * Ranking score based on benefit amount and deadline proximity.
      * Requirements: 11D.2
      */
-    private BigDecimal rankingScore;
+    private Double rankingScore;
     
     /**
      * Rank among all eligible schemes for this farmer.

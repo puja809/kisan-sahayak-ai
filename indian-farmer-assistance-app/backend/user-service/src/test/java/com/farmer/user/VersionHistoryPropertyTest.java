@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -126,7 +126,7 @@ class VersionHistoryPropertyTest {
                 saved.setId(1L);
                 return saved;
             });
-            when(profileVersionRepository.findByUserIdAndEntityTypeAndEntityIdOrderByCreatedAtDesc(
+            lenient().when(profileVersionRepository.findByUserIdAndEntityTypeAndEntityIdOrderByCreatedAtDesc(
                     eq(testUser.getId()), eq(ProfileVersion.EntityType.USER_PROFILE), eq(testUser.getId())))
                     .thenReturn(List.of(version));
 
@@ -164,7 +164,7 @@ class VersionHistoryPropertyTest {
                 saved.setId(1L);
                 return saved;
             });
-            when(profileVersionRepository.findByUserIdAndEntityTypeAndEntityIdOrderByCreatedAtDesc(
+            lenient().when(profileVersionRepository.findByUserIdAndEntityTypeAndEntityIdOrderByCreatedAtDesc(
                     eq(testUser.getId()), eq(ProfileVersion.EntityType.FARM), eq(testFarm.getId())))
                     .thenReturn(List.of(version));
 
@@ -213,7 +213,7 @@ class VersionHistoryPropertyTest {
                 saved.setId(1L);
                 return saved;
             });
-            when(profileVersionRepository.findByUserIdAndEntityTypeAndEntityIdOrderByCreatedAtDesc(
+            lenient().when(profileVersionRepository.findByUserIdAndEntityTypeAndEntityIdOrderByCreatedAtDesc(
                     eq(testUser.getId()), eq(ProfileVersion.EntityType.CROP), eq(1L)))
                     .thenReturn(List.of(version));
 

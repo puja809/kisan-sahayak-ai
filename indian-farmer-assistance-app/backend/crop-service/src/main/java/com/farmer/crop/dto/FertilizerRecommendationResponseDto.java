@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -54,7 +53,7 @@ public class FertilizerRecommendationResponseDto {
     /**
      * Area in acres
      */
-    private BigDecimal areaAcres;
+    private Double areaAcres;
 
     /**
      * Whether soil health card data was used
@@ -89,7 +88,7 @@ public class FertilizerRecommendationResponseDto {
     /**
      * Cost estimate
      */
-    private BigDecimal estimatedCost;
+    private Double estimatedCost;
 
     /**
      * Error message if unsuccessful
@@ -119,11 +118,11 @@ public class FertilizerRecommendationResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class NutrientRequirementsDto {
-        private BigDecimal nitrogenKgPerAcre;
-        private BigDecimal phosphorusKgPerAcre;
-        private BigDecimal potassiumKgPerAcre;
-        private BigDecimal sulfurKgPerAcre;
-        private BigDecimal zincKgPerAcre;
+        private Double nitrogenKgPerAcre;
+        private Double phosphorusKgPerAcre;
+        private Double potassiumKgPerAcre;
+        private Double sulfurKgPerAcre;
+        private Double zincKgPerAcre;
     }
 
     /**
@@ -136,13 +135,13 @@ public class FertilizerRecommendationResponseDto {
     public static class RecommendedFertilizerDto {
         private String fertilizerType;
         private String fertilizerCategory;
-        private BigDecimal quantityKgPerAcre;
+        private Double quantityKgPerAcre;
         private String applicationTiming;
         private String applicationStage;
-        private BigDecimal nitrogenContent;
-        private BigDecimal phosphorusContent;
-        private BigDecimal potassiumContent;
-        private BigDecimal costPerAcre;
+        private Double nitrogenContent;
+        private Double phosphorusContent;
+        private Double potassiumContent;
+        private Double costPerAcre;
         private String notes;
         private String source;
     }
@@ -160,7 +159,7 @@ public class FertilizerRecommendationResponseDto {
         private LocalDate suggestedDate;
         private String description;
         private List<RecommendedFertilizerDto> fertilizers;
-        private BigDecimal totalCost;
+        private Double totalCost;
     }
 
     /**
@@ -173,10 +172,10 @@ public class FertilizerRecommendationResponseDto {
     public static class OrganicAlternativeDto {
         private String alternativeType;
         private String name;
-        private BigDecimal quantityKgPerAcre;
+        private Double quantityKgPerAcre;
         private String benefits;
         private String applicationMethod;
-        private BigDecimal costPerAcre;
+        private Double costPerAcre;
         private String notes;
     }
 }

@@ -48,7 +48,7 @@ class ImageValidationService:
         Returns:
             Tuple of (is_valid, error_message)
         """
-        if content_type.lower() not in self.SUPPORTED_FORMATS:
+        if not content_type or content_type.lower() not in self.SUPPORTED_FORMATS:
             return False, f"Unsupported image format: {content_type}. Supported formats: JPEG, PNG"
         return True, None
 
@@ -109,9 +109,9 @@ class ImageValidationService:
         # Compute Laplacian variance
         laplacian = np.var(img_array)
         
-        is_blurry = laplacian < self.BLUR_THRESHOLD
+        is_blurry = bool(laplacian < self.BLUR_THRESHOLD)
         
-        return laplacian, is_blurry
+        return float(laplacian), is_blurry
 
     def check_lighting(self, image: Image.Image) -> Tuple[float, float, bool]:
         """
@@ -130,10 +130,10 @@ class ImageValidationService:
         img_array = np.array(gray)
         
         # Calculate brightness (mean pixel value)
-        brightness = np.mean(img_array)
+        brightness = float(np.mean(img_array))
         
         # Calculate contrast (standard deviation)
-        contrast = np.std(img_array)
+        contrast = float(np.std(img_array))
         
         # Check for poor lighting
         is_poor_lighting = (
@@ -155,6 +155,10 @@ class ImageValidationService:
             Tuple of (is_valid, list of warnings)
         """
         warnings = []
+        
+        # Check for empty data
+        if not image_data or image_data.strip() == "":
+            return False, ["Image data is empty"]
         
         try:
             # Decode base64 image
@@ -243,6 +247,15 @@ class ImageValidationService:
         """
         errors = []
         warnings = []
+        
+        # Check for empty data first
+        if not image_data or image_data.strip() == "":
+            errors.append("Image data is empty")
+            return ImageValidationResponse(
+                is_valid=False,
+                errors=errors,
+                warnings=warnings
+            )
         
         # Validate format
         is_valid, format_error = self.validate_format(content_type)

@@ -3,7 +3,7 @@ package com.farmer.crop.service;
 import com.farmer.crop.dto.RotationOptionDto;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -90,19 +90,26 @@ public class CropRotationService {
      * @param option The rotation option to calculate for
      * @return Overall benefit score
      */
-    public BigDecimal calculateOverallBenefitScore(RotationOptionDto option) {
+    public Double calculateOverallBenefitScore(RotationOptionDto option) {
         if (option == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
         
-        BigDecimal soilHealth = option.getSoilHealthBenefit() != null ? 
-                option.getSoilHealthBenefit() : BigDecimal.ZERO;
-        BigDecimal climate = option.getClimateResilience() != null ? 
-                option.getClimateResilience() : BigDecimal.ZERO;
-        BigDecimal economic = option.getEconomicViability() != null ? 
-                option.getEconomicViability() : BigDecimal.ZERO;
+        Double soilHealth = option.getSoilHealthBenefit() != null ? 
+                option.getSoilHealthBenefit() : 0.0;
+        Double climate = option.getClimateResilience() != null ? 
+                option.getClimateResilience() : 0.0;
+        Double economic = option.getEconomicViability() != null ? 
+                option.getEconomicViability() : 0.0;
         
-        return soilHealth.add(climate).add(economic)
-                .divide(new BigDecimal("3"), 2, java.math.RoundingMode.HALF_UP);
+        return (soilHealth + climate + economic) / 3.0;
     }
 }
+
+
+
+
+
+
+
+

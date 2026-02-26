@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -229,11 +229,11 @@ public class PriceAlertService {
         }
         
         // Find the highest price in history
-        BigDecimal highestHistorical = history.stream()
+        Double highestHistorical = history.stream()
                 .map(com.farmer.mandi.dto.MandiPriceDto::getModalPrice)
                 .filter(p -> p != null)
-                .max(BigDecimal::compareTo)
-                .orElse(BigDecimal.ZERO);
+                .max(Double::compareTo)
+                .orElse(0.0);
         
         // Check if current price is higher than historical max
         return price.getModalPrice() != null && 

@@ -3,11 +3,13 @@ D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\sr
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\AwsArgDataDto.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\service\WeatherService.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\WeatherServiceApplication.java
+D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\WeatherApiResponse.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\WeatherAlertDto.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\exception\RateLimitExceededException.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\controller\WeatherController.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\ForecastDayDto.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\RainfallStatsDto.java
+D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\client\WeatherApiClient.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\CurrentWeatherDto.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\NowcastDto.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\config\RedisConfig.java

@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -48,12 +47,12 @@ public class FertilizerApplicationRequestDto {
      * Quantity applied in kg
      */
     @NotNull(message = "Quantity is required")
-    private BigDecimal quantityKg;
+    private Double quantityKg;
 
     /**
      * Area in acres
      */
-    private BigDecimal areaAcres;
+    private Double areaAcres;
 
     /**
      * Date of application
@@ -69,32 +68,32 @@ public class FertilizerApplicationRequestDto {
     /**
      * Cost in INR
      */
-    private BigDecimal cost;
+    private Double cost;
 
     /**
      * Nitrogen content percentage
      */
-    private BigDecimal nitrogenPercent;
+    private Double nitrogenPercent;
 
     /**
      * Phosphorus content percentage
      */
-    private BigDecimal phosphorusPercent;
+    private Double phosphorusPercent;
 
     /**
      * Potassium content percentage
      */
-    private BigDecimal potassiumPercent;
+    private Double potassiumPercent;
 
     /**
      * Sulfur content percentage
      */
-    private BigDecimal sulfurPercent;
+    private Double sulfurPercent;
 
     /**
      * Zinc content percentage
      */
-    private BigDecimal zincPercent;
+    private Double zincPercent;
 
     /**
      * Source of recommendation

@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+
+
 import java.util.*;
 
 /**
@@ -34,10 +34,10 @@ public class ClimateRiskService {
     static {
         // Initialize crop climate profiles
         CROP_CLIMATE_PROFILES.put("RICE", new CropClimateProfile(
-                new BigDecimal("400"), new BigDecimal("2500"),  // Rainfall range (mm)
-                new BigDecimal("20"), new BigDecimal("35"),     // Temperature range (°C)
-                new BigDecimal("20"),                          // Heat stress threshold
-                new BigDecimal("10"),                          // Cold stress threshold
+                400.0, 2500.0,  // Rainfall range (mm)
+                20.0, 35.0,     // Temperature range (°C)
+                20.0,                          // Heat stress threshold
+                10.0,                          // Cold stress threshold
                 DroughtRiskLevel.HIGH,                         // Drought risk
                 FloodRiskLevel.HIGH,                           // Flood risk
                 Arrays.asList("blast", "bacterial leaf blight"),
@@ -45,10 +45,10 @@ public class ClimateRiskService {
         ));
 
         CROP_CLIMATE_PROFILES.put("WHEAT", new CropClimateProfile(
-                new BigDecimal("250"), new BigDecimal("750"),
-                new BigDecimal("10"), new BigDecimal("25"),
-                new BigDecimal("30"),
-                new BigDecimal("5"),
+                250.0, 750.0,
+                10.0, 25.0,
+                30.0,
+                5.0,
                 DroughtRiskLevel.MODERATE,
                 FloodRiskLevel.LOW,
                 Arrays.asList("rust", "heat stress"),
@@ -56,10 +56,10 @@ public class ClimateRiskService {
         ));
 
         CROP_CLIMATE_PROFILES.put("COTTON", new CropClimateProfile(
-                new BigDecimal("350"), new BigDecimal("750"),
-                new BigDecimal("20"), new BigDecimal("40"),
-                new BigDecimal("38"),
-                new BigDecimal("12"),
+                350.0, 750.0,
+                20.0, 40.0,
+                38.0,
+                12.0,
                 DroughtRiskLevel.MODERATE,
                 FloodRiskLevel.LOW,
                 Arrays.asList("pink bollworm", "whitefly"),
@@ -67,10 +67,10 @@ public class ClimateRiskService {
         ));
 
         CROP_CLIMATE_PROFILES.put("SOYBEAN", new CropClimateProfile(
-                new BigDecimal("300"), new BigDecimal("800"),
-                new BigDecimal("15"), new BigDecimal("35"),
-                new BigDecimal("32"),
-                new BigDecimal("8"),
+                300.0, 800.0,
+                15.0, 35.0,
+                32.0,
+                8.0,
                 DroughtRiskLevel.MODERATE,
                 FloodRiskLevel.MODERATE,
                 Arrays.asList("rust", "stem fly"),
@@ -78,10 +78,10 @@ public class ClimateRiskService {
         ));
 
         CROP_CLIMATE_PROFILES.put("GROUNDNUT", new CropClimateProfile(
-                new BigDecimal("350"), new BigDecimal("500"),
-                new BigDecimal("20"), new BigDecimal("35"),
-                new BigDecimal("38"),
-                new BigDecimal("10"),
+                350.0, 500.0,
+                20.0, 35.0,
+                38.0,
+                10.0,
                 DroughtRiskLevel.HIGH,
                 FloodRiskLevel.LOW,
                 Arrays.asList("tikka disease", "rust"),
@@ -89,10 +89,10 @@ public class ClimateRiskService {
         ));
 
         CROP_CLIMATE_PROFILES.put("MUSTARD", new CropClimateProfile(
-                new BigDecimal("200"), new BigDecimal("600"),
-                new BigDecimal("10"), new BigDecimal("30"),
-                new BigDecimal("32"),
-                new BigDecimal("5"),
+                200.0, 600.0,
+                10.0, 30.0,
+                32.0,
+                5.0,
                 DroughtRiskLevel.MODERATE,
                 FloodRiskLevel.LOW,
                 Arrays.asList("alternaria blight", "white rust"),
@@ -100,10 +100,10 @@ public class ClimateRiskService {
         ));
 
         CROP_CLIMATE_PROFILES.put("PULSES", new CropClimateProfile(
-                new BigDecimal("250"), new BigDecimal("700"),
-                new BigDecimal("15"), new BigDecimal("35"),
-                new BigDecimal("35"),
-                new BigDecimal("8"),
+                250.0, 700.0,
+                15.0, 35.0,
+                35.0,
+                8.0,
                 DroughtRiskLevel.MODERATE,
                 FloodRiskLevel.LOW,
                 Arrays.asList("wilt", "powdery mildew"),
@@ -111,10 +111,10 @@ public class ClimateRiskService {
         ));
 
         CROP_CLIMATE_PROFILES.put("MAIZE", new CropClimateProfile(
-                new BigDecimal("400"), new BigDecimal("800"),
-                new BigDecimal("15"), new BigDecimal("38"),
-                new BigDecimal("35"),
-                new BigDecimal("8"),
+                400.0, 800.0,
+                15.0, 38.0,
+                35.0,
+                8.0,
                 DroughtRiskLevel.MODERATE,
                 FloodRiskLevel.MODERATE,
                 Arrays.asList("stem borer", "leaf blight"),
@@ -122,10 +122,10 @@ public class ClimateRiskService {
         ));
 
         CROP_CLIMATE_PROFILES.put("SUGARCANE", new CropClimateProfile(
-                new BigDecimal("750"), new BigDecimal("1500"),
-                new BigDecimal("20"), new BigDecimal("35"),
-                new BigDecimal("38"),
-                new BigDecimal("10"),
+                750.0, 1500.0,
+                20.0, 35.0,
+                38.0,
+                10.0,
                 DroughtRiskLevel.MODERATE,
                 FloodRiskLevel.HIGH,
                 Arrays.asList("red rot", "wilt"),
@@ -144,9 +144,7 @@ public class ClimateRiskService {
      * Validates: Requirement 2.8
      */
     public ClimateRiskDto analyzeClimateRisk(
-            String cropCode,
-            BigDecimal projectedRainfallDeviation,
-            BigDecimal projectedTempDeviation) {
+            String cropCode, Double projectedRainfallDeviation, Double projectedTempDeviation) {
         
         logger.info("Analyzing climate risk for crop: {} with rainfall deviation: {}%", 
                 cropCode, projectedRainfallDeviation);
@@ -163,7 +161,7 @@ public class ClimateRiskService {
                 profile, projectedTempDeviation);
         
         // Calculate overall risk score
-        BigDecimal riskScore = calculateRiskScore(rainfallScenario, tempStress, profile);
+        Double riskScore = calculateRiskScore(rainfallScenario, tempStress, profile);
         
         // Determine risk level
         ClimateRiskLevel riskLevel = determineRiskLevel(riskScore);
@@ -213,8 +211,7 @@ public class ClimateRiskService {
      * Validates: Requirement 2.8
      */
     public Map<String, ClimateRiskDto> analyzeClimateRiskForCrops(
-            List<String> cropCodes,
-            BigDecimal projectedRainfallDeviation) {
+            List<String> cropCodes, Double projectedRainfallDeviation) {
         
         logger.info("Analyzing climate risk for {} crops with rainfall deviation: {}", 
                 cropCodes.size(), projectedRainfallDeviation);
@@ -222,7 +219,7 @@ public class ClimateRiskService {
         Map<String, ClimateRiskDto> riskMap = new HashMap<>();
         
         for (String cropCode : cropCodes) {
-            ClimateRiskDto risk = analyzeClimateRisk(cropCode, projectedRainfallDeviation, BigDecimal.ZERO);
+            ClimateRiskDto risk = analyzeClimateRisk(cropCode, projectedRainfallDeviation, 0.0);
             riskMap.put(cropCode, risk);
         }
         
@@ -254,90 +251,89 @@ public class ClimateRiskService {
      * 
      * Validates: Requirement 2.8
      */
-    public BigDecimal calculateClimateAdjustedScore(
-            BigDecimal baseScore,
+    public Double calculateClimateAdjustedScore(
+            Double baseScore,
             ClimateRiskDto climateRisk) {
         
         if (climateRisk == null) {
             return baseScore;
         }
         
-        BigDecimal adjustment = switch (climateRisk.getRiskLevel()) {
-            case LOW -> new BigDecimal("0");
-            case MEDIUM -> new BigDecimal("-3");
-            case HIGH -> new BigDecimal("-7");
-            case VERY_HIGH -> new BigDecimal("-12");
+        Double adjustment = switch (climateRisk.getRiskLevel()) {
+            case LOW -> 0.0;
+            case MEDIUM -> new Double("-3");
+            case HIGH -> -7.0;
+            case VERY_HIGH -> -12.0;
         };
         
-        BigDecimal adjustedScore = baseScore.add(adjustment);
-        return adjustedScore.max(BigDecimal.ZERO).min(new BigDecimal("100"));
+        Double adjustedScore = baseScore + (adjustment);
+        return Math.max(adjustedScore, 0.0);
     }
 
     // Helper methods
 
     private ClimateRiskDto.RainfallDeviationScenario analyzeRainfallScenario(
-            CropClimateProfile profile, BigDecimal deviation) {
+            CropClimateProfile profile, Double deviation) {
         
         ClimateRiskDto.RainfallDeviationScenario.ScenarioType scenarioType;
-        BigDecimal yieldImpact;
+        Double yieldImpact;
         ClimateRiskLevel scenarioRiskLevel;
-        BigDecimal probability = new BigDecimal("30"); // Default probability
+        Double probability = 30.0; // Default probability
         
         if (deviation == null) {
-            deviation = BigDecimal.ZERO;
+            deviation = 0.0;
         }
         
-        if (deviation.compareTo(new BigDecimal("-20")) < 0) {
+        if (deviation.compareTo(new Double("-20")) < 0) {
             scenarioType = ClimateRiskDto.RainfallDeviationScenario.ScenarioType.DEFICIT;
-            yieldImpact = deviation.multiply(new BigDecimal("0.5")); // 0.5% impact per 1% deficit
-            scenarioRiskLevel = deviation.compareTo(new BigDecimal("-30")) < 0 ? 
+            yieldImpact = deviation * (0.5); // 0.5% impact per 1% deficit
+            scenarioRiskLevel = deviation.compareTo(new Double("-30")) < 0 ? 
                     ClimateRiskLevel.HIGH : ClimateRiskLevel.MEDIUM;
-            probability = new BigDecimal("25");
-        } else if (deviation.compareTo(new BigDecimal("20")) > 0) {
+            probability = 25.0;
+        } else if (deviation.compareTo(20.0) > 0) {
             scenarioType = ClimateRiskDto.RainfallDeviationScenario.ScenarioType.EXCESS;
-            yieldImpact = deviation.multiply(new BigDecimal("0.3"));
-            scenarioRiskLevel = deviation.compareTo(new BigDecimal("30")) > 0 ? 
+            yieldImpact = deviation * (0.3);
+            scenarioRiskLevel = deviation.compareTo(30.0) > 0 ? 
                     ClimateRiskLevel.HIGH : ClimateRiskLevel.MEDIUM;
-            probability = new BigDecimal("20");
+            probability = 20.0;
         } else {
             scenarioType = ClimateRiskDto.RainfallDeviationScenario.ScenarioType.NORMAL;
-            yieldImpact = BigDecimal.ZERO;
+            yieldImpact = 0.0;
             scenarioRiskLevel = ClimateRiskLevel.LOW;
-            probability = new BigDecimal("55");
+            probability = 55.0;
         }
         
         return ClimateRiskDto.RainfallDeviationScenario.builder()
-                .historicalAverageMm(profile.rainfallRangeMin.add(profile.rainfallRangeMax).divide(
-                        new BigDecimal("2"), 0, RoundingMode.HALF_UP))
+                .historicalAverageMm((profile.rainfallRangeMin + profile.rainfallRangeMax) / 2.0)
                 .projectedDeviationPercent(deviation)
                 .scenarioType(scenarioType)
-                .yieldImpactPercent(yieldImpact.setScale(1, RoundingMode.HALF_UP))
+                .yieldImpactPercent(yieldImpact)
                 .probability(probability)
                 .scenarioRiskLevel(scenarioRiskLevel)
                 .build();
     }
 
     private ClimateRiskDto.TemperatureStressAnalysis analyzeTemperatureStress(
-            CropClimateProfile profile, BigDecimal deviation) {
+            CropClimateProfile profile, Double deviation) {
         
         if (deviation == null) {
-            deviation = BigDecimal.ZERO;
+            deviation = 0.0;
         }
         
-        BigDecimal projectedMaxTemp = profile.tempMax.add(deviation);
-        BigDecimal projectedMinTemp = profile.tempMin.add(deviation);
+        Double projectedMaxTemp = profile.tempMax + (deviation);
+        Double projectedMinTemp = profile.tempMin + (deviation);
         
         int extremeHeatDays = 0;
         int extremeColdDays = 0;
         
         if (projectedMaxTemp.compareTo(profile.heatStressThreshold) > 0) {
-            BigDecimal excess = projectedMaxTemp.subtract(profile.heatStressThreshold);
-            extremeHeatDays = excess.multiply(new BigDecimal("5")).intValue(); // 5 days per °C excess
+            Double excess = projectedMaxTemp - (profile.heatStressThreshold);
+            extremeHeatDays = (int)(excess * 5.0); // 5 days per °C excess
         }
         
         if (projectedMinTemp.compareTo(profile.coldStressThreshold) < 0) {
-            BigDecimal deficit = profile.coldStressThreshold.subtract(projectedMinTemp);
-            extremeColdDays = deficit.multiply(new BigDecimal("3")).intValue();
+            Double deficit = profile.coldStressThreshold - (projectedMinTemp);
+            extremeColdDays = (int)(deficit * 3.0);
         }
         
         ClimateRiskLevel stressRiskLevel;
@@ -361,50 +357,50 @@ public class ClimateRiskService {
                 .build();
     }
 
-    private BigDecimal calculateRiskScore(
+    private Double calculateRiskScore(
             ClimateRiskDto.RainfallDeviationScenario rainfall,
             ClimateRiskDto.TemperatureStressAnalysis temp,
             CropClimateProfile profile) {
         
-        BigDecimal score = BigDecimal.ZERO;
+        Double score = 0.0;
         
         // Rainfall scenario contribution
         if (rainfall.getScenarioRiskLevel() == ClimateRiskLevel.HIGH) {
-            score = score.add(new BigDecimal("30"));
+            score = score + (30.0);
         } else if (rainfall.getScenarioRiskLevel() == ClimateRiskLevel.MEDIUM) {
-            score = score.add(new BigDecimal("15"));
+            score = score + (15.0);
         }
         
         // Temperature stress contribution
         if (temp.getStressRiskLevel() == ClimateRiskLevel.HIGH) {
-            score = score.add(new BigDecimal("25"));
+            score = score + 25.0;
         } else if (temp.getStressRiskLevel() == ClimateRiskLevel.MEDIUM) {
-            score = score.add(new BigDecimal("12"));
+            score = score + 12.0;
         }
         
         // Drought risk contribution
         if (profile.droughtRisk == DroughtRiskLevel.HIGH) {
-            score = score.add(new BigDecimal("15"));
+            score = score + 15.0;
         } else if (profile.droughtRisk == DroughtRiskLevel.MODERATE) {
-            score = score.add(new BigDecimal("8"));
+            score = score + 8.0;
         }
         
         // Flood risk contribution
         if (profile.floodRisk == FloodRiskLevel.HIGH) {
-            score = score.add(new BigDecimal("15"));
+            score = score + 15.0;
         } else if (profile.floodRisk == FloodRiskLevel.MODERATE) {
-            score = score.add(new BigDecimal("8"));
+            score = score + 8.0;
         }
         
-        return score.min(new BigDecimal("100"));
+        return score;
     }
 
-    private ClimateRiskLevel determineRiskLevel(BigDecimal riskScore) {
-        if (riskScore.compareTo(new BigDecimal("60")) >= 0) {
+    private ClimateRiskLevel determineRiskLevel(Double riskScore) {
+        if (riskScore.compareTo(60.0) >= 0) {
             return ClimateRiskLevel.VERY_HIGH;
-        } else if (riskScore.compareTo(new BigDecimal("40")) >= 0) {
+        } else if (riskScore.compareTo(40.0) >= 0) {
             return ClimateRiskLevel.HIGH;
-        } else if (riskScore.compareTo(new BigDecimal("20")) >= 0) {
+        } else if (riskScore.compareTo(20.0) >= 0) {
             return ClimateRiskLevel.MEDIUM;
         } else {
             return ClimateRiskLevel.LOW;
@@ -511,8 +507,8 @@ public class ClimateRiskService {
         };
     }
 
-    private DroughtRiskLevel assessDroughtRisk(CropClimateProfile profile, BigDecimal deviation) {
-        if (deviation.compareTo(new BigDecimal("-20")) < 0) {
+    private DroughtRiskLevel assessDroughtRisk(CropClimateProfile profile, Double deviation) {
+        if (deviation.compareTo(new Double("-20")) < 0) {
             return switch (profile.droughtRisk) {
                 case HIGH -> DroughtRiskLevel.SEVERE;
                 case MODERATE -> DroughtRiskLevel.HIGH;
@@ -522,8 +518,8 @@ public class ClimateRiskService {
         return profile.droughtRisk;
     }
 
-    private FloodRiskLevel assessFloodRisk(CropClimateProfile profile, BigDecimal deviation) {
-        if (deviation.compareTo(new BigDecimal("20")) > 0) {
+    private FloodRiskLevel assessFloodRisk(CropClimateProfile profile, Double deviation) {
+        if (deviation.compareTo(20.0) > 0) {
             return switch (profile.floodRisk) {
                 case HIGH -> FloodRiskLevel.SEVERE;
                 case MODERATE -> FloodRiskLevel.HIGH;
@@ -535,10 +531,10 @@ public class ClimateRiskService {
 
     private CropClimateProfile getDefaultProfile(String cropCode) {
         return new CropClimateProfile(
-                new BigDecimal("300"), new BigDecimal("800"),
-                new BigDecimal("15"), new BigDecimal("35"),
-                new BigDecimal("35"),
-                new BigDecimal("8"),
+                300.0, 800.0,
+                15.0, 35.0,
+                35.0,
+                8.0,
                 DroughtRiskLevel.MODERATE,
                 FloodRiskLevel.MODERATE,
                 Collections.emptyList(),
@@ -565,20 +561,18 @@ public class ClimateRiskService {
      * Internal class for crop climate profile
      */
     private static class CropClimateProfile {
-        BigDecimal rainfallRangeMin;
-        BigDecimal rainfallRangeMax;
-        BigDecimal tempMin;
-        BigDecimal tempMax;
-        BigDecimal heatStressThreshold;
-        BigDecimal coldStressThreshold;
+        Double rainfallRangeMin;
+        Double rainfallRangeMax;
+        Double tempMin;
+        Double tempMax;
+        Double heatStressThreshold;
+        Double coldStressThreshold;
         DroughtRiskLevel droughtRisk;
         FloodRiskLevel floodRisk;
         List<String> diseaseSusceptibility;
         List<String> mitigationStrategies;
 
-        CropClimateProfile(BigDecimal rainfallRangeMin, BigDecimal rainfallRangeMax,
-                BigDecimal tempMin, BigDecimal tempMax, BigDecimal heatStressThreshold,
-                BigDecimal coldStressThreshold, DroughtRiskLevel droughtRisk,
+        CropClimateProfile(Double rainfallRangeMin, Double rainfallRangeMax, Double tempMin, Double tempMax, Double heatStressThreshold, Double coldStressThreshold, DroughtRiskLevel droughtRisk,
                 FloodRiskLevel floodRisk, List<String> diseaseSusceptibility,
                 List<String> mitigationStrategies) {
             this.rainfallRangeMin = rainfallRangeMin;
@@ -594,3 +588,13 @@ public class ClimateRiskService {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+

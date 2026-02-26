@@ -1,7 +1,7 @@
 package com.farmer.mandi.dto;
 
 import lombok.*;
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -38,10 +38,10 @@ public class PriceTrendDto {
     @Builder
     public static class PricePointDto {
         private LocalDate date;
-        private BigDecimal modalPrice;
-        private BigDecimal minPrice;
-        private BigDecimal maxPrice;
-        private BigDecimal arrivalQuantity;
+        private Double modalPrice;
+        private Double minPrice;
+        private Double maxPrice;
+        private Double arrivalQuantity;
         private String mandiName;
     }
 
@@ -54,11 +54,11 @@ public class PriceTrendDto {
     @Builder
     public static class TrendAnalysisDto {
         private String trendDirection; // INCREASING, DECREASING, STABLE
-        private BigDecimal priceChangePercent;
-        private BigDecimal averagePrice;
-        private BigDecimal highestPrice;
-        private BigDecimal lowestPrice;
-        private BigDecimal priceVolatility;
+        private Double priceChangePercent;
+        private Double averagePrice;
+        private Double highestPrice;
+        private Double lowestPrice;
+        private Double priceVolatility;
     }
 
     /**
@@ -69,9 +69,9 @@ public class PriceTrendDto {
     @AllArgsConstructor
     @Builder
     public static class MspComparisonDto {
-        private BigDecimal msp;
-        private BigDecimal currentMarketPrice;
-        private BigDecimal difference;
+        private Double msp;
+        private Double currentMarketPrice;
+        private Double difference;
         private String comparisonResult; // ABOVE_MSP, BELOW_MSP, AT_MSP
         private String recommendation;
     }

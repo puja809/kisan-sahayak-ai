@@ -6,7 +6,7 @@ import com.farmer.crop.dto.NutrientDepletionRiskDto;
 import com.farmer.crop.enums.CropFamily;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -186,7 +186,7 @@ public class CropHistoryAnalyzer {
                 .map(CropHistoryEntryDto::getCropName)
                 .collect(Collectors.toList());
 
-        BigDecimal severityScore = calculateSeverityScore(riskLevel, consecutiveCount);
+        Double severityScore = calculateSeverityScore(riskLevel, consecutiveCount);
 
         return NutrientDepletionRiskDto.builder()
                 .cropFamily(family)
@@ -316,7 +316,7 @@ public class CropHistoryAnalyzer {
     /**
      * Calculates a severity score (0-100) based on risk level and consecutive count.
      */
-    private BigDecimal calculateSeverityScore(NutrientDepletionRiskDto.RiskLevel riskLevel, int consecutiveCount) {
+    private Double calculateSeverityScore(NutrientDepletionRiskDto.RiskLevel riskLevel, int consecutiveCount) {
         int baseScore;
         switch (riskLevel) {
             case CRITICAL:
@@ -334,7 +334,7 @@ public class CropHistoryAnalyzer {
         
         // Add bonus for each consecutive season beyond threshold
         int bonus = Math.max(0, consecutiveCount - CONSECUTIVE_THRESHOLD) * 5;
-        return BigDecimal.valueOf(Math.min(100, baseScore + bonus));
+        return Double.valueOf(Math.min(100, baseScore + bonus));
     }
 
     /**
@@ -543,6 +543,9 @@ public class CropHistoryAnalyzer {
             return false;
         }
 
+        // Enrich entries with crop family information
+        enrichCropHistoryEntries(cropHistory);
+        
         List<List<CropHistoryEntryDto>> groups = groupConsecutiveByFamily(cropHistory);
         return groups.stream().anyMatch(g -> g.size() >= CONSECUTIVE_THRESHOLD);
     }
@@ -558,6 +561,9 @@ public class CropHistoryAnalyzer {
             return 0;
         }
 
+        // Enrich entries with crop family information
+        enrichCropHistoryEntries(cropHistory);
+        
         List<List<CropHistoryEntryDto>> groups = groupConsecutiveByFamily(cropHistory);
         return groups.stream()
                 .mapToInt(List::size)
@@ -565,3 +571,11 @@ public class CropHistoryAnalyzer {
                 .orElse(0);
     }
 }
+
+
+
+
+
+
+
+

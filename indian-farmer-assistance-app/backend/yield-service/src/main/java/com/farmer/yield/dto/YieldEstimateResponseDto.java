@@ -1,6 +1,5 @@
 package com.farmer.yield.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,20 +29,20 @@ public class YieldEstimateResponseDto {
     private String farmerId;
     private String cropName;
     private String cropVariety;
-    private BigDecimal areaAcres;
+    private Double areaAcres;
     
     // Yield estimates (per acre)
-    private BigDecimal predictedYieldMinQuintalsPerAcre;
-    private BigDecimal predictedYieldExpectedQuintalsPerAcre;
-    private BigDecimal predictedYieldMaxQuintalsPerAcre;
+    private Double predictedYieldMinQuintalsPerAcre;
+    private Double predictedYieldExpectedQuintalsPerAcre;
+    private Double predictedYieldMaxQuintalsPerAcre;
     
     // Total yield estimates (for the entire area)
-    private BigDecimal predictedYieldMinQuintals;
-    private BigDecimal predictedYieldExpectedQuintals;
-    private BigDecimal predictedYieldMaxQuintals;
+    private Double predictedYieldMinQuintals;
+    private Double predictedYieldExpectedQuintals;
+    private Double predictedYieldMaxQuintals;
     
     // Confidence and factors
-    private BigDecimal confidenceIntervalPercent;
+    private Double confidenceIntervalPercent;
     private List<String> factorsConsidered;
     private List<String> factorAdjustments; // Positive/negative adjustments made
     private String modelVersion;
@@ -54,8 +53,8 @@ public class YieldEstimateResponseDto {
     private Integer estimatedDaysToHarvest;
     
     // Historical comparison
-    private BigDecimal historicalAverageYieldQuintalsPerAcre;
-    private BigDecimal yieldVarianceFromHistoricalPercent;
+    private Double historicalAverageYieldQuintalsPerAcre;
+    private Double yieldVarianceFromHistoricalPercent;
     private String historicalComparisonNote;
     
     // Financial projections
@@ -63,7 +62,7 @@ public class YieldEstimateResponseDto {
     
     // Notification flag
     private boolean significantDeviationFromPrevious;
-    private BigDecimal deviationFromPreviousPercent;
+    private Double deviationFromPreviousPercent;
     private String deviationNote;
     
     // Getters and Setters
@@ -131,67 +130,67 @@ public class YieldEstimateResponseDto {
         this.cropVariety = cropVariety;
     }
 
-    public BigDecimal getAreaAcres() {
+    public Double getAreaAcres() {
         return areaAcres;
     }
 
-    public void setAreaAcres(BigDecimal areaAcres) {
+    public void setAreaAcres(Double areaAcres) {
         this.areaAcres = areaAcres;
     }
 
-    public BigDecimal getPredictedYieldMinQuintalsPerAcre() {
+    public Double getPredictedYieldMinQuintalsPerAcre() {
         return predictedYieldMinQuintalsPerAcre;
     }
 
-    public void setPredictedYieldMinQuintalsPerAcre(BigDecimal predictedYieldMinQuintalsPerAcre) {
+    public void setPredictedYieldMinQuintalsPerAcre(Double predictedYieldMinQuintalsPerAcre) {
         this.predictedYieldMinQuintalsPerAcre = predictedYieldMinQuintalsPerAcre;
     }
 
-    public BigDecimal getPredictedYieldExpectedQuintalsPerAcre() {
+    public Double getPredictedYieldExpectedQuintalsPerAcre() {
         return predictedYieldExpectedQuintalsPerAcre;
     }
 
-    public void setPredictedYieldExpectedQuintalsPerAcre(BigDecimal predictedYieldExpectedQuintalsPerAcre) {
+    public void setPredictedYieldExpectedQuintalsPerAcre(Double predictedYieldExpectedQuintalsPerAcre) {
         this.predictedYieldExpectedQuintalsPerAcre = predictedYieldExpectedQuintalsPerAcre;
     }
 
-    public BigDecimal getPredictedYieldMaxQuintalsPerAcre() {
+    public Double getPredictedYieldMaxQuintalsPerAcre() {
         return predictedYieldMaxQuintalsPerAcre;
     }
 
-    public void setPredictedYieldMaxQuintalsPerAcre(BigDecimal predictedYieldMaxQuintalsPerAcre) {
+    public void setPredictedYieldMaxQuintalsPerAcre(Double predictedYieldMaxQuintalsPerAcre) {
         this.predictedYieldMaxQuintalsPerAcre = predictedYieldMaxQuintalsPerAcre;
     }
 
-    public BigDecimal getPredictedYieldMinQuintals() {
+    public Double getPredictedYieldMinQuintals() {
         return predictedYieldMinQuintals;
     }
 
-    public void setPredictedYieldMinQuintals(BigDecimal predictedYieldMinQuintals) {
+    public void setPredictedYieldMinQuintals(Double predictedYieldMinQuintals) {
         this.predictedYieldMinQuintals = predictedYieldMinQuintals;
     }
 
-    public BigDecimal getPredictedYieldExpectedQuintals() {
+    public Double getPredictedYieldExpectedQuintals() {
         return predictedYieldExpectedQuintals;
     }
 
-    public void setPredictedYieldExpectedQuintals(BigDecimal predictedYieldExpectedQuintals) {
+    public void setPredictedYieldExpectedQuintals(Double predictedYieldExpectedQuintals) {
         this.predictedYieldExpectedQuintals = predictedYieldExpectedQuintals;
     }
 
-    public BigDecimal getPredictedYieldMaxQuintals() {
+    public Double getPredictedYieldMaxQuintals() {
         return predictedYieldMaxQuintals;
     }
 
-    public void setPredictedYieldMaxQuintals(BigDecimal predictedYieldMaxQuintals) {
+    public void setPredictedYieldMaxQuintals(Double predictedYieldMaxQuintals) {
         this.predictedYieldMaxQuintals = predictedYieldMaxQuintals;
     }
 
-    public BigDecimal getConfidenceIntervalPercent() {
+    public Double getConfidenceIntervalPercent() {
         return confidenceIntervalPercent;
     }
 
-    public void setConfidenceIntervalPercent(BigDecimal confidenceIntervalPercent) {
+    public void setConfidenceIntervalPercent(Double confidenceIntervalPercent) {
         this.confidenceIntervalPercent = confidenceIntervalPercent;
     }
 
@@ -243,19 +242,19 @@ public class YieldEstimateResponseDto {
         this.estimatedDaysToHarvest = estimatedDaysToHarvest;
     }
 
-    public BigDecimal getHistoricalAverageYieldQuintalsPerAcre() {
+    public Double getHistoricalAverageYieldQuintalsPerAcre() {
         return historicalAverageYieldQuintalsPerAcre;
     }
 
-    public void setHistoricalAverageYieldQuintalsPerAcre(BigDecimal historicalAverageYieldQuintalsPerAcre) {
+    public void setHistoricalAverageYieldQuintalsPerAcre(Double historicalAverageYieldQuintalsPerAcre) {
         this.historicalAverageYieldQuintalsPerAcre = historicalAverageYieldQuintalsPerAcre;
     }
 
-    public BigDecimal getYieldVarianceFromHistoricalPercent() {
+    public Double getYieldVarianceFromHistoricalPercent() {
         return yieldVarianceFromHistoricalPercent;
     }
 
-    public void setYieldVarianceFromHistoricalPercent(BigDecimal yieldVarianceFromHistoricalPercent) {
+    public void setYieldVarianceFromHistoricalPercent(Double yieldVarianceFromHistoricalPercent) {
         this.yieldVarianceFromHistoricalPercent = yieldVarianceFromHistoricalPercent;
     }
 
@@ -283,11 +282,11 @@ public class YieldEstimateResponseDto {
         this.significantDeviationFromPrevious = significantDeviationFromPrevious;
     }
 
-    public BigDecimal getDeviationFromPreviousPercent() {
+    public Double getDeviationFromPreviousPercent() {
         return deviationFromPreviousPercent;
     }
 
-    public void setDeviationFromPreviousPercent(BigDecimal deviationFromPreviousPercent) {
+    public void setDeviationFromPreviousPercent(Double deviationFromPreviousPercent) {
         this.deviationFromPreviousPercent = deviationFromPreviousPercent;
     }
 
@@ -302,100 +301,140 @@ public class YieldEstimateResponseDto {
     /**
      * Builder pattern for creating response DTOs.
      */
-    public static Builder builder() {
-        return new Builder();
+    public static YieldEstimateResponseBuilder builder() {
+        return new YieldEstimateResponseBuilder();
     }
 
-    public static class Builder {
+    public static class YieldEstimateResponseBuilder {
         private final YieldEstimateResponseDto response = new YieldEstimateResponseDto();
 
-        public Builder success(boolean success) {
+        public YieldEstimateResponseBuilder success(boolean success) {
             response.setSuccess(success);
             return this;
         }
 
-        public Builder message(String message) {
+        public YieldEstimateResponseBuilder message(String message) {
             response.setMessage(message);
             return this;
         }
 
-        public Builder generatedAt(LocalDateTime generatedAt) {
+        public YieldEstimateResponseBuilder generatedAt(LocalDateTime generatedAt) {
             response.setGeneratedAt(generatedAt);
             return this;
         }
 
-        public Builder predictionId(Long predictionId) {
+        public YieldEstimateResponseBuilder predictionId(Long predictionId) {
             response.setPredictionId(predictionId);
             return this;
         }
 
-        public Builder cropId(Long cropId) {
+        public YieldEstimateResponseBuilder cropId(Long cropId) {
             response.setCropId(cropId);
             return this;
         }
 
-        public Builder farmerId(String farmerId) {
+        public YieldEstimateResponseBuilder farmerId(String farmerId) {
             response.setFarmerId(farmerId);
             return this;
         }
 
-        public Builder cropName(String cropName) {
+        public YieldEstimateResponseBuilder cropName(String cropName) {
             response.setCropName(cropName);
             return this;
         }
 
-        public Builder cropVariety(String cropVariety) {
+        public YieldEstimateResponseBuilder cropVariety(String cropVariety) {
             response.setCropVariety(cropVariety);
             return this;
         }
 
-        public Builder areaAcres(BigDecimal areaAcres) {
+        public YieldEstimateResponseBuilder areaAcres(Double areaAcres) {
             response.setAreaAcres(areaAcres);
             return this;
         }
 
-        public Builder predictedYieldMinQuintalsPerAcre(BigDecimal min) {
+        public YieldEstimateResponseBuilder predictedYieldMinQuintalsPerAcre(Double min) {
             response.setPredictedYieldMinQuintalsPerAcre(min);
             return this;
         }
 
-        public Builder predictedYieldExpectedQuintalsPerAcre(BigDecimal expected) {
+        public YieldEstimateResponseBuilder predictedYieldExpectedQuintalsPerAcre(Double expected) {
             response.setPredictedYieldExpectedQuintalsPerAcre(expected);
             return this;
         }
 
-        public Builder predictedYieldMaxQuintalsPerAcre(BigDecimal max) {
+        public YieldEstimateResponseBuilder predictedYieldMaxQuintalsPerAcre(Double max) {
             response.setPredictedYieldMaxQuintalsPerAcre(max);
             return this;
         }
 
-        public Builder confidenceIntervalPercent(BigDecimal confidence) {
+        public YieldEstimateResponseBuilder predictedYieldMinQuintals(Double min) {
+            response.setPredictedYieldMinQuintals(min);
+            return this;
+        }
+
+        public YieldEstimateResponseBuilder predictedYieldExpectedQuintals(Double expected) {
+            response.setPredictedYieldExpectedQuintals(expected);
+            return this;
+        }
+
+        public YieldEstimateResponseBuilder predictedYieldMaxQuintals(Double max) {
+            response.setPredictedYieldMaxQuintals(max);
+            return this;
+        }
+
+        public YieldEstimateResponseBuilder confidenceIntervalPercent(Double confidence) {
             response.setConfidenceIntervalPercent(confidence);
             return this;
         }
 
-        public Builder factorsConsidered(List<String> factors) {
+        public YieldEstimateResponseBuilder factorsConsidered(List<String> factors) {
             response.setFactorsConsidered(factors);
             return this;
         }
 
-        public Builder modelVersion(String modelVersion) {
+        public YieldEstimateResponseBuilder factorAdjustments(List<String> adjustments) {
+            response.setFactorAdjustments(adjustments);
+            return this;
+        }
+
+        public YieldEstimateResponseBuilder modelVersion(String modelVersion) {
             response.setModelVersion(modelVersion);
             return this;
         }
 
-        public Builder significantDeviationFromPrevious(boolean significant) {
+        public YieldEstimateResponseBuilder currentGrowthStage(String stage) {
+            response.setCurrentGrowthStage(stage);
+            return this;
+        }
+
+        public YieldEstimateResponseBuilder significantDeviationFromPrevious(boolean significant) {
             response.setSignificantDeviationFromPrevious(significant);
             return this;
         }
 
-        public Builder deviationFromPreviousPercent(BigDecimal deviation) {
+        public YieldEstimateResponseBuilder deviationFromPreviousPercent(Double deviation) {
             response.setDeviationFromPreviousPercent(deviation);
             return this;
         }
 
-        public Builder financialProjection(FinancialProjectionDto financialProjection) {
+        public YieldEstimateResponseBuilder financialProjection(FinancialProjectionDto financialProjection) {
             response.setFinancialProjection(financialProjection);
+            return this;
+        }
+
+        public YieldEstimateResponseBuilder historicalAverageYieldQuintalsPerAcre(Double avg) {
+            response.setHistoricalAverageYieldQuintalsPerAcre(avg);
+            return this;
+        }
+
+        public YieldEstimateResponseBuilder yieldVarianceFromHistoricalPercent(Double variance) {
+            response.setYieldVarianceFromHistoricalPercent(variance);
+            return this;
+        }
+
+        public YieldEstimateResponseBuilder historicalComparisonNote(String note) {
+            response.setHistoricalComparisonNote(note);
             return this;
         }
 

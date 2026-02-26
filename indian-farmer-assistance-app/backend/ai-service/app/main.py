@@ -384,6 +384,16 @@ async def get_supported_diseases_and_crops():
     }
 
 
+@app.get("/api/v1/ai/disease/model-info", tags=["Disease Detection"])
+async def get_disease_detection_model_info():
+    """
+    Get information about the disease detection model.
+    
+    Returns model version, device (GPU/CPU), cache status, and memory usage.
+    """
+    return disease_detection_service.get_model_info()
+
+
 # =============================================================================
 # Voice Agent Endpoints
 # =============================================================================

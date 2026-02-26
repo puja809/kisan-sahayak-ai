@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -33,17 +32,17 @@ public class SchemeRecommendationDto {
     private String state;
     
     // Benefit information
-    private BigDecimal benefitAmount;
+    private Double benefitAmount;
     private String benefitDescription;
     
     // Eligibility
-    private BigDecimal eligibilityScore;
+    private Double eligibilityScore;
     private String eligibilityConfidence; // HIGH, MEDIUM, LOW
     private List<String> eligibilityCriteria;
     
     // Deadline
     private LocalDate applicationDeadline;
-    private BigDecimal deadlineProximityScore; // Higher = closer deadline
+    private Double deadlineProximityScore; // Higher = closer deadline
     
     // Application information
     private String applicationUrl;
@@ -59,6 +58,6 @@ public class SchemeRecommendationDto {
     private String schemeCategory;
     
     // Ranking scores
-    private BigDecimal overallScore;
+    private Double overallScore;
     private Integer rank;
 }

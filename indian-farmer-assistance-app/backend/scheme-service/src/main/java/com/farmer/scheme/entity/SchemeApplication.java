@@ -74,8 +74,8 @@ public class SchemeApplication {
     @Column(name = "disbursed_at")
     private LocalDateTime disbursedAt;
 
-    @Column(name = "disbursement_amount", precision = 12, scale = 2)
-    private java.math.BigDecimal disbursementAmount;
+    @Column(name = "disbursement_amount")
+    private Double disbursementAmount;
 
     @PreUpdate
     protected void onUpdate() {

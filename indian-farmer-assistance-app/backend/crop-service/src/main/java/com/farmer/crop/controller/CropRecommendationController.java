@@ -4,15 +4,20 @@ import com.farmer.crop.dto.*;
 import com.farmer.crop.service.CropRecommendationService;
 import com.farmer.crop.service.GaezSuitabilityService;
 import com.farmer.crop.service.SeedVarietyService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * REST controller for crop recommendations.
@@ -26,6 +31,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/v1/crops")
+@Tag(name = "Crop Recommendations", description = "Crop recommendation and suitability endpoints")
 public class CropRecommendationController {
 
     private static final Logger logger = LoggerFactory.getLogger(CropRecommendationController.class);
@@ -60,6 +66,12 @@ public class CropRecommendationController {
      * Validates: Requirements 2.5, 2.6, 2.7, 2.8, 2.9
      */
     @PostMapping("/recommendations/calculate")
+    @Operation(summary = "Generate crop recommendations", description = "Generates personalized crop recommendations based on location and preferences")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Recommendations generated successfully",
+            content = @Content(schema = @Schema(implementation = CropRecommendationResponseDto.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request or missing location data")
+    })
     public ResponseEntity<CropRecommendationResponseDto> generateRecommendations(
             @RequestBody CropRecommendationRequestDto request) {
         
@@ -105,12 +117,18 @@ public class CropRecommendationController {
      * Validates: Requirements 2.5, 2.6, 2.7, 2.8, 2.9
      */
     @GetMapping("/recommendations")
+    @Operation(summary = "Get crop recommendations (GET)", description = "Generates crop recommendations using query parameters")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Recommendations generated successfully",
+            content = @Content(schema = @Schema(implementation = CropRecommendationResponseDto.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid request or missing location data")
+    })
     public ResponseEntity<CropRecommendationResponseDto> getRecommendations(
             @RequestParam(required = false) String farmerId,
             @RequestParam(required = false) String district,
             @RequestParam(required = false) String state,
-            @RequestParam(required = false) BigDecimal latitude,
-            @RequestParam(required = false) BigDecimal longitude,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
             @RequestParam(required = false) CropRecommendationRequestDto.IrrigationType irrigationType,
             @RequestParam(required = false, defaultValue = "ALL") CropRecommendationRequestDto.Season season,
             @RequestParam(required = false, defaultValue = "true") Boolean includeMarketData,

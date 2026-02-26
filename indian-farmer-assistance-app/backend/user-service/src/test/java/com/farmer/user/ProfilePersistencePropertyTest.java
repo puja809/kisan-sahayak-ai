@@ -10,7 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -129,11 +129,11 @@ class ProfilePersistencePropertyTest {
                     .areaAcres(areaAcres)
                     .season(season)
                     .status(Crop.CropStatus.SOWN)
-                    .seedCost(new BigDecimal("2500.00"))
-                    .fertilizerCost(new BigDecimal("1500.00"))
-                    .pesticideCost(new BigDecimal("800.00"))
-                    .laborCost(new BigDecimal("2000.00"))
-                    .otherCost(new BigDecimal("500.00"))
+                    .seedCost(Double.valueOf("2500.00"))
+                    .fertilizerCost(Double.valueOf("1500.00"))
+                    .pesticideCost(Double.valueOf("800.00"))
+                    .laborCost(Double.valueOf("2000.00"))
+                    .otherCost(Double.valueOf("500.00"))
                     .build();
 
             // Mock repository behavior
@@ -162,11 +162,11 @@ class ProfilePersistencePropertyTest {
             assertEquals(areaAcres, retrievedCrop.getAreaAcres(), 0.01, "Area should match");
             assertEquals(season, retrievedCrop.getSeason(), "Season should match");
             assertEquals(Crop.CropStatus.SOWN, retrievedCrop.getStatus(), "Status should match");
-            assertEquals(new BigDecimal("2500.00"), retrievedCrop.getSeedCost(), "Seed cost should match");
-            assertEquals(new BigDecimal("1500.00"), retrievedCrop.getFertilizerCost(), "Fertilizer cost should match");
-            assertEquals(new BigDecimal("800.00"), retrievedCrop.getPesticideCost(), "Pesticide cost should match");
-            assertEquals(new BigDecimal("2000.00"), retrievedCrop.getLaborCost(), "Labor cost should match");
-            assertEquals(new BigDecimal("500.00"), retrievedCrop.getOtherCost(), "Other cost should match");
+            assertEquals(Double.valueOf("2500.00"), retrievedCrop.getSeedCost(), "Seed cost should match");
+            assertEquals(Double.valueOf("1500.00"), retrievedCrop.getFertilizerCost(), "Fertilizer cost should match");
+            assertEquals(Double.valueOf("800.00"), retrievedCrop.getPesticideCost(), "Pesticide cost should match");
+            assertEquals(Double.valueOf("2000.00"), retrievedCrop.getLaborCost(), "Labor cost should match");
+            assertEquals(Double.valueOf("500.00"), retrievedCrop.getOtherCost(), "Other cost should match");
         }
 
         @Test
@@ -182,7 +182,7 @@ class ProfilePersistencePropertyTest {
                     .areaAcres(2.5)
                     .season(Crop.Season.KHARIF)
                     .status(Crop.CropStatus.SOWN)
-                    .seedCost(new BigDecimal("2500.00"))
+                    .seedCost(Double.valueOf("2500.00"))
                     .build();
 
             Crop crop2 = Crop.builder()
@@ -194,8 +194,8 @@ class ProfilePersistencePropertyTest {
                     .areaAcres(3.0)
                     .season(Crop.Season.RABI)
                     .status(Crop.CropStatus.HARVESTED)
-                    .seedCost(new BigDecimal("3000.00"))
-                    .fertilizerCost(new BigDecimal("2000.00"))
+                    .seedCost(Double.valueOf("3000.00"))
+                    .fertilizerCost(Double.valueOf("2000.00"))
                     .build();
 
             Crop crop3 = Crop.builder()
@@ -207,7 +207,7 @@ class ProfilePersistencePropertyTest {
                     .areaAcres(1.5)
                     .season(Crop.Season.KHARIF)
                     .status(Crop.CropStatus.GROWING)
-                    .seedCost(new BigDecimal("1500.00"))
+                    .seedCost(Double.valueOf("1500.00"))
                     .build();
 
             // Mock repository behavior
@@ -253,7 +253,7 @@ class ProfilePersistencePropertyTest {
                     .areaAcres(2.5)
                     .season(Crop.Season.KHARIF)
                     .status(Crop.CropStatus.SOWN)
-                    .seedCost(new BigDecimal("2500.00"))
+                    .seedCost(Double.valueOf("2500.00"))
                     .build();
 
             // Mock initial save
@@ -278,8 +278,8 @@ class ProfilePersistencePropertyTest {
             cropToUpdate.setCropVariety("Basmati-1509");
             cropToUpdate.setAreaAcres(3.0);
             cropToUpdate.setStatus(Crop.CropStatus.GROWING);
-            cropToUpdate.setSeedCost(new BigDecimal("3000.00"));
-            cropToUpdate.setFertilizerCost(new BigDecimal("2000.00"));
+            cropToUpdate.setSeedCost(Double.valueOf("3000.00"));
+            cropToUpdate.setFertilizerCost(Double.valueOf("2000.00"));
 
             // Mock update save
             when(cropRepository.save(any(Crop.class))).thenReturn(cropToUpdate);
@@ -297,8 +297,8 @@ class ProfilePersistencePropertyTest {
             assertEquals("Basmati-1509", finalCrop.getCropVariety(), "Crop variety should be updated");
             assertEquals(3.0, finalCrop.getAreaAcres(), 0.01, "Area should be updated");
             assertEquals(Crop.CropStatus.GROWING, finalCrop.getStatus(), "Status should be updated");
-            assertEquals(new BigDecimal("3000.00"), finalCrop.getSeedCost(), "Seed cost should be updated");
-            assertEquals(new BigDecimal("2000.00"), finalCrop.getFertilizerCost(), "Fertilizer cost should be updated");
+            assertEquals(Double.valueOf("3000.00"), finalCrop.getSeedCost(), "Seed cost should be updated");
+            assertEquals(Double.valueOf("2000.00"), finalCrop.getFertilizerCost(), "Fertilizer cost should be updated");
         }
 
         @Test
@@ -593,11 +593,11 @@ class ProfilePersistencePropertyTest {
                     .areaAcres(2.5)
                     .season(Crop.Season.KHARIF)
                     .status(Crop.CropStatus.SOWN)
-                    .seedCost(new BigDecimal("2500.00"))
-                    .fertilizerCost(new BigDecimal("1500.00"))
-                    .pesticideCost(new BigDecimal("800.00"))
-                    .laborCost(new BigDecimal("2000.00"))
-                    .otherCost(new BigDecimal("500.00"))
+                    .seedCost(Double.valueOf("2500.00"))
+                    .fertilizerCost(Double.valueOf("1500.00"))
+                    .pesticideCost(Double.valueOf("800.00"))
+                    .laborCost(Double.valueOf("2000.00"))
+                    .otherCost(Double.valueOf("500.00"))
                     .build();
 
             // Mock repository behavior
@@ -615,11 +615,11 @@ class ProfilePersistencePropertyTest {
             assertTrue(retrievedCropOpt.isPresent());
             Crop retrievedCrop = retrievedCropOpt.get();
 
-            assertEquals(new BigDecimal("2500.00"), retrievedCrop.getSeedCost(), "Seed cost should be stored");
-            assertEquals(new BigDecimal("1500.00"), retrievedCrop.getFertilizerCost(), "Fertilizer cost should be stored");
-            assertEquals(new BigDecimal("800.00"), retrievedCrop.getPesticideCost(), "Pesticide cost should be stored");
-            assertEquals(new BigDecimal("2000.00"), retrievedCrop.getLaborCost(), "Labor cost should be stored");
-            assertEquals(new BigDecimal("500.00"), retrievedCrop.getOtherCost(), "Other cost should be stored");
+            assertEquals(Double.valueOf("2500.00"), retrievedCrop.getSeedCost(), "Seed cost should be stored");
+            assertEquals(Double.valueOf("1500.00"), retrievedCrop.getFertilizerCost(), "Fertilizer cost should be stored");
+            assertEquals(Double.valueOf("800.00"), retrievedCrop.getPesticideCost(), "Pesticide cost should be stored");
+            assertEquals(Double.valueOf("2000.00"), retrievedCrop.getLaborCost(), "Labor cost should be stored");
+            assertEquals(Double.valueOf("500.00"), retrievedCrop.getOtherCost(), "Other cost should be stored");
         }
 
         @Test
@@ -631,22 +631,22 @@ class ProfilePersistencePropertyTest {
                     .cropName("Paddy")
                     .sowingDate(LocalDate.of(2024, 6, 1))
                     .areaAcres(2.5)
-                    .seedCost(new BigDecimal("2500.00"))
-                    .fertilizerCost(new BigDecimal("1500.00"))
-                    .pesticideCost(new BigDecimal("800.00"))
-                    .laborCost(new BigDecimal("2000.00"))
-                    .otherCost(new BigDecimal("500.00"))
+                    .seedCost(Double.valueOf("2500.00"))
+                    .fertilizerCost(Double.valueOf("1500.00"))
+                    .pesticideCost(Double.valueOf("800.00"))
+                    .laborCost(Double.valueOf("2000.00"))
+                    .otherCost(Double.valueOf("500.00"))
                     .build();
             
             // Calculate total input cost (this is called by @PrePersist/@PreUpdate in real persistence)
             crop.calculateTotalInputCost();
 
             // Calculate expected total
-            BigDecimal expectedTotal = new BigDecimal("2500.00")
-                    .add(new BigDecimal("1500.00"))
-                    .add(new BigDecimal("800.00"))
-                    .add(new BigDecimal("2000.00"))
-                    .add(new BigDecimal("500.00"));
+            Double expectedTotal = Double.valueOf("2500.00")
+                    + Double.valueOf("1500.00")
+                    + Double.valueOf("800.00")
+                    + Double.valueOf("2000.00")
+                    + Double.valueOf("500.00");
 
             // Verify total input cost calculation
             assertEquals(expectedTotal, crop.getTotalInputCost(), 
@@ -672,9 +672,9 @@ class ProfilePersistencePropertyTest {
                     .areaAcres(2.5)
                     .season(Crop.Season.KHARIF)
                     .status(Crop.CropStatus.HARVESTED)
-                    .totalYieldQuintals(new BigDecimal("12.5"))
+                    .totalYieldQuintals(Double.valueOf("12.5"))
                     .qualityGrade("A")
-                    .sellingPricePerQuintal(new BigDecimal("2200.00"))
+                    .sellingPricePerQuintal(Double.valueOf("2200.00"))
                     .mandiName("Bangalore APMC")
                     .build();
 
@@ -695,11 +695,11 @@ class ProfilePersistencePropertyTest {
 
             assertEquals(LocalDate.of(2024, 10, 20), retrievedCrop.getActualHarvestDate(), 
                     "Actual harvest date should be stored");
-            assertEquals(new BigDecimal("12.5"), retrievedCrop.getTotalYieldQuintals(), 
+            assertEquals(Double.valueOf("12.5"), retrievedCrop.getTotalYieldQuintals(), 
                     "Total yield should be stored");
             assertEquals("A", retrievedCrop.getQualityGrade(), 
                     "Quality grade should be stored");
-            assertEquals(new BigDecimal("2200.00"), retrievedCrop.getSellingPricePerQuintal(), 
+            assertEquals(Double.valueOf("2200.00"), retrievedCrop.getSellingPricePerQuintal(), 
                     "Selling price should be stored");
             assertEquals("Bangalore APMC", retrievedCrop.getMandiName(), 
                     "Mandi name should be stored");
@@ -714,15 +714,15 @@ class ProfilePersistencePropertyTest {
                     .cropName("Wheat")
                     .sowingDate(LocalDate.of(2023, 11, 1))
                     .areaAcres(3.0)
-                    .totalYieldQuintals(new BigDecimal("15.0"))
-                    .sellingPricePerQuintal(new BigDecimal("2500.00"))
+                    .totalYieldQuintals(Double.valueOf("15.0"))
+                    .sellingPricePerQuintal(Double.valueOf("2500.00"))
                     .build();
 
             // Calculate revenue (this method needs to be called explicitly)
             crop.calculateTotalRevenue();
 
             // Calculate expected revenue
-            BigDecimal expectedRevenue = new BigDecimal("15.0").multiply(new BigDecimal("2500.00"));
+            Double expectedRevenue = Double.valueOf("15.0") * Double.valueOf("2500.00");
 
             // Verify revenue calculation
             assertEquals(expectedRevenue, crop.getTotalRevenue(), 

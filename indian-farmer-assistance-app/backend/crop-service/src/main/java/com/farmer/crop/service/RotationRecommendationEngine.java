@@ -7,7 +7,7 @@ import com.farmer.crop.dto.RotationRecommendationResultDto;
 import com.farmer.crop.enums.CropFamily;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -162,7 +162,7 @@ public class RotationRecommendationEngine {
             // Recommend deep-rooted crops
             List<String> deepCrops = getDeepRootedCropsExcludingFamily(lastFamily);
             for (String crop : deepCrops) {
-                BigDecimal nutrientScore = calculateNutrientCyclingScore(crop, lastCrop);
+                Double nutrientScore = calculateNutrientCyclingScore(crop, lastCrop);
                 RotationOptionDto option = createNutrientCyclingOption(
                         crop, lastCrop, "Deep-rooted crop for nutrient cycling",
                         nutrientScore, targetSeason);
@@ -172,7 +172,7 @@ public class RotationRecommendationEngine {
             // Recommend shallow-rooted crops
             List<String> shallowCrops = getShallowRootedCropsExcludingFamily(lastFamily);
             for (String crop : shallowCrops) {
-                BigDecimal nutrientScore = calculateNutrientCyclingScore(crop, lastCrop);
+                Double nutrientScore = calculateNutrientCyclingScore(crop, lastCrop);
                 RotationOptionDto option = createNutrientCyclingOption(
                         crop, lastCrop, "Shallow-rooted crop for nutrient cycling",
                         nutrientScore, targetSeason);
@@ -200,22 +200,22 @@ public class RotationRecommendationEngine {
         // Recommend legumes for nitrogen fixation
         for (String legume : LEGUME_CROPS) {
             if (lastCrop == null || !legume.equalsIgnoreCase(lastCrop)) {
-                BigDecimal nitrogenFixation = new BigDecimal("90");
-                BigDecimal soilHealth = new BigDecimal("85");
-                BigDecimal pestManagement = calculatePestManagementScore(legume, lastCrop);
+                Double nitrogenFixation = 90.0;
+                Double soilHealth = 85.0;
+                Double pestManagement = calculatePestManagementScore(legume, lastCrop);
 
                 RotationOptionDto option = RotationOptionDto.builder()
                         .id(generateId())
                         .cropSequence(lastCrop != null ? lastCrop + " → " + legume : legume)
                         .description("Legume integration for biological nitrogen fixation")
                         .soilHealthBenefit(soilHealth)
-                        .climateResilience(new BigDecimal("75"))
-                        .economicViability(new BigDecimal("70"))
+                        .climateResilience(75.0)
+                        .economicViability(70.0)
                         .nutrientCyclingScore(nitrogenFixation)
                         .pestManagementScore(pestManagement)
-                        .waterUsageScore(new BigDecimal("65"))
+                        .waterUsageScore(65.0)
                         .overallBenefitScore(calculateOverall(nitrogenFixation, soilHealth, 
-                                new BigDecimal("70"), new BigDecimal("75"), new BigDecimal("65")))
+                                70.0, 75.0, 65.0))
                         .benefits(Arrays.asList(
                                 "Biological nitrogen fixation (40-60 kg N/ha)",
                                 "Improves soil organic matter",
@@ -250,23 +250,23 @@ public class RotationRecommendationEngine {
         // Recommend diversification crops for rice systems
         for (String crop : RICE_DIVERSIFICATION_CROPS) {
             if (!isRiceCrop(crop)) {
-                BigDecimal soilHealth = new BigDecimal("80");
-                BigDecimal pestManagement = calculatePestManagementScore(crop, lastRiceCrop);
-                BigDecimal waterUsage = calculateWaterUsageScore(crop);
+                Double soilHealth = 80.0;
+                Double pestManagement = calculatePestManagementScore(crop, lastRiceCrop);
+                Double waterUsage = calculateWaterUsageScore(crop);
 
                 RotationOptionDto option = RotationOptionDto.builder()
                         .id(generateId())
                         .cropSequence(lastRiceCrop + " → " + crop)
                         .description("Rice-based system diversification to leverage residual moisture")
                         .soilHealthBenefit(soilHealth)
-                        .climateResilience(new BigDecimal("78"))
-                        .economicViability(new BigDecimal("75"))
-                        .nutrientCyclingScore(new BigDecimal("72"))
+                        .climateResilience(78.0)
+                        .economicViability(75.0)
+                        .nutrientCyclingScore(72.0)
                         .pestManagementScore(pestManagement)
                         .waterUsageScore(waterUsage)
                         .overallBenefitScore(calculateOverall(
-                                new BigDecimal("72"), soilHealth, new BigDecimal("75"), 
-                                new BigDecimal("78"), waterUsage))
+                                72.0, soilHealth, 75.0, 
+                                78.0, waterUsage))
                         .benefits(Arrays.asList(
                                 "Utilizes residual soil moisture after rice harvest",
                                 "Breaks rice-specific pest and disease cycles",
@@ -490,50 +490,50 @@ public class RotationRecommendationEngine {
                 .collect(Collectors.toList());
     }
 
-    private BigDecimal calculateNutrientCyclingScore(String newCrop, String lastCrop) {
-        if (lastCrop == null) return new BigDecimal("75");
+    private Double calculateNutrientCyclingScore(String newCrop, String lastCrop) {
+        if (lastCrop == null) return 75.0;
         
         CropFamily.RootDepth lastDepth = CropFamily.getRootDepthForCrop(lastCrop);
         CropFamily.RootDepth newDepth = CropFamily.getRootDepthForCrop(newCrop);
         
         // Score higher for alternating depths
         if (!lastDepth.equals(newDepth)) {
-            return new BigDecimal("85");
+            return 85.0;
         }
-        return new BigDecimal("65");
+        return 65.0;
     }
 
-    private BigDecimal calculatePestManagementScore(String newCrop, String lastCrop) {
-        if (lastCrop == null) return new BigDecimal("70");
+    private Double calculatePestManagementScore(String newCrop, String lastCrop) {
+        if (lastCrop == null) return 70.0;
         
         CropFamily newFamily = CropFamily.getFamilyForCrop(newCrop);
         CropFamily lastFamily = CropFamily.getFamilyForCrop(lastCrop);
         
-        if (newFamily == null || lastFamily == null) return new BigDecimal("70");
+        if (newFamily == null || lastFamily == null) return 70.0;
         
         // Higher score for different families (breaks pest cycles)
         if (!newFamily.equals(lastFamily)) {
-            return new BigDecimal("85");
+            return 85.0;
         }
-        return new BigDecimal("50");
+        return 50.0;
     }
 
-    private BigDecimal calculateWaterUsageScore(String crop) {
+    private Double calculateWaterUsageScore(String crop) {
         CropFamily.RootDepth depth = CropFamily.getRootDepthForCrop(crop);
         switch (depth) {
             case DEEP:
-                return new BigDecimal("70");
+                return 70.0;
             case MEDIUM:
-                return new BigDecimal("75");
+                return 75.0;
             case SHALLOW:
-                return new BigDecimal("80");
+                return 80.0;
             default:
-                return new BigDecimal("75");
+                return 75.0;
         }
     }
 
     private RotationOptionDto createNutrientCyclingOption(String newCrop, String lastCrop, 
-            String description, BigDecimal nutrientScore, String targetSeason) {
+            String description, Double nutrientScore, String targetSeason) {
         CropFamily.RootDepth depth = CropFamily.getRootDepthForCrop(newCrop);
         String depthDescription = depth == CropFamily.RootDepth.DEEP ? 
                 "deep-rooted (nutrient cycling from deeper layers)" : 
@@ -544,13 +544,13 @@ public class RotationRecommendationEngine {
                 .cropSequence(lastCrop != null ? lastCrop + " → " + newCrop : newCrop)
                 .description(description + ": " + newCrop + " (" + depthDescription + ")")
                 .soilHealthBenefit(nutrientScore)
-                .climateResilience(new BigDecimal("75"))
-                .economicViability(new BigDecimal("70"))
+                .climateResilience(75.0)
+                .economicViability(70.0)
                 .nutrientCyclingScore(nutrientScore)
                 .pestManagementScore(calculatePestManagementScore(newCrop, lastCrop))
                 .waterUsageScore(calculateWaterUsageScore(newCrop))
                 .overallBenefitScore(calculateOverall(nutrientScore, nutrientScore, 
-                        new BigDecimal("70"), new BigDecimal("75"), calculateWaterUsageScore(newCrop)))
+                        70.0, 75.0, calculateWaterUsageScore(newCrop)))
                 .benefits(Arrays.asList(
                         "Alternates root depth for better nutrient utilization",
                         "Improves soil structure through different root systems",
@@ -574,13 +574,13 @@ public class RotationRecommendationEngine {
                 .id(generateId())
                 .cropSequence(sequence)
                 .description("Balanced 3-year rotation for optimal nutrient cycling")
-                .soilHealthBenefit(new BigDecimal("90"))
-                .climateResilience(new BigDecimal("85"))
-                .economicViability(new BigDecimal("80"))
-                .nutrientCyclingScore(new BigDecimal("95"))
-                .pestManagementScore(new BigDecimal("85"))
-                .waterUsageScore(new BigDecimal("75"))
-                .overallBenefitScore(new BigDecimal("86"))
+                .soilHealthBenefit(90.0)
+                .climateResilience(85.0)
+                .economicViability(80.0)
+                .nutrientCyclingScore(95.0)
+                .pestManagementScore(85.0)
+                .waterUsageScore(75.0)
+                .overallBenefitScore(86.0)
                 .benefits(Arrays.asList(
                         "Deep-rooted (Sunflower) accesses nutrients from deeper soil layers",
                         "Shallow-rooted (Cabbage) utilizes topsoil nutrients efficiently",
@@ -606,15 +606,15 @@ public class RotationRecommendationEngine {
                 .id(generateId())
                 .cropSequence(mainCrop + " (relay with " + relayCrop + ")")
                 .description(description)
-                .soilHealthBenefit(new BigDecimal("85"))
-                .climateResilience(new BigDecimal("80"))
-                .economicViability(new BigDecimal("88"))
-                .nutrientCyclingScore(new BigDecimal("78"))
-                .pestManagementScore(new BigDecimal("82"))
-                .waterUsageScore(new BigDecimal("90"))
+                .soilHealthBenefit(85.0)
+                .climateResilience(80.0)
+                .economicViability(88.0)
+                .nutrientCyclingScore(78.0)
+                .pestManagementScore(82.0)
+                .waterUsageScore(90.0)
                 .overallBenefitScore(calculateOverall(
-                        new BigDecimal("78"), new BigDecimal("85"), 
-                        new BigDecimal("88"), new BigDecimal("80"), new BigDecimal("90")))
+                        78.0, 85.0, 
+                        88.0, 80.0, 90.0))
                 .benefits(Arrays.asList(
                         "Utilizes residual soil moisture efficiently",
                         "Maximizes land productivity per season",
@@ -647,15 +647,15 @@ public class RotationRecommendationEngine {
                 .id(generateId())
                 .cropSequence(mainCrop + " + " + intercrop + " (intercropping)")
                 .description("Intercrop " + intercrop + " with " + mainCrop + " for better resource utilization")
-                .soilHealthBenefit(new BigDecimal("82"))
-                .climateResilience(new BigDecimal("78"))
-                .economicViability(new BigDecimal("85"))
-                .nutrientCyclingScore(new BigDecimal("75"))
-                .pestManagementScore(new BigDecimal("80"))
-                .waterUsageScore(new BigDecimal("72"))
+                .soilHealthBenefit(82.0)
+                .climateResilience(78.0)
+                .economicViability(85.0)
+                .nutrientCyclingScore(75.0)
+                .pestManagementScore(80.0)
+                .waterUsageScore(72.0)
                 .overallBenefitScore(calculateOverall(
-                        new BigDecimal("75"), new BigDecimal("82"), 
-                        new BigDecimal("85"), new BigDecimal("78"), new BigDecimal("72")))
+                        75.0, 82.0, 
+                        85.0, 78.0, 72.0))
                 .benefits(Arrays.asList(
                         "Maximizes land use efficiency",
                         "Intercrop may fix nitrogen (if legume)",
@@ -672,13 +672,19 @@ public class RotationRecommendationEngine {
                 .build();
     }
 
-    private BigDecimal calculateOverall(BigDecimal nutrient, BigDecimal soilHealth, 
-            BigDecimal economic, BigDecimal climate, BigDecimal water) {
-        return nutrient.add(soilHealth).add(economic).add(climate).add(water)
-                .divide(new BigDecimal("5"), 2, java.math.RoundingMode.HALF_UP);
+    private Double calculateOverall(Double nutrient, Double soilHealth, Double economic, Double climate, Double water) {
+        return (nutrient + soilHealth + economic + climate + water) / 5.0;
     }
 
     private long generateId() {
         return System.currentTimeMillis() % 10000;
     }
 }
+
+
+
+
+
+
+
+

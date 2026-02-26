@@ -10,7 +10,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
-import java.math.BigDecimal;
+
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -220,7 +220,7 @@ public class AgmarknetApiClient {
                     .mandiCode(data.getMandiCode())
                     .state(data.getState())
                     .district(data.getDistrict())
-                    .priceDate(data.getDate() != null ? data.getDate().toLocalDate() : LocalDate.now())
+                    .priceDate(data.getDate() != null ? data.getDate() : LocalDate.now())
                     .modalPrice(data.getModalPrice())
                     .minPrice(data.getMinPrice())
                     .maxPrice(data.getMaxPrice())
@@ -256,10 +256,10 @@ public class AgmarknetApiClient {
         private String state;
         private String district;
         private java.time.LocalDate date;
-        private BigDecimal modalPrice;
-        private BigDecimal minPrice;
-        private BigDecimal maxPrice;
-        private BigDecimal arrivalQuantity;
+        private Double modalPrice;
+        private Double minPrice;
+        private Double maxPrice;
+        private Double arrivalQuantity;
         private String unit;
     }
 

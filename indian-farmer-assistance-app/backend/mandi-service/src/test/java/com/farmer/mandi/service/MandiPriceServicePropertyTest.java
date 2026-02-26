@@ -15,7 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +61,9 @@ class MandiPriceServicePropertyTest {
     @Mock
     private ValueOperations<String, Object> valueOperations;
 
+    @Mock
+    private com.farmer.mandi.client.DataGovInApiClient dataGovInApiClient;
+
     private com.farmer.mandi.client.AgmarknetApiClient agmarknetApiClient;
     private com.farmer.mandi.repository.MandiPricesRepository mandiPricesRepository;
     private com.farmer.mandi.service.MandiPriceService mandiPriceService;
@@ -86,7 +89,7 @@ class MandiPriceServicePropertyTest {
         // Create real repository for testing
         mandiPricesRepository = mock(com.farmer.mandi.repository.MandiPricesRepository.class);
 
-        mandiPriceService = new MandiPriceService(agmarknetApiClient, mandiPricesRepository, redisTemplate);
+        mandiPriceService = new MandiPriceService(agmarknetApiClient, dataGovInApiClient, mandiPricesRepository, redisTemplate);
     }
 
     @Nested
@@ -103,8 +106,8 @@ class MandiPriceServicePropertyTest {
             
             // Create test price data with all required fields
             MandiPriceDto price = createCompletePriceData(commodity, "Hybrid", 
-                    BigDecimal.valueOf(2500), BigDecimal.valueOf(2300), BigDecimal.valueOf(2700),
-                    BigDecimal.valueOf(100), "Quintal");
+                    Double.valueOf(2500), Double.valueOf(2300), Double.valueOf(2700),
+                    Double.valueOf(100), "Quintal");
             
             // Verify all required fields are present
             assertNotNull(price.getModalPrice(), "Modal price should be present");
@@ -136,10 +139,10 @@ class MandiPriceServicePropertyTest {
                     .state("Karnataka")
                     .district("Bangalore Rural")
                     .priceDate(LocalDate.now())
-                    .modalPrice(BigDecimal.valueOf(2500))
-                    .minPrice(BigDecimal.valueOf(2300))
-                    .maxPrice(BigDecimal.valueOf(2700))
-                    .arrivalQuantityQuintals(BigDecimal.valueOf(100))
+                    .modalPrice(Double.valueOf(2500))
+                    .minPrice(Double.valueOf(2300))
+                    .maxPrice(Double.valueOf(2700))
+                    .arrivalQuantityQuintals(Double.valueOf(100))
                     .unit("Quintal")
                     .source("AGMARKNET")
                     .build();
@@ -161,7 +164,7 @@ class MandiPriceServicePropertyTest {
             "2400, 2500, 2600",   // Valid: narrow spread
         })
         @DisplayName("Price constraint min_price ≤ modal_price ≤ max_price should hold")
-        void priceConstraintShouldHold(BigDecimal minPrice, BigDecimal modalPrice, BigDecimal maxPrice) {
+        void priceConstraintShouldHold(Double minPrice, Double modalPrice, Double maxPrice) {
             // Property: For any price record, the constraint min_price ≤ modal_price ≤ max_price should hold
             
             MandiPriceDto price = MandiPriceDto.builder()
@@ -174,7 +177,7 @@ class MandiPriceServicePropertyTest {
                     .modalPrice(modalPrice)
                     .minPrice(minPrice)
                     .maxPrice(maxPrice)
-                    .arrivalQuantityQuintals(BigDecimal.valueOf(100))
+                    .arrivalQuantityQuintals(Double.valueOf(100))
                     .unit("Quintal")
                     .build();
             
@@ -191,9 +194,9 @@ class MandiPriceServicePropertyTest {
             // This test verifies the constraint detection works correctly
             
             MandiPrices entity = new MandiPrices();
-            entity.setMinPrice(BigDecimal.valueOf(2700));
-            entity.setModalPrice(BigDecimal.valueOf(2500));
-            entity.setMaxPrice(BigDecimal.valueOf(2600));
+            entity.setMinPrice(Double.valueOf(2700));
+            entity.setModalPrice(Double.valueOf(2500));
+            entity.setMaxPrice(Double.valueOf(2600));
             
             // The constraint should fail
             assertFalse(entity.isPriceConstraintValid(),
@@ -206,9 +209,9 @@ class MandiPriceServicePropertyTest {
             // This test verifies the constraint detection works correctly
             
             MandiPrices entity = new MandiPrices();
-            entity.setMinPrice(BigDecimal.valueOf(2300));
-            entity.setModalPrice(BigDecimal.valueOf(2700));
-            entity.setMaxPrice(BigDecimal.valueOf(2500));
+            entity.setMinPrice(Double.valueOf(2300));
+            entity.setModalPrice(Double.valueOf(2700));
+            entity.setMaxPrice(Double.valueOf(2500));
             
             // The constraint should fail
             assertFalse(entity.isPriceConstraintValid(),
@@ -222,8 +225,8 @@ class MandiPriceServicePropertyTest {
             
             MandiPrices entity = new MandiPrices();
             entity.setMinPrice(null);
-            entity.setModalPrice(BigDecimal.valueOf(2500));
-            entity.setMaxPrice(BigDecimal.valueOf(2700));
+            entity.setModalPrice(Double.valueOf(2500));
+            entity.setMaxPrice(Double.valueOf(2700));
             
             // The constraint should fail for null values
             assertFalse(entity.isPriceConstraintValid(),
@@ -253,10 +256,10 @@ class MandiPriceServicePropertyTest {
                         .state("Karnataka")
                         .district("Bangalore Rural")
                         .priceDate(LocalDate.now())
-                        .modalPrice(BigDecimal.valueOf(2500 + i * 100))
-                        .minPrice(BigDecimal.valueOf(2300 + i * 100))
-                        .maxPrice(BigDecimal.valueOf(2700 + i * 100))
-                        .arrivalQuantityQuintals(BigDecimal.valueOf(100 + i * 50))
+                        .modalPrice(Double.valueOf(2500 + i * 100))
+                        .minPrice(Double.valueOf(2300 + i * 100))
+                        .maxPrice(Double.valueOf(2700 + i * 100))
+                        .arrivalQuantityQuintals(Double.valueOf(100 + i * 50))
                         .unit("Quintal")
                         .source("AGMARKNET")
                         .build();
@@ -286,10 +289,10 @@ class MandiPriceServicePropertyTest {
                     .state("Karnataka")
                     .district("Bangalore Rural")
                     .priceDate(LocalDate.now())
-                    .modalPrice(BigDecimal.valueOf(2500))
-                    .minPrice(BigDecimal.valueOf(2300))
-                    .maxPrice(BigDecimal.valueOf(2700))
-                    .arrivalQuantityQuintals(BigDecimal.valueOf(100))
+                    .modalPrice(Double.valueOf(2500))
+                    .minPrice(Double.valueOf(2300))
+                    .maxPrice(Double.valueOf(2700))
+                    .arrivalQuantityQuintals(Double.valueOf(100))
                     .unit("Quintal")
                     .build();
             
@@ -302,8 +305,8 @@ class MandiPriceServicePropertyTest {
      * Helper method to create complete price data with all required fields.
      */
     private MandiPriceDto createCompletePriceData(
-            String commodity, String variety, BigDecimal modalPrice,
-            BigDecimal minPrice, BigDecimal maxPrice, BigDecimal arrivalQuantity, String unit) {
+            String commodity, String variety, Double modalPrice,
+            Double minPrice, Double maxPrice, Double arrivalQuantity, String unit) {
         return MandiPriceDto.builder()
                 .commodityName(commodity)
                 .variety(variety)

@@ -1,6 +1,7 @@
 package com.farmer.scheme.config;
 
 import com.farmer.scheme.service.DeadlineNotificationService;
+import com.farmer.scheme.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;

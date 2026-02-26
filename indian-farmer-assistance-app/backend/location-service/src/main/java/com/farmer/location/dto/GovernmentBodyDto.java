@@ -9,7 +9,8 @@ import java.util.List;
  * 
  * Validates: Requirements 7.2, 7.3, 7.4, 7.5
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

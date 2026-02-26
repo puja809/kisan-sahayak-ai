@@ -1,6 +1,6 @@
 package com.farmer.weather.service;
 
-import com.farmer.weather.client.ImdApiClient;
+import com.farmer.weather.client.WeatherApiClient;
 import com.farmer.weather.dto.*;
 import com.farmer.weather.entity.WeatherCache;
 import com.farmer.weather.exception.ImdApiException;
@@ -9,50 +9,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Weather Service that integrates with IMD API.
- * Provides weather data for farmers including forecasts, current weather,
- * alerts, nowcast, rainfall statistics, and agromet advisories.
- * 
- * Uses Redis cache-aside pattern for hot data caching with 30-minute TTL.
- * Validates: Requirements 1.9, 12.2
- */
 @Service
 public class WeatherService {
 
     private static final Logger logger = LoggerFactory.getLogger(WeatherService.class);
+    private static final int MAX_RETRIES = 3;
+    private static final Duration INITIAL_BACKOFF = Duration.ofSeconds(1);
 
-    private final ImdApiClient imdApiClient;
+    private final WeatherApiClient weatherApiClient;
     private final WeatherCacheService weatherCacheService;
     private final WeatherCacheRepository weatherCacheRepository;
 
     public WeatherService(
-            ImdApiClient imdApiClient,
+            WeatherApiClient weatherApiClient,
             WeatherCacheService weatherCacheService,
             WeatherCacheRepository weatherCacheRepository) {
-        this.imdApiClient = imdApiClient;
+        this.weatherApiClient = weatherApiClient;
         this.weatherCacheService = weatherCacheService;
         this.weatherCacheRepository = weatherCacheRepository;
     }
 
-    /**
-     * Get 7-day weather forecast for a district.
-     * Implements cache-aside pattern: check Redis cache first, then MySQL, then IMD API.
-     * Validates: Requirement 1.1, 1.9
-     * 
-     * @param district District name
-     * @param state State name
-     * @return 7-day forecast data
-     */
     public Mono<SevenDayForecastDto> getSevenDayForecast(String district, String state) {
         logger.info("Fetching 7-day forecast for district: {}, state: {}", district, state);
         
-        // Try Redis cache first (hot data)
         Optional<SevenDayForecastDto> cached = weatherCacheService.getCachedSevenDayForecast(district, state);
         if (cached.isPresent()) {
             SevenDayForecastDto forecast = cached.get();
@@ -61,16 +47,19 @@ public class WeatherService {
             return Mono.just(forecast);
         }
 
-        // Fetch from IMD API
-        return imdApiClient.getSevenDayForecast(district, state)
+        return weatherApiClient.getSevenDayForecast(district, state)
+            .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
+                .filter(throwable -> isRetryableError(throwable))
+                .doBeforeRetry(retrySignal -> {
+                    logger.warn("Retry attempt {} for 7-day forecast operation on district: {}, waiting {} seconds",
+                        retrySignal.totalRetries() + 1, district, Math.pow(2, retrySignal.totalRetries()));
+                }))
             .doOnNext(forecast -> {
-                // Cache the new data (invalidates old cache entries)
                 weatherCacheService.cacheSevenDayForecast(district, state, forecast);
                 logger.info("Cached new 7-day forecast for district: {}", district);
             })
             .onErrorResume(error -> {
                 logger.error("Error fetching 7-day forecast: {}", error.getMessage());
-                // Try to return stale cache from MySQL if available
                 Optional<WeatherCache> staleCache = weatherCacheRepository
                     .findByDistrictAndStateAndForecastType(district, state, "7DAY");
                 if (staleCache.isPresent()) {
@@ -80,23 +69,13 @@ public class WeatherService {
                     return Mono.just(forecast);
                 }
                 return Mono.error(new ImdApiException(
-                    "Failed to fetch 7-day forecast and no cached data available", error));
+                    "Failed to fetch 7-day forecast and no cached data available", error, (int) MAX_RETRIES));
             });
     }
 
-    /**
-     * Get current weather data for a district.
-     * Implements cache-aside pattern with Redis for hot data.
-     * Validates: Requirement 1.3, 1.9
-     * 
-     * @param district District name
-     * @param state State name
-     * @return Current weather data
-     */
     public Mono<CurrentWeatherDto> getCurrentWeather(String district, String state) {
         logger.info("Fetching current weather for district: {}, state: {}", district, state);
         
-        // Try Redis cache first
         Optional<CurrentWeatherDto> cached = weatherCacheService.getCachedCurrentWeather(district, state);
         if (cached.isPresent()) {
             CurrentWeatherDto weather = cached.get();
@@ -105,8 +84,13 @@ public class WeatherService {
             return Mono.just(weather);
         }
 
-        // Fetch from IMD API
-        return imdApiClient.getCurrentWeather(district, state)
+        return weatherApiClient.getCurrentWeather(district, state)
+            .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
+                .filter(throwable -> isRetryableError(throwable))
+                .doBeforeRetry(retrySignal -> {
+                    logger.warn("Retry attempt {} for current weather operation on district: {}, waiting {} seconds",
+                        retrySignal.totalRetries() + 1, district, Math.pow(2, retrySignal.totalRetries()));
+                }))
             .doOnNext(weather -> {
                 weatherCacheService.cacheCurrentWeather(district, state, weather);
                 logger.info("Cached new current weather for district: {}", district);
@@ -122,23 +106,13 @@ public class WeatherService {
                     return Mono.just(weather);
                 }
                 return Mono.error(new ImdApiException(
-                    "Failed to fetch current weather and no cached data available", error));
+                    "Failed to fetch current weather and no cached data available", error, (int) MAX_RETRIES));
             });
     }
 
-    /**
-     * Get nowcast data for a district.
-     * Implements cache-aside pattern with Redis for hot data.
-     * Validates: Requirement 1.5, 1.9
-     * 
-     * @param district District name
-     * @param state State name
-     * @return Nowcast data
-     */
     public Mono<NowcastDto> getNowcast(String district, String state) {
         logger.info("Fetching nowcast for district: {}, state: {}", district, state);
         
-        // Try Redis cache first
         Optional<NowcastDto> cached = weatherCacheService.getCachedNowcast(district, state);
         if (cached.isPresent()) {
             NowcastDto nowcast = cached.get();
@@ -147,8 +121,13 @@ public class WeatherService {
             return Mono.just(nowcast);
         }
 
-        // Fetch from IMD API
-        return imdApiClient.getNowcast(district, state)
+        return weatherApiClient.getNowcast(district, state)
+            .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
+                .filter(throwable -> isRetryableError(throwable))
+                .doBeforeRetry(retrySignal -> {
+                    logger.warn("Retry attempt {} for nowcast operation on district: {}, waiting {} seconds",
+                        retrySignal.totalRetries() + 1, district, Math.pow(2, retrySignal.totalRetries()));
+                }))
             .doOnNext(nowcast -> {
                 weatherCacheService.cacheNowcast(district, state, nowcast);
                 logger.info("Cached new nowcast for district: {}", district);
@@ -159,19 +138,9 @@ public class WeatherService {
             });
     }
 
-    /**
-     * Get weather alerts for a district.
-     * Implements cache-aside pattern with Redis for hot data.
-     * Validates: Requirement 1.4, 1.9
-     * 
-     * @param district District name
-     * @param state State name
-     * @return Weather alerts
-     */
     public Mono<WeatherAlertDto> getWeatherAlerts(String district, String state) {
         logger.info("Fetching weather alerts for district: {}, state: {}", district, state);
         
-        // Try Redis cache first
         Optional<WeatherAlertDto> cached = weatherCacheService.getCachedWeatherAlerts(district, state);
         if (cached.isPresent()) {
             WeatherAlertDto alerts = cached.get();
@@ -180,8 +149,13 @@ public class WeatherService {
             return Mono.just(alerts);
         }
 
-        // Fetch from IMD API
-        return imdApiClient.getWeatherAlerts(district, state)
+        return weatherApiClient.getWeatherAlerts(district, state)
+            .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
+                .filter(throwable -> isRetryableError(throwable))
+                .doBeforeRetry(retrySignal -> {
+                    logger.warn("Retry attempt {} for weather alerts operation on district: {}, waiting {} seconds",
+                        retrySignal.totalRetries() + 1, district, Math.pow(2, retrySignal.totalRetries()));
+                }))
             .doOnNext(alerts -> {
                 weatherCacheService.cacheWeatherAlerts(district, state, alerts);
                 logger.info("Cached new weather alerts for district: {}", district);
@@ -192,19 +166,9 @@ public class WeatherService {
             });
     }
 
-    /**
-     * Get rainfall statistics for a district.
-     * Implements cache-aside pattern with Redis for hot data.
-     * Validates: Requirement 1.6, 1.9
-     * 
-     * @param district District name
-     * @param state State name
-     * @return Rainfall statistics
-     */
     public Mono<RainfallStatsDto> getRainfallStats(String district, String state) {
         logger.info("Fetching rainfall stats for district: {}, state: {}", district, state);
         
-        // Try Redis cache first
         Optional<RainfallStatsDto> cached = weatherCacheService.getCachedRainfallStats(district, state);
         if (cached.isPresent()) {
             RainfallStatsDto stats = cached.get();
@@ -213,8 +177,13 @@ public class WeatherService {
             return Mono.just(stats);
         }
 
-        // Fetch from IMD API
-        return imdApiClient.getRainfallStats(district, state)
+        return weatherApiClient.getRainfallStats(district, state)
+            .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
+                .filter(throwable -> isRetryableError(throwable))
+                .doBeforeRetry(retrySignal -> {
+                    logger.warn("Retry attempt {} for rainfall stats operation on district: {}, waiting {} seconds",
+                        retrySignal.totalRetries() + 1, district, Math.pow(2, retrySignal.totalRetries()));
+                }))
             .doOnNext(stats -> {
                 weatherCacheService.cacheRainfallStats(district, state, stats);
                 logger.info("Cached new rainfall stats for district: {}", district);
@@ -225,19 +194,9 @@ public class WeatherService {
             });
     }
 
-    /**
-     * Get agromet advisories for a district.
-     * Implements cache-aside pattern with Redis for hot data.
-     * Validates: Requirement 1.8, 1.9
-     * 
-     * @param district District name
-     * @param state State name
-     * @return Agromet advisories
-     */
     public Mono<AgrometAdvisoryDto> getAgrometAdvisories(String district, String state) {
         logger.info("Fetching agromet advisories for district: {}, state: {}", district, state);
         
-        // Try Redis cache first
         Optional<AgrometAdvisoryDto> cached = weatherCacheService.getCachedAgrometAdvisories(district, state);
         if (cached.isPresent()) {
             AgrometAdvisoryDto advisories = cached.get();
@@ -246,8 +205,13 @@ public class WeatherService {
             return Mono.just(advisories);
         }
 
-        // Fetch from IMD API
-        return imdApiClient.getAgrometAdvisories(district, state)
+        return weatherApiClient.getAgrometAdvisories(district, state)
+            .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
+                .filter(throwable -> isRetryableError(throwable))
+                .doBeforeRetry(retrySignal -> {
+                    logger.warn("Retry attempt {} for agromet advisories operation on district: {}, waiting {} seconds",
+                        retrySignal.totalRetries() + 1, district, Math.pow(2, retrySignal.totalRetries()));
+                }))
             .doOnNext(advisories -> {
                 weatherCacheService.cacheAgrometAdvisories(district, state, advisories);
                 logger.info("Cached new agromet advisories for district: {}", district);
@@ -258,31 +222,36 @@ public class WeatherService {
             });
     }
 
-    /**
-     * Get AWS/ARG real-time data for a district.
-     * Validates: Requirement 1.7
-     * 
-     * @param district District name
-     * @param state State name
-     * @return AWS/ARG data
-     */
     public Mono<List<AwsArgDataDto>> getAwsArgData(String district, String state) {
         logger.info("Fetching AWS/ARG data for district: {}, state: {}", district, state);
         
-        return imdApiClient.getAwsArgData(district, state)
+        return weatherApiClient.getAwsArgData(district, state)
+            .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
+                .filter(throwable -> isRetryableError(throwable))
+                .doBeforeRetry(retrySignal -> {
+                    logger.warn("Retry attempt {} for AWS/ARG data operation on district: {}, waiting {} seconds",
+                        retrySignal.totalRetries() + 1, district, Math.pow(2, retrySignal.totalRetries()));
+                }))
             .onErrorResume(error -> {
                 logger.error("Error fetching AWS/ARG data: {}", error.getMessage());
                 return Mono.empty();
             });
     }
 
-    /**
-     * Parse cached forecast data from MySQL database.
-     * Used as fallback when Redis cache is unavailable.
-     * 
-     * @param cache Cached weather data from database
-     * @return Parsed forecast data
-     */
+    private boolean isRetryableError(Throwable error) {
+        String message = error.getMessage();
+        if (message == null) return false;
+        message = message.toLowerCase();
+        // Retry on server errors, timeouts, connection issues
+        return message.contains("timeout") ||
+               message.contains("connection") ||
+               message.contains("unavailable") ||
+               message.contains("server") ||
+               message.contains("rate limit") ||
+               message.contains("eof") ||
+               message.contains("socket");
+    }
+
     private SevenDayForecastDto parseCachedForecast(WeatherCache cache) {
         // In a real implementation, this would parse the cached JSON data
         // For now, return a basic structure with cache metadata
@@ -293,13 +262,6 @@ public class WeatherService {
             .build();
     }
 
-    /**
-     * Parse cached current weather data from MySQL database.
-     * Used as fallback when Redis cache is unavailable.
-     * 
-     * @param cache Cached weather data from database
-     * @return Parsed current weather data
-     */
     private CurrentWeatherDto parseCachedCurrentWeather(WeatherCache cache) {
         // In a real implementation, this would parse the cached JSON data
         return CurrentWeatherDto.builder()

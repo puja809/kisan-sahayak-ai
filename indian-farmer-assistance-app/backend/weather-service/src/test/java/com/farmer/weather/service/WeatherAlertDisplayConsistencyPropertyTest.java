@@ -1,6 +1,6 @@
 package com.farmer.weather.service;
 
-import com.farmer.weather.client.ImdApiClient;
+import com.farmer.weather.client.WeatherApiClient;
 import com.farmer.weather.dto.*;
 import com.farmer.weather.repository.WeatherCacheRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +57,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
     private WeatherCacheRepository weatherCacheRepository;
 
     @Mock
-    private ImdApiClient imdApiClient;
+    private WeatherApiClient weatherApiClient;
 
     private WeatherCacheService weatherCacheService;
     private WeatherService weatherService;
@@ -66,7 +66,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
     void setUp() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         weatherCacheService = new WeatherCacheService(redisTemplate, weatherCacheRepository, 30);
-        weatherService = new WeatherService(imdApiClient, weatherCacheService, weatherCacheRepository);
+        weatherService = new WeatherService(weatherApiClient, weatherCacheService, weatherCacheRepository);
     }
 
     // ==================== Weather Alert DTO Helpers ====================
@@ -167,7 +167,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getWeatherAlerts(district, state))
+            when(weatherApiClient.getWeatherAlerts(district, state))
                 .thenReturn(Mono.just(alertResponse));
 
             // Act
@@ -218,7 +218,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getWeatherAlerts(district, state))
+            when(weatherApiClient.getWeatherAlerts(district, state))
                 .thenReturn(Mono.just(alertResponse));
 
             // Act
@@ -259,7 +259,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getWeatherAlerts(district, state))
+            when(weatherApiClient.getWeatherAlerts(district, state))
                 .thenReturn(Mono.just(alertResponse));
 
             // Act
@@ -310,7 +310,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getWeatherAlerts(district, state))
+            when(weatherApiClient.getWeatherAlerts(district, state))
                 .thenReturn(Mono.just(alertResponse));
 
             // Act
@@ -344,7 +344,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getWeatherAlerts(district, state))
+            when(weatherApiClient.getWeatherAlerts(district, state))
                 .thenReturn(Mono.just(alertResponse));
 
             // Act
@@ -393,7 +393,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getNowcast(district, state))
+            when(weatherApiClient.getNowcast(district, state))
                 .thenReturn(Mono.just(nowcastResponse));
 
             // Act
@@ -438,7 +438,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getNowcast(district, state))
+            when(weatherApiClient.getNowcast(district, state))
                 .thenReturn(Mono.just(nowcastResponse));
 
             // Act
@@ -474,7 +474,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getNowcast(district, state))
+            when(weatherApiClient.getNowcast(district, state))
                 .thenReturn(Mono.just(nowcastResponse));
 
             // Act
@@ -513,7 +513,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getNowcast(district, state))
+            when(weatherApiClient.getNowcast(district, state))
                 .thenReturn(Mono.just(nowcastResponse));
 
             // Act
@@ -549,7 +549,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getNowcast(district, state))
+            when(weatherApiClient.getNowcast(district, state))
                 .thenReturn(Mono.just(nowcastResponse));
 
             // Act
@@ -593,7 +593,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getWeatherAlerts(district, state))
+            when(weatherApiClient.getWeatherAlerts(district, state))
                 .thenReturn(Mono.just(alertResponseWithAlerts));
 
             // Act
@@ -608,7 +608,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             List<AlertDto> emptyAlerts = new ArrayList<>();
             WeatherAlertDto alertResponseNoAlerts = createWeatherAlert(district, state, emptyAlerts, "GREEN");
             
-            when(imdApiClient.getWeatherAlerts(district, state))
+            when(weatherApiClient.getWeatherAlerts(district, state))
                 .thenReturn(Mono.just(alertResponseNoAlerts));
 
             // Act
@@ -637,7 +637,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getNowcast(district, state))
+            when(weatherApiClient.getNowcast(district, state))
                 .thenReturn(Mono.just(nowcastResponseWithAlerts));
 
             // Act
@@ -652,7 +652,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             List<NowcastAlertDto> emptyNowcastAlerts = new ArrayList<>();
             NowcastDto nowcastResponseNoAlerts = createNowcast(district, state, emptyNowcastAlerts);
             
-            when(imdApiClient.getNowcast(district, state))
+            when(weatherApiClient.getNowcast(district, state))
                 .thenReturn(Mono.just(nowcastResponseNoAlerts));
 
             // Act
@@ -685,7 +685,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getWeatherAlerts(district, state))
+            when(weatherApiClient.getWeatherAlerts(district, state))
                 .thenReturn(Mono.just(alertResponse));
 
             // Act
@@ -709,7 +709,7 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             nowcastAlerts.add(createNowcastAlert("HEAVY_RAIN", "VERY_HEAVY", "Very heavy rain"));
             NowcastDto nowcastResponse = createNowcast(district, state, nowcastAlerts);
             
-            when(imdApiClient.getNowcast(district, state))
+            when(weatherApiClient.getNowcast(district, state))
                 .thenReturn(Mono.just(nowcastResponse));
 
             // Act
@@ -770,9 +770,9 @@ class WeatherAlertDisplayConsistencyPropertyTest {
             when(valueOperations.get(anyString())).thenReturn(null);
             when(weatherCacheRepository.findByDistrictAndStateAndForecastType(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.Optional.empty());
-            when(imdApiClient.getWeatherAlerts(district, state))
+            when(weatherApiClient.getWeatherAlerts(district, state))
                 .thenReturn(Mono.just(weatherAlertResponse));
-            when(imdApiClient.getNowcast(district, state))
+            when(weatherApiClient.getNowcast(district, state))
                 .thenReturn(Mono.just(nowcastResponse));
 
             // Act

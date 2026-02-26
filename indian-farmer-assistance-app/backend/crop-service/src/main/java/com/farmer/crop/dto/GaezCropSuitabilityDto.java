@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -41,7 +40,7 @@ public class GaezCropSuitabilityDto {
      * Overall suitability score (0-100)
      * Combines all suitability factors
      */
-    private BigDecimal overallSuitabilityScore;
+    private Double overallSuitabilityScore;
     
     /**
      * Suitability classification
@@ -53,55 +52,55 @@ public class GaezCropSuitabilityDto {
      * Climate suitability score (0-100)
      * Based on temperature, precipitation, growing season
      */
-    private BigDecimal climateSuitabilityScore;
+    private Double climateSuitabilityScore;
     
     /**
      * Soil suitability score (0-100)
      * Based on soil type, pH, organic matter, fertility
      */
-    private BigDecimal soilSuitabilityScore;
+    private Double soilSuitabilityScore;
     
     /**
      * Terrain suitability score (0-100)
      * Based on slope, elevation, landform
      */
-    private BigDecimal terrainSuitabilityScore;
+    private Double terrainSuitabilityScore;
     
     /**
      * Water availability suitability score (0-100)
      * Based on irrigation potential, water stress
      */
-    private BigDecimal waterSuitabilityScore;
+    private Double waterSuitabilityScore;
     
     /**
      * Potential yield under rain-fed conditions (kg/ha)
      */
-    private BigDecimal rainfedPotentialYield;
+    private Double rainfedPotentialYield;
     
     /**
      * Potential yield under irrigated conditions (kg/ha)
      */
-    private BigDecimal irrigatedPotentialYield;
+    private Double irrigatedPotentialYield;
     
     /**
      * Expected yield range (kg/ha) - minimum
      */
-    private BigDecimal expectedYieldMin;
+    private Double expectedYieldMin;
     
     /**
      * Expected yield range (kg/ha) - expected
      */
-    private BigDecimal expectedYieldExpected;
+    private Double expectedYieldExpected;
     
     /**
      * Expected yield range (kg/ha) - maximum
      */
-    private BigDecimal expectedYieldMax;
+    private Double expectedYieldMax;
     
     /**
      * Water requirements (mm per growing season)
      */
-    private BigDecimal waterRequirementsMm;
+    private Double waterRequirementsMm;
     
     /**
      * Growing season duration (days)

@@ -1,22 +1,22 @@
 package com.farmer.iot.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
 /**
- * Service for encrypting and decrypting IoT data.
- * Implements AES-256-GCM encryption for data at rest and TLS for data in transit.
+ * Service for end-to-end encryption of IoT data.
+ * Implements AES-256-GCM encryption to ensure data privacy and security.
+ * Validates: Requirements 10.11, 17.1, 17.2
  */
 @Service
 @Slf4j
@@ -25,14 +25,12 @@ public class EncryptionService {
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 128;
-    private static final String DATA_OWNERSHIP_MESSAGE = "Farmer retains full ownership of all IoT-generated data";
-
     private final SecretKey secretKey;
-    private final SecureRandom secureRandom;
+    private final SecureRandom secureRandom = new SecureRandom();
 
-    public EncryptionService() {
-        this.secretKey = generateKey();
-        this.secureRandom = new SecureRandom();
+    public EncryptionService(@Value("${iot.encryption.key}") String base64Key) throws IllegalArgumentException {
+        byte[] decodedKey = Base64.getDecoder().decode(base64Key);
+        this.secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
     }
 
     /**
@@ -91,7 +89,7 @@ public class EncryptionService {
      * Encrypt a string value.
      */
     public String encryptString(String plaintext) {
-        return Base64.getEncoder().encodeToString(encrypt(plaintext.getBytes(StandardCharsets.UTF_8)));
+        return encrypt(plaintext.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -108,35 +106,21 @@ public class EncryptionService {
     public boolean verifyEncryption(byte[] data) {
         String encrypted = encrypt(data);
         byte[] decrypted = decrypt(encrypted);
-        return java.util.Arrays.equals(data, decrypted);
+        
+        if (data.length != decrypted.length) return false;
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] != decrypted[i]) return false;
+        }
+        return true;
     }
 
     /**
-     * Get data ownership confirmation message.
+     * Get data ownership message.
      * Validates: Requirement 10.10
      */
     public String getDataOwnershipMessage() {
-        return DATA_OWNERSHIP_MESSAGE;
-    }
-
-    /**
-     * Generate AES-256 key.
-     */
-    private SecretKey generateKey() {
-        try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-            keyGenerator.init(256);
-            return keyGenerator.generateKey();
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Failed to generate encryption key", e);
-            throw new RuntimeException("Failed to generate encryption key", e);
-        }
-    }
-
-    /**
-     * Get the encryption algorithm name.
-     */
-    public String getAlgorithm() {
-        return "AES-256-GCM";
+        return "Farmer retains full ownership of all IoT-generated data. " +
+               "Data is encrypted end-to-end and stored securely. " +
+               "Farmers have complete control over data access and deletion.";
     }
 }

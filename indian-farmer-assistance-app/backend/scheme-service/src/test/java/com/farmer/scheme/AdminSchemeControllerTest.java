@@ -16,7 +16,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -55,7 +55,7 @@ class AdminSchemeControllerTest {
                 .schemeType(SchemeType.CENTRAL)
                 .description("Income support of Rs. 6,000 per year to farmer families")
                 .eligibilityCriteria("{\"landholding\": \"any\", \"income\": \"less than 3 lakh/year\"}")
-                .benefitAmount(new BigDecimal("6000.00"))
+                .benefitAmount(new Double("6000.00"))
                 .benefitDescription("Rs. 6,000 per year in three installments of Rs. 2,000 each")
                 .applicationStartDate(LocalDate.now().minusDays(30))
                 .applicationEndDate(LocalDate.now().plusDays(60))
@@ -104,7 +104,7 @@ class AdminSchemeControllerTest {
                 .schemeCode(savedScheme.getSchemeCode())
                 .schemeName("Updated PM-Kisan Scheme")
                 .schemeType(savedScheme.getSchemeType())
-                .benefitAmount(new BigDecimal("8000.00"))
+                .benefitAmount(new Double("8000.00"))
                 .isActive(true)
                 .build();
 
@@ -213,7 +213,7 @@ class AdminSchemeControllerTest {
                 .schemeType(SchemeType.STATE)
                 .state("Karnataka")
                 .description("Micro-irrigation scheme for Karnataka farmers")
-                .benefitAmount(new BigDecimal("50000.00"))
+                .benefitAmount(new Double("50000.00"))
                 .isActive(true)
                 .build();
 
@@ -235,7 +235,7 @@ class AdminSchemeControllerTest {
                 .schemeType(SchemeType.CROP_SPECIFIC)
                 .applicableCrops("Paddy,Rice")
                 .description("Support scheme for paddy cultivators")
-                .benefitAmount(new BigDecimal("10000.00"))
+                .benefitAmount(new Double("10000.00"))
                 .isActive(true)
                 .build();
 
@@ -255,8 +255,8 @@ class AdminSchemeControllerTest {
                 .schemeName("Crop Insurance Scheme")
                 .schemeType(SchemeType.INSURANCE)
                 .description("Comprehensive crop insurance coverage")
-                .subsidyPercentage(new BigDecimal("2.00"))
-                .maxBenefitAmount(new BigDecimal("500000.00"))
+                .subsidyPercentage(new Double("2.00"))
+                .maxBenefitAmount(new Double("500000.00"))
                 .isActive(true)
                 .build();
 
@@ -275,7 +275,7 @@ class AdminSchemeControllerTest {
                 .schemeCode("SUB-001")
                 .schemeName("Micro-Irrigation Subsidy")
                 .schemeType(SchemeType.SUBSIDY)
-                .subsidyPercentage(new BigDecimal("55.00"))
+                .subsidyPercentage(new Double("55.00"))
                 .description("55% subsidy on micro-irrigation systems")
                 .targetBeneficiaries("Small and marginal farmers")
                 .isActive(true)
@@ -297,7 +297,7 @@ class AdminSchemeControllerTest {
                 .schemeName("Kisan Maan Dhan Yojana")
                 .schemeType(SchemeType.WELFARE)
                 .description("Pension scheme for farmers")
-                .benefitAmount(new BigDecimal("3000.00"))
+                .benefitAmount(new Double("3000.00"))
                 .landholdingRequirement("Up to 2 hectares")
                 .isActive(true)
                 .build();

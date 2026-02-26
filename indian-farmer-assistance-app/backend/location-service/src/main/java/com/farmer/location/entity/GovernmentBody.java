@@ -49,10 +49,10 @@ public class GovernmentBody {
     @Column(name = "pin_code", length = 10)
     private String pinCode;
 
-    @Column(name = "latitude", precision = 10, scale = 8)
+    @Column(name = "latitude")
     private Double latitude;
 
-    @Column(name = "longitude", precision = 11, scale = 8)
+    @Column(name = "longitude")
     private Double longitude;
 
     @Column(name = "contact_number", length = 20)

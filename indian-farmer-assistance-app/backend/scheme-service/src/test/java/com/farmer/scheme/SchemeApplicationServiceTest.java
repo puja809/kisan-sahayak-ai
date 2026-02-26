@@ -16,7 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -57,7 +57,7 @@ class SchemeApplicationServiceTest {
                 .schemeName("PM-Kisan Samman Nidhi")
                 .schemeType(SchemeType.CENTRAL)
                 .description("Income support of Rs. 6,000 per year")
-                .benefitAmount(new BigDecimal("6000.00"))
+                .benefitAmount(new Double("6000.00"))
                 .applicationStartDate(LocalDate.now().minusDays(30))
                 .applicationEndDate(LocalDate.now().plusDays(60))
                 .isActive(true)

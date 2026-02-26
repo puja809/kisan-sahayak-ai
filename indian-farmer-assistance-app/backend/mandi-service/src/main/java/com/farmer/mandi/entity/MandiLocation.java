@@ -2,7 +2,7 @@ package com.farmer.mandi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
+
 import java.time.LocalDateTime;
 
 /**
@@ -45,11 +45,11 @@ public class MandiLocation {
     @Column(name = "address", length = 500)
     private String address;
 
-    @Column(name = "latitude", precision = 10, scale = 8)
-    private BigDecimal latitude;
+    @Column(name = "latitude")
+    private Double latitude;
 
-    @Column(name = "longitude", precision = 11, scale = 8)
-    private BigDecimal longitude;
+    @Column(name = "longitude")
+    private Double longitude;
 
     @Column(name = "contact_number", length = 20)
     private String contactNumber;

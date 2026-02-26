@@ -2,7 +2,7 @@ package com.farmer.mandi.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import java.math.BigDecimal;
+
 
 /**
  * DTO for price alert subscription request.
@@ -24,7 +24,7 @@ public class PriceAlertRequest {
 
     private String variety;
 
-    private BigDecimal targetPrice;
+    private Double targetPrice;
 
     private String alertType; // PRICE_ABOVE, PRICE_BELOW, PRICE_PEAK
 

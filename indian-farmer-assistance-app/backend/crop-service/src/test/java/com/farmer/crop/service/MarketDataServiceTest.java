@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,7 @@ class MarketDataServiceTest {
         assertNotNull(marketData.getMinPrice());
         assertNotNull(marketData.getMaxPrice());
         assertNotNull(marketData.getMsp());
-        assertTrue(marketData.getCurrentPrice().compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(marketData.getCurrentPrice() > 0.0);
     }
 
     @Test
@@ -69,56 +68,56 @@ class MarketDataServiceTest {
     @DisplayName("Should calculate market-adjusted score with positive adjustment for uptrend")
     void testCalculateMarketAdjustedScore_Uptrend() {
         // Arrange
-        BigDecimal baseScore = new BigDecimal("80");
+        Double baseScore = 80.0;
         MarketDataDto marketData = MarketDataDto.builder()
                 .cropCode("RICE")
                 .trend(PriceTrend.UP)
                 .aboveMsp(true)
-                .currentPrice(new BigDecimal("2500"))
-                .msp(new BigDecimal("2300"))
+                .currentPrice(2500.0)
+                .msp(2300.0)
                 .recommendation(PriceRecommendation.SELL_NOW)
                 .build();
 
         // Act
-        BigDecimal adjustedScore = marketDataService.calculateMarketAdjustedScore(
+        Double adjustedScore = marketDataService.calculateMarketAdjustedScore(
                 baseScore, marketData, true);
 
         // Assert
         assertNotNull(adjustedScore);
-        assertTrue(adjustedScore.compareTo(baseScore) > 0);
+        assertTrue(adjustedScore > baseScore);
     }
 
     @Test
     @DisplayName("Should calculate market-adjusted score with negative adjustment for downtrend")
     void testCalculateMarketAdjustedScore_Downtrend() {
         // Arrange
-        BigDecimal baseScore = new BigDecimal("80");
+        Double baseScore = 80.0;
         MarketDataDto marketData = MarketDataDto.builder()
                 .cropCode("RICE")
                 .trend(PriceTrend.DOWN)
                 .aboveMsp(false)
-                .currentPrice(new BigDecimal("2200"))
-                .msp(new BigDecimal("2300"))
+                .currentPrice(2200.0)
+                .msp(2300.0)
                 .recommendation(PriceRecommendation.HOLD)
                 .build();
 
         // Act
-        BigDecimal adjustedScore = marketDataService.calculateMarketAdjustedScore(
+        Double adjustedScore = marketDataService.calculateMarketAdjustedScore(
                 baseScore, marketData, true);
 
         // Assert
         assertNotNull(adjustedScore);
-        assertTrue(adjustedScore.compareTo(baseScore) < 0);
+        assertTrue(adjustedScore < baseScore);
     }
 
     @Test
     @DisplayName("Should return base score when market data is null")
     void testCalculateMarketAdjustedScore_NullMarketData() {
         // Arrange
-        BigDecimal baseScore = new BigDecimal("80");
+        Double baseScore = 80.0;
 
         // Act
-        BigDecimal adjustedScore = marketDataService.calculateMarketAdjustedScore(
+        Double adjustedScore = marketDataService.calculateMarketAdjustedScore(
                 baseScore, null, true);
 
         // Assert
@@ -129,14 +128,14 @@ class MarketDataServiceTest {
     @DisplayName("Should return base score when includeMarketData is false")
     void testCalculateMarketAdjustedScore_IncludeMarketDataFalse() {
         // Arrange
-        BigDecimal baseScore = new BigDecimal("80");
+        Double baseScore = 80.0;
         MarketDataDto marketData = MarketDataDto.builder()
                 .cropCode("RICE")
                 .trend(PriceTrend.UP)
                 .build();
 
         // Act
-        BigDecimal adjustedScore = marketDataService.calculateMarketAdjustedScore(
+        Double adjustedScore = marketDataService.calculateMarketAdjustedScore(
                 baseScore, marketData, false);
 
         // Assert
@@ -147,17 +146,17 @@ class MarketDataServiceTest {
     @DisplayName("Should calculate expected revenue correctly")
     void testCalculateExpectedRevenue() {
         // Arrange
-        BigDecimal yieldPerAcre = new BigDecimal("25"); // 25 quintals per acre
+        Double yieldPerAcre = 25.0; // 25 quintals per acre
         MarketDataDto marketData = MarketDataDto.builder()
-                .currentPrice(new BigDecimal("2200"))
+                .currentPrice(2200.0)
                 .build();
 
         // Act
-        BigDecimal revenue = marketDataService.calculateExpectedRevenue(yieldPerAcre, marketData);
+        Double revenue = marketDataService.calculateExpectedRevenue(yieldPerAcre, marketData);
 
         // Assert
         assertNotNull(revenue);
-        assertEquals(new BigDecimal("55000"), revenue);
+        assertEquals(55000.0, revenue);
     }
 
     @Test
@@ -165,11 +164,11 @@ class MarketDataServiceTest {
     void testCalculateExpectedRevenue_NullYield() {
         // Arrange
         MarketDataDto marketData = MarketDataDto.builder()
-                .currentPrice(new BigDecimal("2200"))
+                .currentPrice(2200.0)
                 .build();
 
         // Act
-        BigDecimal revenue = marketDataService.calculateExpectedRevenue(null, marketData);
+        Double revenue = marketDataService.calculateExpectedRevenue(null, marketData);
 
         // Assert
         assertNull(revenue);
@@ -183,7 +182,7 @@ class MarketDataServiceTest {
                 .cropCode("RICE")
                 .cropName("Rice")
                 .trend(PriceTrend.UP)
-                .priceChange30Days(new BigDecimal("8"))
+                .priceChange30Days(8.0)
                 .aboveMsp(true)
                 .build();
 
@@ -245,23 +244,24 @@ class MarketDataServiceTest {
     @DisplayName("Should clamp adjusted score to valid range")
     void testCalculateMarketAdjustedScore_Clamping() {
         // Arrange
-        BigDecimal baseScore = new BigDecimal("95");
+        Double baseScore = 95.0;
         MarketDataDto marketData = MarketDataDto.builder()
                 .cropCode("RICE")
                 .trend(PriceTrend.UP)
                 .aboveMsp(true)
-                .currentPrice(new BigDecimal("3000"))
-                .msp(new BigDecimal("2300"))
+                .currentPrice(3000.0)
+                .msp(2300.0)
                 .recommendation(PriceRecommendation.SELL_NOW)
                 .build();
 
         // Act
-        BigDecimal adjustedScore = marketDataService.calculateMarketAdjustedScore(
+        Double adjustedScore = marketDataService.calculateMarketAdjustedScore(
                 baseScore, marketData, true);
 
         // Assert
         assertNotNull(adjustedScore);
-        assertTrue(adjustedScore.compareTo(BigDecimal.ZERO) >= 0);
-        assertTrue(adjustedScore.compareTo(new BigDecimal("100")) <= 0);
+        assertTrue(adjustedScore >= 0.0);
+        assertTrue(adjustedScore <= 100.0);
     }
 }
+

@@ -44,11 +44,6 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     Page<AuditLog> findByEntityTypeOrderByTimestampDesc(String entityType, Pageable pageable);
 
     /**
-     * Find failed audit logs.
-     */
-    List<AuditLog> findByStatusOrderByTimestampDesc(String status);
-
-    /**
      * Count audit logs by action type.
      */
     long countByAction(String action);

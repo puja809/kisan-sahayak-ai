@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,19 +45,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-04", "AEZ-05"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(true).rabi(false).zaid(false).build())
                 .maturityDays(145)
-                .averageYieldQtlHa(new BigDecimal("45"))
-                .potentialYieldQtlHa(new BigDecimal("55"))
+                .averageYieldQtlHa(45.0)
+                .potentialYieldQtlHa(55.0)
                 .characteristics(Arrays.asList("Basmati quality", "Medium slender grain", "Excellent cooking quality"))
                 .diseaseResistance(Arrays.asList("Blast resistant", "Bacterial leaf blight tolerant"))
                 .climateResilience(Arrays.asList("Heat tolerant during flowering"))
-                .waterRequirementMm(new BigDecimal("900"))
+                .waterRequirementMm(900.0)
                 .droughtTolerant(false)
                 .floodTolerant(false)
                 .heatTolerant(true)
-                .seedRateKgHa(new BigDecimal("20"))
+                .seedRateKgHa(20.0)
                 .spacing("20cm x 15cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("45"))
+                .seedCostPerKg(45.0)
                 .build());
 
         SEED_VARIETIES.add(SeedVarietyDto.builder()
@@ -72,19 +72,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-04", "AEZ-05", "AEZ-10"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(true).rabi(false).zaid(false).build())
                 .maturityDays(142)
-                .averageYieldQtlHa(new BigDecimal("48"))
-                .potentialYieldQtlHa(new BigDecimal("60"))
+                .averageYieldQtlHa(48.0)
+                .potentialYieldQtlHa(60.0)
                 .characteristics(Arrays.asList("High yielding", "Long slender grain", "Good cooking quality"))
                 .diseaseResistance(Arrays.asList("Blast moderately resistant"))
                 .climateResilience(Arrays.asList("Tolerant to temperature fluctuations"))
-                .waterRequirementMm(new BigDecimal("1000"))
+                .waterRequirementMm(1000.0)
                 .droughtTolerant(false)
                 .floodTolerant(false)
                 .heatTolerant(true)
-                .seedRateKgHa(new BigDecimal("20"))
+                .seedRateKgHa(20.0)
                 .spacing("20cm x 15cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("40"))
+                .seedCostPerKg(40.0)
                 .build());
 
         SEED_VARIETIES.add(SeedVarietyDto.builder()
@@ -99,19 +99,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-06", "AEZ-07"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(true).rabi(false).zaid(false).build())
                 .maturityDays(150)
-                .averageYieldQtlHa(new BigDecimal("42"))
-                .potentialYieldQtlHa(new BigDecimal("52"))
+                .averageYieldQtlHa(42.0)
+                .potentialYieldQtlHa(52.0)
                 .characteristics(Arrays.asList("Suitable for coastal regions", "Medium slender grain"))
                 .diseaseResistance(Arrays.asList("Blast resistant", "Sheath blight tolerant"))
                 .climateResilience(Arrays.asList("Salt tolerant", "Tolerant to high humidity"))
-                .waterRequirementMm(new BigDecimal("850"))
+                .waterRequirementMm(850.0)
                 .droughtTolerant(false)
                 .floodTolerant(true)
                 .heatTolerant(false)
-                .seedRateKgHa(new BigDecimal("22"))
+                .seedRateKgHa(22.0)
                 .spacing("20cm x 15cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("42"))
+                .seedCostPerKg(42.0)
                 .build());
 
         // Wheat varieties
@@ -127,19 +127,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-04", "AEZ-05", "AEZ-10"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(false).rabi(true).zaid(false).build())
                 .maturityDays(122)
-                .averageYieldQtlHa(new BigDecimal("50"))
-                .potentialYieldQtlHa(new BigDecimal("65"))
+                .averageYieldQtlHa(50.0)
+                .potentialYieldQtlHa(65.0)
                 .characteristics(Arrays.asList("High yielding", "Early maturing", "Good grain quality"))
                 .diseaseResistance(Arrays.asList("Rust resistant", "Powdery mildew tolerant"))
                 .climateResilience(Arrays.asList("Heat tolerant during grain filling"))
-                .waterRequirementMm(new BigDecimal("450"))
+                .waterRequirementMm(450.0)
                 .droughtTolerant(false)
                 .floodTolerant(false)
                 .heatTolerant(true)
-                .seedRateKgHa(new BigDecimal("100"))
+                .seedRateKgHa(100.0)
                 .spacing("22.5cm x 10cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("25"))
+                .seedCostPerKg(25.0)
                 .build());
 
         SEED_VARIETIES.add(SeedVarietyDto.builder()
@@ -154,19 +154,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-04"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(false).rabi(true).zaid(false).build())
                 .maturityDays(135)
-                .averageYieldQtlHa(new BigDecimal("52"))
-                .potentialYieldQtlHa(new BigDecimal("68"))
+                .averageYieldQtlHa(52.0)
+                .potentialYieldQtlHa(68.0)
                 .characteristics(Arrays.asList("Extra bold grain", "High protein content", "Excellent chapatti quality"))
                 .diseaseResistance(Arrays.asList("Rust resistant", "Leaf blight tolerant"))
                 .climateResilience(Arrays.asList("Tolerant to terminal heat stress"))
-                .waterRequirementMm(new BigDecimal("500"))
+                .waterRequirementMm(500.0)
                 .droughtTolerant(false)
                 .floodTolerant(false)
                 .heatTolerant(true)
-                .seedRateKgHa(new BigDecimal("100"))
+                .seedRateKgHa(100.0)
                 .spacing("22.5cm x 10cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("28"))
+                .seedCostPerKg(28.0)
                 .build());
 
         // Cotton varieties
@@ -182,19 +182,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-06", "AEZ-09", "AEZ-10"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(true).rabi(false).zaid(false).build())
                 .maturityDays(160)
-                .averageYieldQtlHa(new BigDecimal("18"))
-                .potentialYieldQtlHa(new BigDecimal("25"))
+                .averageYieldQtlHa(18.0)
+                .potentialYieldQtlHa(25.0)
                 .characteristics(Arrays.asList("Bt technology", "Pink bollworm resistant", "Medium staple"))
                 .diseaseResistance(Arrays.asList("Cotton leaf curl disease tolerant"))
                 .climateResilience(Arrays.asList("Drought tolerant", "Heat tolerant"))
-                .waterRequirementMm(new BigDecimal("550"))
+                .waterRequirementMm(550.0)
                 .droughtTolerant(true)
                 .floodTolerant(false)
                 .heatTolerant(true)
-                .seedRateKgHa(new BigDecimal("1.5"))
+                .seedRateKgHa(1.5)
                 .spacing("90cm x 60cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("850"))
+                .seedCostPerKg(850.0)
                 .build());
 
         // Soybean varieties
@@ -210,19 +210,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-09", "AEZ-10"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(true).rabi(false).zaid(false).build())
                 .maturityDays(95)
-                .averageYieldQtlHa(new BigDecimal("24"))
-                .potentialYieldQtlHa(new BigDecimal("32"))
+                .averageYieldQtlHa(24.0)
+                .potentialYieldQtlHa(32.0)
                 .characteristics(Arrays.asList("Early maturing", "Semi-determinate growth habit", "Bold seed"))
                 .diseaseResistance(Arrays.asList("Mosaic virus resistant", "Rust tolerant"))
                 .climateResilience(Arrays.asList("Drought tolerant", "Low input requirement"))
-                .waterRequirementMm(new BigDecimal("400"))
+                .waterRequirementMm(400.0)
                 .droughtTolerant(true)
                 .floodTolerant(false)
                 .heatTolerant(false)
-                .seedRateKgHa(new BigDecimal("65"))
+                .seedRateKgHa(65.0)
                 .spacing("45cm x 5cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("55"))
+                .seedCostPerKg(55.0)
                 .build());
 
         // Groundnut varieties
@@ -238,19 +238,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-06", "AEZ-07", "AEZ-08"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(true).rabi(false).zaid(true).build())
                 .maturityDays(110)
-                .averageYieldQtlHa(new BigDecimal("28"))
-                .potentialYieldQtlHa(new BigDecimal("38"))
+                .averageYieldQtlHa(28.0)
+                .potentialYieldQtlHa(38.0)
                 .characteristics(Arrays.asList("Spanish bunch type", "Bold kernels", "High oil content"))
                 .diseaseResistance(Arrays.asList("Tikka disease tolerant", "Rust tolerant"))
                 .climateResilience(Arrays.asList("Drought tolerant", "Heat tolerant"))
-                .waterRequirementMm(new BigDecimal("450"))
+                .waterRequirementMm(450.0)
                 .droughtTolerant(true)
                 .floodTolerant(false)
                 .heatTolerant(true)
-                .seedRateKgHa(new BigDecimal("120"))
+                .seedRateKgHa(120.0)
                 .spacing("30cm x 10cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("65"))
+                .seedCostPerKg(65.0)
                 .build());
 
         // Mustard varieties
@@ -266,19 +266,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-04", "AEZ-05", "AEZ-09", "AEZ-10"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(false).rabi(true).zaid(false).build())
                 .maturityDays(110)
-                .averageYieldQtlHa(new BigDecimal("18"))
-                .potentialYieldQtlHa(new BigDecimal("25"))
+                .averageYieldQtlHa(18.0)
+                .potentialYieldQtlHa(25.0)
                 .characteristics(Arrays.asList("High yielding", "Bold seed", "High oil content (40%)"))
                 .diseaseResistance(Arrays.asList("Alternaria blight tolerant", "White rust tolerant"))
                 .climateResilience(Arrays.asList("Heat tolerant", "Cold tolerant"))
-                .waterRequirementMm(new BigDecimal("350"))
+                .waterRequirementMm(350.0)
                 .droughtTolerant(true)
                 .floodTolerant(false)
                 .heatTolerant(true)
-                .seedRateKgHa(new BigDecimal("5"))
+                .seedRateKgHa(5.0)
                 .spacing("45cm x 15cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("120"))
+                .seedCostPerKg(120.0)
                 .build());
 
         // Maize varieties
@@ -294,19 +294,19 @@ public class SeedVarietyService {
                 .suitableZones(Arrays.asList("AEZ-04", "AEZ-05"))
                 .seasonSuitability(SeasonSuitability.builder().kharif(true).rabi(false).zaid(true).build())
                 .maturityDays(95)
-                .averageYieldQtlHa(new BigDecimal("45"))
-                .potentialYieldQtlHa(new BigDecimal("60"))
+                .averageYieldQtlHa(45.0)
+                .potentialYieldQtlHa(60.0)
                 .characteristics(Arrays.asList("Single cross hybrid", "Yellow flinty grain", "High starch content"))
                 .diseaseResistance(Arrays.asList("Maydis leaf blight resistant", "Turcicum leaf blight tolerant"))
                 .climateResilience(Arrays.asList("Heat tolerant during flowering"))
-                .waterRequirementMm(new BigDecimal("500"))
+                .waterRequirementMm(500.0)
                 .droughtTolerant(false)
                 .floodTolerant(false)
                 .heatTolerant(true)
-                .seedRateKgHa(new BigDecimal("20"))
+                .seedRateKgHa(20.0)
                 .spacing("60cm x 20cm")
                 .isAvailable(true)
-                .seedCostPerKg(new BigDecimal("250"))
+                .seedCostPerKg(250.0)
                 .build());
     }
 
@@ -455,3 +455,11 @@ public class SeedVarietyService {
                 .collect(Collectors.toList());
     }
 }
+
+
+
+
+
+
+
+

@@ -2,7 +2,7 @@ package com.farmer.user.dto;
 
 import lombok.*;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -78,13 +78,13 @@ public class ProfileDashboardResponse {
     @AllArgsConstructor
     @Builder
     public static class FinancialSummary {
-        private BigDecimal totalInputCosts;
-        private BigDecimal totalRevenue;
-        private BigDecimal profitLoss;
+        private Double totalInputCosts;
+        private Double totalRevenue;
+        private Double profitLoss;
         private Double profitMargin;
-        private BigDecimal currentSeasonInputCosts;
-        private BigDecimal currentSeasonRevenue;
-        private BigDecimal currentSeasonProfitLoss;
+        private Double currentSeasonInputCosts;
+        private Double currentSeasonRevenue;
+        private Double currentSeasonProfitLoss;
     }
 
     /**

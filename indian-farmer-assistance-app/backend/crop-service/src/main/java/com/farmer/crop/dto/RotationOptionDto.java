@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -24,17 +23,17 @@ public class RotationOptionDto {
     private String description;
     
     // Benefit scores (0-100)
-    private BigDecimal soilHealthBenefit;
-    private BigDecimal climateResilience;
-    private BigDecimal economicViability;
+    private Double soilHealthBenefit;
+    private Double climateResilience;
+    private Double economicViability;
     
     // Component scores
-    private BigDecimal nutrientCyclingScore;
-    private BigDecimal pestManagementScore;
-    private BigDecimal waterUsageScore;
+    private Double nutrientCyclingScore;
+    private Double pestManagementScore;
+    private Double waterUsageScore;
     
     // Overall benefit score
-    private BigDecimal overallBenefitScore;
+    private Double overallBenefitScore;
     
     // Season information
     private String kharifCrops;

@@ -2,7 +2,7 @@ package com.farmer.scheme.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -49,8 +49,8 @@ public class Scheme {
     @Column(name = "eligibility_criteria", columnDefinition = "JSON")
     private String eligibilityCriteria;
 
-    @Column(name = "benefit_amount", precision = 12, scale = 2)
-    private BigDecimal benefitAmount;
+    @Column(name = "benefit_amount")
+    private Double benefitAmount;
 
     @Column(name = "benefit_description", columnDefinition = "TEXT")
     private String benefitDescription;
@@ -82,11 +82,11 @@ public class Scheme {
     @Column(name = "applicable_crops", length = 500)
     private String applicableCrops;
 
-    @Column(name = "subsidy_percentage", precision = 5, scale = 2)
-    private BigDecimal subsidyPercentage;
+    @Column(name = "subsidy_percentage")
+    private Double subsidyPercentage;
 
-    @Column(name = "max_benefit_amount", precision = 12, scale = 2)
-    private BigDecimal maxBenefitAmount;
+    @Column(name = "max_benefit_amount")
+    private Double maxBenefitAmount;
 
     @Column(name = "landholding_requirement", length = 100)
     private String landholdingRequirement;

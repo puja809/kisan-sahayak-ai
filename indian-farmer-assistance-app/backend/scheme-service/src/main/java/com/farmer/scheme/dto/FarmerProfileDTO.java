@@ -1,7 +1,7 @@
 package com.farmer.scheme.dto;
 
 import lombok.*;
-import java.math.BigDecimal;
+
 import java.util.List;
 
 /**
@@ -29,7 +29,7 @@ public class FarmerProfileDTO {
      * Used for landholding-based eligibility criteria.
      * Requirements: 4.4
      */
-    private BigDecimal totalLandholdingAcres;
+    private Double totalLandholdingAcres;
     
     /**
      * List of crops currently or recently cultivated by the farmer.
@@ -91,7 +91,7 @@ public class FarmerProfileDTO {
      * Annual income of the farmer in INR.
      * Used for income-based eligibility criteria.
      */
-    private BigDecimal annualIncome;
+    private Double annualIncome;
     
     /**
      * Whether the farmer has Kisan Credit Card.

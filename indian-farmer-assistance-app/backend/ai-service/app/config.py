@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # MongoDB Configuration
-    mongodb_uri: str = Field(default="mongodb://localhost:27017", description="MongoDB connection URI")
+    mongodb_uri: str = Field(default="mongodb+srv://kisan-sahayak-user:Kisan@123@cluster0.efsc2bd.mongodb.net/indian_farmer_app?appName=Cluster0", description="MongoDB connection URI")
     mongodb_database: str = Field(default="indian_farmer_app", description="MongoDB database name")
     mongodb_collection_documents: str = Field(default="documents", description="Documents collection name")
     mongodb_collection_voice_conversations: str = Field(default="voice_conversations", description="Voice conversations collection name")

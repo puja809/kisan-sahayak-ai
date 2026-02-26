@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -52,7 +51,7 @@ public class FertilizerRecommendationRequestDto {
     /**
      * Area in acres
      */
-    private BigDecimal areaAcres;
+    private Double areaAcres;
 
     /**
      * Agro-ecological zone code
@@ -97,5 +96,5 @@ public class FertilizerRecommendationRequestDto {
     /**
      * Target yield in quintals per acre
      */
-    private BigDecimal targetYield;
+    private Double targetYield;
 }

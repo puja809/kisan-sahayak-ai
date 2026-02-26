@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -65,14 +64,14 @@ public class FertilizerApplication {
     /**
      * Quantity of fertilizer applied in kg
      */
-    @Column(name = "quantity_kg", nullable = false, precision = 10, scale = 2)
-    private BigDecimal quantityKg;
+    @Column(name = "quantity_kg", nullable = false)
+    private Double quantityKg;
 
     /**
      * Area in acres where fertilizer was applied
      */
-    @Column(name = "area_acres", precision = 10, scale = 2)
-    private BigDecimal areaAcres;
+    @Column(name = "area_acres")
+    private Double areaAcres;
 
     /**
      * Date of application
@@ -89,38 +88,38 @@ public class FertilizerApplication {
     /**
      * Cost of fertilizer in INR
      */
-    @Column(name = "cost", precision = 10, scale = 2)
-    private BigDecimal cost;
+    @Column(name = "cost")
+    private Double cost;
 
     /**
      * Nitrogen content percentage (0-100)
      */
-    @Column(name = "nitrogen_percent", precision = 5, scale = 2)
-    private BigDecimal nitrogenPercent;
+    @Column(name = "nitrogen_percent")
+    private Double nitrogenPercent;
 
     /**
      * Phosphorus content percentage (0-100)
      */
-    @Column(name = "phosphorus_percent", precision = 5, scale = 2)
-    private BigDecimal phosphorusPercent;
+    @Column(name = "phosphorus_percent")
+    private Double phosphorusPercent;
 
     /**
      * Potassium content percentage (0-100)
      */
-    @Column(name = "potassium_percent", precision = 5, scale = 2)
-    private BigDecimal potassiumPercent;
+    @Column(name = "potassium_percent")
+    private Double potassiumPercent;
 
     /**
      * Sulfur content percentage (0-100) - secondary nutrient
      */
-    @Column(name = "sulfur_percent", precision = 5, scale = 2)
-    private BigDecimal sulfurPercent;
+    @Column(name = "sulfur_percent")
+    private Double sulfurPercent;
 
     /**
      * Zinc content percentage (0-100) - micronutrient
      */
-    @Column(name = "zinc_percent", precision = 5, scale = 2)
-    private BigDecimal zincPercent;
+    @Column(name = "zinc_percent")
+    private Double zincPercent;
 
     /**
      * Source of recommendation (soil_test, default, ai)
@@ -160,34 +159,31 @@ public class FertilizerApplication {
     /**
      * Calculate total nitrogen applied in kg
      */
-    public BigDecimal getNitrogenKg() {
+    public Double getNitrogenKg() {
         if (quantityKg == null || nitrogenPercent == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
-        return quantityKg.multiply(nitrogenPercent)
-                .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+        return (quantityKg * nitrogenPercent) / 100.0;
     }
 
     /**
      * Calculate total phosphorus applied in kg
      */
-    public BigDecimal getPhosphorusKg() {
+    public Double getPhosphorusKg() {
         if (quantityKg == null || phosphorusPercent == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
-        return quantityKg.multiply(phosphorusPercent)
-                .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+        return (quantityKg * phosphorusPercent) / 100.0;
     }
 
     /**
      * Calculate total potassium applied in kg
      */
-    public BigDecimal getPotassiumKg() {
+    public Double getPotassiumKg() {
         if (quantityKg == null || potassiumPercent == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
-        return quantityKg.multiply(potassiumPercent)
-                .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+        return (quantityKg * potassiumPercent) / 100.0;
     }
 
     /**

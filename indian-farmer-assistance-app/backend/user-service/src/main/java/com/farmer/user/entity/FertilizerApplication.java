@@ -2,7 +2,6 @@ package com.farmer.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -36,8 +35,8 @@ public class FertilizerApplication {
     @Column(name = "fertilizer_category")
     private FertilizerCategory fertilizerCategory;
 
-    @Column(name = "quantity_kg", nullable = false, precision = 10, scale = 2)
-    private BigDecimal quantityKg;
+    @Column(name = "quantity_kg", nullable = false)
+    private Double quantityKg;
 
     @Column(name = "application_date", nullable = false)
     private LocalDate applicationDate;
@@ -45,17 +44,17 @@ public class FertilizerApplication {
     @Column(name = "application_stage", length = 50)
     private String applicationStage;
 
-    @Column(name = "cost", precision = 10, scale = 2)
-    private BigDecimal cost;
+    @Column(name = "cost")
+    private Double cost;
 
-    @Column(name = "nitrogen_content_percent", precision = 5, scale = 2)
-    private BigDecimal nitrogenContentPercent;
+    @Column(name = "nitrogen_content_percent")
+    private Double nitrogenContentPercent;
 
-    @Column(name = "phosphorus_content_percent", precision = 5, scale = 2)
-    private BigDecimal phosphorusContentPercent;
+    @Column(name = "phosphorus_content_percent")
+    private Double phosphorusContentPercent;
 
-    @Column(name = "potassium_content_percent", precision = 5, scale = 2)
-    private BigDecimal potassiumContentPercent;
+    @Column(name = "potassium_content_percent")
+    private Double potassiumContentPercent;
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
@@ -77,30 +76,30 @@ public class FertilizerApplication {
     /**
      * Calculate nitrogen content in kg.
      */
-    public BigDecimal getNitrogenKg() {
+    public Double getNitrogenKg() {
         if (quantityKg == null || nitrogenContentPercent == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
-        return quantityKg.multiply(nitrogenContentPercent).divide(BigDecimal.valueOf(100));
+        return quantityKg * nitrogenContentPercent / 100.0;
     }
 
     /**
      * Calculate phosphorus content in kg.
      */
-    public BigDecimal getPhosphorusKg() {
+    public Double getPhosphorusKg() {
         if (quantityKg == null || phosphorusContentPercent == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
-        return quantityKg.multiply(phosphorusContentPercent).divide(BigDecimal.valueOf(100));
+        return quantityKg * phosphorusContentPercent / 100.0;
     }
 
     /**
      * Calculate potassium content in kg.
      */
-    public BigDecimal getPotassiumKg() {
+    public Double getPotassiumKg() {
         if (quantityKg == null || potassiumContentPercent == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
-        return quantityKg.multiply(potassiumContentPercent).divide(BigDecimal.valueOf(100));
+        return quantityKg * potassiumContentPercent / 100.0;
     }
 }

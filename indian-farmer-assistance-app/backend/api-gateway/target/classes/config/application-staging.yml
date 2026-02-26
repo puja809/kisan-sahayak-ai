@@ -6,10 +6,10 @@ spring:
     activate:
       on-profile: staging
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:staging-mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:farmer_staging}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: ${MYSQL_USER:farmer_app}
-    password: ${MYSQL_PASSWORD:${STAGING_DB_PASSWORD}}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:postgresql://postgres-devmistri-woodmistri.l.aivencloud.com:27847/farmer_staging?sslmode=require
+    username: avnadmin
+    password: AVNS_PwVwi4E8Z93rTJBjvXd
+    driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 10
       maximum-pool-size: 50
@@ -22,15 +22,14 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     mongodb:
-      uri: mongodb://${MONGODB_USER:admin}:${MONGODB_PASSWORD}@${MONGODB_HOST:staging-mongodb}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:farmer_staging}?authSource=admin
+      uri: mongodb+srv://kisan-sahayak-user:Kisan@123@cluster0.efsc2bd.mongodb.net/farmer_staging?appName=Cluster0
       auto-index-creation: true
     redis:
-      host: ${REDIS_HOST:staging-redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      url: rediss://default:AVNS_yEYyYRBao3uwcQsJb2l@woodmistri-redis-woodmistri.e.aivencloud.com:27848
+      database: 2
 
 # Application Settings
 app:

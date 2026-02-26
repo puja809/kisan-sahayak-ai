@@ -1,4 +1,6 @@
 com\farmer\scheme\AdminSchemeControllerTest.class
+com\farmer\scheme\DeadlineNotificationTimingPropertyTest$1.class
+com\farmer\scheme\DeadlineNotificationTimingPropertyTest.class
 com\farmer\scheme\StateBasedSchemeFilteringPropertyTest.class
 com\farmer\scheme\DeadlineNotificationServiceTest.class
 com\farmer\scheme\SchemeApplicationServiceTest.class

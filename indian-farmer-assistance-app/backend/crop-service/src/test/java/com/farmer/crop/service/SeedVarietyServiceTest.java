@@ -249,3 +249,4 @@ class SeedVarietyServiceTest {
         assertTrue(varieties.stream().allMatch(v -> v.getMaturityDays() != null && v.getMaturityDays() > 0));
     }
 }
+

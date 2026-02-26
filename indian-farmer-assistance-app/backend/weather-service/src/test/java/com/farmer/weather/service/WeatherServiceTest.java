@@ -1,6 +1,6 @@
 package com.farmer.weather.service;
 
-import com.farmer.weather.client.ImdApiClient;
+import com.farmer.weather.client.WeatherApiClient;
 import com.farmer.weather.dto.*;
 import com.farmer.weather.entity.WeatherCache;
 import com.farmer.weather.repository.WeatherCacheRepository;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
 class WeatherServiceTest {
 
     @Mock
-    private ImdApiClient imdApiClient;
+    private WeatherApiClient weatherApiClient;
 
     @Mock
     private WeatherCacheService weatherCacheService;
@@ -54,7 +54,7 @@ class WeatherServiceTest {
     @BeforeEach
     void setUp() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        weatherService = new WeatherService(imdApiClient, weatherCacheService, weatherCacheRepository);
+        weatherService = new WeatherService(weatherApiClient, weatherCacheService, weatherCacheRepository);
     }
 
     @Test
@@ -79,7 +79,7 @@ class WeatherServiceTest {
 
         when(weatherCacheService.getCachedSevenDayForecast(anyString(), anyString()))
             .thenReturn(Optional.empty());
-        when(imdApiClient.getSevenDayForecast(anyString(), anyString()))
+        when(weatherApiClient.getSevenDayForecast(anyString(), anyString()))
             .thenReturn(Mono.just(forecast));
 
         // Act & Assert
@@ -89,7 +89,7 @@ class WeatherServiceTest {
                 result.getForecastDays().size() == 1)
             .verifyComplete();
 
-        verify(imdApiClient).getSevenDayForecast(district, state);
+        verify(weatherApiClient).getSevenDayForecast(district, state);
         verify(weatherCacheService).cacheSevenDayForecast(eq(district), eq(state), any(SevenDayForecastDto.class));
     }
 
@@ -123,7 +123,7 @@ class WeatherServiceTest {
                 result.getCacheTimestamp() != null)
             .verifyComplete();
 
-        verify(imdApiClient, never()).getSevenDayForecast(anyString(), anyString());
+        verify(weatherApiClient, never()).getSevenDayForecast(anyString(), anyString());
     }
 
     @Test
@@ -145,7 +145,7 @@ class WeatherServiceTest {
 
         when(weatherCacheService.getCachedCurrentWeather(anyString(), anyString()))
             .thenReturn(Optional.empty());
-        when(imdApiClient.getCurrentWeather(anyString(), anyString()))
+        when(weatherApiClient.getCurrentWeather(anyString(), anyString()))
             .thenReturn(Mono.just(currentWeather));
 
         // Act & Assert
@@ -183,7 +183,7 @@ class WeatherServiceTest {
                 result.getCacheTimestamp() != null)
             .verifyComplete();
 
-        verify(imdApiClient, never()).getCurrentWeather(anyString(), anyString());
+        verify(weatherApiClient, never()).getCurrentWeather(anyString(), anyString());
     }
 
     @Test
@@ -204,7 +204,7 @@ class WeatherServiceTest {
 
         when(weatherCacheService.getCachedNowcast(anyString(), anyString()))
             .thenReturn(Optional.empty());
-        when(imdApiClient.getNowcast(anyString(), anyString()))
+        when(weatherApiClient.getNowcast(anyString(), anyString()))
             .thenReturn(Mono.just(nowcast));
 
         // Act & Assert
@@ -241,7 +241,7 @@ class WeatherServiceTest {
                 result.getCacheTimestamp() != null)
             .verifyComplete();
 
-        verify(imdApiClient, never()).getNowcast(anyString(), anyString());
+        verify(weatherApiClient, never()).getNowcast(anyString(), anyString());
     }
 
     @Test
@@ -261,7 +261,7 @@ class WeatherServiceTest {
 
         when(weatherCacheService.getCachedWeatherAlerts(anyString(), anyString()))
             .thenReturn(Optional.empty());
-        when(imdApiClient.getWeatherAlerts(anyString(), anyString()))
+        when(weatherApiClient.getWeatherAlerts(anyString(), anyString()))
             .thenReturn(Mono.just(alerts));
 
         // Act & Assert
@@ -297,7 +297,7 @@ class WeatherServiceTest {
                 result.getCacheTimestamp() != null)
             .verifyComplete();
 
-        verify(imdApiClient, never()).getWeatherAlerts(anyString(), anyString());
+        verify(weatherApiClient, never()).getWeatherAlerts(anyString(), anyString());
     }
 
     @Test
@@ -318,7 +318,7 @@ class WeatherServiceTest {
 
         when(weatherCacheService.getCachedRainfallStats(anyString(), anyString()))
             .thenReturn(Optional.empty());
-        when(imdApiClient.getRainfallStats(anyString(), anyString()))
+        when(weatherApiClient.getRainfallStats(anyString(), anyString()))
             .thenReturn(Mono.just(stats));
 
         // Act & Assert
@@ -356,7 +356,7 @@ class WeatherServiceTest {
                 result.getCacheTimestamp() != null)
             .verifyComplete();
 
-        verify(imdApiClient, never()).getRainfallStats(anyString(), anyString());
+        verify(weatherApiClient, never()).getRainfallStats(anyString(), anyString());
     }
 
     @Test
@@ -384,7 +384,7 @@ class WeatherServiceTest {
 
         when(weatherCacheService.getCachedAgrometAdvisories(anyString(), anyString()))
             .thenReturn(Optional.empty());
-        when(imdApiClient.getAgrometAdvisories(anyString(), anyString()))
+        when(weatherApiClient.getAgrometAdvisories(anyString(), anyString()))
             .thenReturn(Mono.just(advisories));
 
         // Act & Assert
@@ -421,7 +421,7 @@ class WeatherServiceTest {
                 result.getCacheTimestamp() != null)
             .verifyComplete();
 
-        verify(imdApiClient, never()).getAgrometAdvisories(anyString(), anyString());
+        verify(weatherApiClient, never()).getAgrometAdvisories(anyString(), anyString());
     }
 
     @Test
@@ -443,7 +443,7 @@ class WeatherServiceTest {
                 .build())
             .build();
 
-        when(imdApiClient.getAwsArgData(anyString(), anyString()))
+        when(weatherApiClient.getAwsArgData(anyString(), anyString()))
             .thenReturn(Mono.just(List.of(awsData)));
 
         // Act & Assert
@@ -471,7 +471,7 @@ class WeatherServiceTest {
 
         when(weatherCacheService.getCachedSevenDayForecast(anyString(), anyString()))
             .thenReturn(Optional.empty());
-        when(imdApiClient.getSevenDayForecast(anyString(), anyString()))
+        when(weatherApiClient.getSevenDayForecast(anyString(), anyString()))
             .thenReturn(Mono.error(new RuntimeException("API error")));
         when(weatherCacheRepository.findByDistrictAndStateAndForecastType(
             anyString(), anyString(), anyString()))

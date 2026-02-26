@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 import java.time.LocalDateTime;
 
 /**
@@ -54,13 +55,13 @@ public class DistrictZoneMapping {
     /**
      * Latitude of district center (for GPS-based lookup)
      */
-    @Column(name = "latitude", precision = 10, scale = 6)
+    @Column(name = "latitude")
     private Double latitude;
 
     /**
      * Longitude of district center (for GPS-based lookup)
      */
-    @Column(name = "longitude", precision = 11, scale = 6)
+    @Column(name = "longitude")
     private Double longitude;
 
     /**

@@ -61,14 +61,13 @@ public interface YieldPredictionRepository extends JpaRepository<YieldPrediction
      * Find predictions with significant variance (>20% deviation).
      */
     @Query("SELECT y FROM YieldPrediction y WHERE y.variancePercent IS NOT NULL AND ABS(y.variancePercent) > :threshold")
-    List<YieldPrediction> findPredictionsWithSignificantVariance(@Param("threshold") java.math.BigDecimal threshold);
+    List<YieldPrediction> findPredictionsWithSignificantVariance(@Param("threshold") Double threshold);
 
     /**
-     * Calculate average variance for a specific crop type.
+     * Calculate average variance for a specific crop ID.
      */
-    @Query("SELECT AVG(ABS(y.variancePercent)) FROM YieldPrediction y WHERE y.cropId IN " +
-           "(SELECT c.id FROM Crop c WHERE c.cropName = :cropName) AND y.variancePercent IS NOT NULL")
-    java.math.BigDecimal calculateAverageVarianceForCrop(@Param("cropName") String cropName);
+    @Query("SELECT AVG(ABS(y.variancePercent)) FROM YieldPrediction y WHERE y.cropId = :cropId AND y.variancePercent IS NOT NULL")
+    Double calculateAverageVarianceForCrop(@Param("cropId") Long cropId);
 
     /**
      * Find predictions that need notification (significant deviation from previous).
@@ -94,10 +93,10 @@ public interface YieldPredictionRepository extends JpaRepository<YieldPrediction
      * Calculate average actual yield for a farmer's specific crop.
      */
     @Query("SELECT AVG(y.actualYieldQuintals) FROM YieldPrediction y WHERE y.farmerId = :farmerId " +
-           "AND y.cropId IN (SELECT c.id FROM Crop c WHERE c.cropName = :cropName) AND y.actualYieldQuintals IS NOT NULL")
-    java.math.BigDecimal calculateAverageActualYieldForFarmerAndCrop(
+           "AND y.cropId = :cropId AND y.actualYieldQuintals IS NOT NULL")
+    Double calculateAverageActualYieldForFarmerAndCrop(
             @Param("farmerId") String farmerId, 
-            @Param("cropName") String cropName);
+            @Param("cropId") Long cropId);
 
     /**
      * Find recent predictions for a farmer's crops.

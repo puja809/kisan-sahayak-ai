@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -57,33 +57,33 @@ public interface FertilizerApplicationRepository extends JpaRepository<Fertilize
      */
     @Query("SELECT COALESCE(SUM(f.nitrogenPercent * f.quantityKg / 100), 0) " +
            "FROM FertilizerApplication f WHERE f.cropId = :cropId")
-    BigDecimal calculateTotalNitrogenForCrop(@Param("cropId") Long cropId);
+    Double calculateTotalNitrogenForCrop(@Param("cropId") Long cropId);
 
     /**
      * Calculate total phosphorus applied for a crop
      */
     @Query("SELECT COALESCE(SUM(f.phosphorusPercent * f.quantityKg / 100), 0) " +
            "FROM FertilizerApplication f WHERE f.cropId = :cropId")
-    BigDecimal calculateTotalPhosphorusForCrop(@Param("cropId") Long cropId);
+    Double calculateTotalPhosphorusForCrop(@Param("cropId") Long cropId);
 
     /**
      * Calculate total potassium applied for a crop
      */
     @Query("SELECT COALESCE(SUM(f.potassiumPercent * f.quantityKg / 100), 0) " +
            "FROM FertilizerApplication f WHERE f.cropId = :cropId")
-    BigDecimal calculateTotalPotassiumForCrop(@Param("cropId") Long cropId);
+    Double calculateTotalPotassiumForCrop(@Param("cropId") Long cropId);
 
     /**
      * Calculate total cost for a crop
      */
     @Query("SELECT COALESCE(SUM(f.cost), 0) FROM FertilizerApplication f WHERE f.cropId = :cropId")
-    BigDecimal calculateTotalCostForCrop(@Param("cropId") Long cropId);
+    Double calculateTotalCostForCrop(@Param("cropId") Long cropId);
 
     /**
      * Calculate total quantity for a crop
      */
     @Query("SELECT COALESCE(SUM(f.quantityKg), 0) FROM FertilizerApplication f WHERE f.cropId = :cropId")
-    BigDecimal calculateTotalQuantityForCrop(@Param("cropId") Long cropId);
+    Double calculateTotalQuantityForCrop(@Param("cropId") Long cropId);
 
     /**
      * Get nutrient summary for a crop

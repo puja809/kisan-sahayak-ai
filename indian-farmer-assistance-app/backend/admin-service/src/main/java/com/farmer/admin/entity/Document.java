@@ -3,7 +3,6 @@ package com.farmer.admin.entity;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
@@ -15,7 +14,7 @@ import java.util.List;
  * 
  * Requirements: 21.3, 21.4, 21.5, 21.6, 21.7, 21.11
  */
-@Document(collection = "sess_c05a946fe_documents")
+@org.springframework.data.mongodb.core.mapping.Document(collection = "sess_c05a946fe_documents")
 @Getter
 @Setter
 @NoArgsConstructor

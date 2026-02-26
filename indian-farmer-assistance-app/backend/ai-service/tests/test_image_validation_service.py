@@ -202,8 +202,15 @@ class TestImageValidationService:
 
     def test_check_lighting_good(self, image_validation_service):
         """Test lighting check with good lighting."""
-        # Create an image with good lighting
+        # Create an image with good lighting and contrast
         img = Image.new("RGB", (500, 500), color=(128, 128, 128))
+        # Add some variation to create contrast
+        for i in range(100, 400):
+            for j in range(100, 400):
+                if (i + j) % 2 == 0:
+                    img.putpixel((i, j), (100, 100, 100))
+                else:
+                    img.putpixel((i, j), (150, 150, 150))
         
         brightness, contrast, is_poor = image_validation_service.check_lighting(img)
         assert brightness > ImageValidationService.MIN_BRIGHTNESS

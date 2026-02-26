@@ -1,5 +1,6 @@
 package com.farmer.user;
 
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +13,9 @@ import java.util.Map;
 /**
  * Test controller for RBAC property testing.
  * Provides endpoints with different access levels to test role-based access control.
+ * Only loaded during tests via @WebMvcTest.
  */
+@TestComponent
 @RestController
 @RequestMapping("/api/v1")
 public class TestController {

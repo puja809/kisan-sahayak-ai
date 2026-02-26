@@ -5,7 +5,7 @@ import com.farmer.crop.enums.CropFamily;
 import net.jqwik.api.*;
 import org.junit.jupiter.api.BeforeEach;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -102,7 +102,7 @@ class RotationRecommendationPropertyTest {
     @Property
     @Label("Rice-based system detection should be consistent for same input")
     void riceSystemDetectionShouldBeConsistent(
-            @ForAll List<CropHistoryEntryDto> history
+            @ForAll("validCropHistory") List<CropHistoryEntryDto> history
     ) {
         boolean hasRice = history.stream()
                 .anyMatch(e -> "Rice".equalsIgnoreCase(e.getCropName()) || 
@@ -239,7 +239,7 @@ class RotationRecommendationPropertyTest {
 
         if (!deepRootedOptions.isEmpty()) {
             for (RotationOptionDto option : deepRootedOptions) {
-                assertTrue(option.getNutrientCyclingScore().compareTo(new BigDecimal("70")) > 0,
+                assertTrue(option.getNutrientCyclingScore().compareTo(70.0) > 0,
                         "Deep-rooted after shallow should have high nutrient cycling score");
             }
         }
@@ -397,7 +397,7 @@ class RotationRecommendationPropertyTest {
                                 .cropVariety("Common")
                                 .sowingDate(baseDate.minusMonths((long) (j + 1) * 4))
                                 .expectedHarvestDate(baseDate.minusMonths((long) j * 4))
-                                .areaAcres(new BigDecimal("2.5"))
+                                .areaAcres(2.5)
                                 .season(j % 2 == 0 ? "KHARIF" : "RABI")
                                 .status("HARVESTED")
                                 .cropFamily(CropFamily.getFamilyForCrop(cropName))
@@ -411,10 +411,10 @@ class RotationRecommendationPropertyTest {
 
     // Helper methods
 
-    private boolean isValidScore(BigDecimal score) {
+    private boolean isValidScore(Double score) {
         return score != null && 
-                score.compareTo(BigDecimal.ZERO) >= 0 && 
-                score.compareTo(new BigDecimal("100")) <= 0;
+                score.compareTo(0.0) >= 0 && 
+                score.compareTo(100.0) <= 0;
     }
 
     private boolean hasConsecutiveSameFamily(List<CropHistoryEntryDto> history, int threshold) {
@@ -434,3 +434,4 @@ class RotationRecommendationPropertyTest {
         return false;
     }
 }
+

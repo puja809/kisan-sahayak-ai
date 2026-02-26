@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -129,8 +129,8 @@ class RotationRecommendationEngineTest {
                     .filter(opt -> opt.getCropSequence().contains("Sunflower"))
                     .findFirst()
                     .ifPresent(opt -> {
-                        assertTrue(opt.getNutrientCyclingScore().compareTo(BigDecimal.ZERO) > 0);
-                        assertTrue(opt.getNutrientCyclingScore().compareTo(new BigDecimal("80")) > 0,
+                        assertTrue(opt.getNutrientCyclingScore().compareTo(0.0) > 0);
+                        assertTrue(opt.getNutrientCyclingScore().compareTo(80.0) > 0,
                                 "Alternating depths should have high nutrient cycling score");
                     });
         }
@@ -636,7 +636,7 @@ class RotationRecommendationEngineTest {
                 .cropVariety("Common")
                 .sowingDate(sowingDate)
                 .expectedHarvestDate(sowingDate.plusMonths(4))
-                .areaAcres(new BigDecimal("2.5"))
+                .areaAcres(2.5)
                 .season(season)
                 .status("HARVESTED")
                 .cropFamily(CropFamily.getFamilyForCrop(cropName))
@@ -644,3 +644,4 @@ class RotationRecommendationEngineTest {
                 .build();
     }
 }
+

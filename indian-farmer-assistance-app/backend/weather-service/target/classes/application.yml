@@ -1,34 +1,44 @@
 server:
-  port: 8082
+  port: ${WEATHER_SERVICE_PORT:8100}
 
 spring:
   application:
     name: weather-service
   datasource:
-    url: jdbc:mysql://localhost:3306/farmer_assistance
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:password}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${WEATHER_DB_URL:jdbc:postgresql://localhost:5432/farmer_assistance}
+    username: ${WEATHER_DB_USERNAME:postgres}
+    password: ${WEATHER_DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   data:
     redis:
-      host: localhost
-      port: 6379
+      url: ${WEATHER_REDIS_URL:redis://localhost:6379}
+      database: 7
 
-# IMD API Configuration
-imd:
-  api:
-    base-url: https://api.imd.gov.in
-    key: ${IMD_API_KEY:}
-    timeout-seconds: 30
-    rate-limit-requests-per-minute: 60
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# WeatherAPI Configuration
+weatherapi:
+  base-url: https://api.weatherapi.com/v1
+  api-key: ${WEATHER_API_KEY:your_api_key_here}
 
 # Weather Service Configuration
 weather:
@@ -51,3 +61,17 @@ logging:
     com.farmer.weather: DEBUG
     org.springframework.web.reactive: INFO
     reactor.netty: INFO
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+  show-actuator: true
+  use-fqn: true

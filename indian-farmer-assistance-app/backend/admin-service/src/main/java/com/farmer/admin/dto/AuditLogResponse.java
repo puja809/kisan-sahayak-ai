@@ -23,7 +23,6 @@ public class AuditLogResponse {
     private String oldValue;
     private String newValue;
     private String ipAddress;
+    private String userAgent;
     private LocalDateTime timestamp;
-    private String status;
-    private String errorMessage;
 }

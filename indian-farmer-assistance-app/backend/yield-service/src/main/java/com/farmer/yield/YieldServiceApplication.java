@@ -1,7 +1,11 @@
 package com.farmer.yield;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -22,6 +26,15 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @SpringBootApplication
 @EnableTransactionManagement
+@EnableDiscoveryClient
+@OpenAPIDefinition(
+    info = @Info(
+        title = "Yield Prediction Service API",
+        version = "1.0.0",
+        description = "Yield prediction service with ML-based estimation and variance tracking",
+        contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")
+    )
+)
 public class YieldServiceApplication {
 
     public static void main(String[] args) {

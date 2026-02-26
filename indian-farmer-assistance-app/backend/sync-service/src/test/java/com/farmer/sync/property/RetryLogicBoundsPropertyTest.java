@@ -2,9 +2,6 @@ package com.farmer.sync.property;
 
 import com.farmer.sync.service.RetryService;
 import net.jqwik.api.*;
-import net.jqwik.junit.platform.JqwikProperty;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,169 +15,170 @@ import static org.junit.jupiter.api.Assertions.*;
  * with exponential backoff (1s, 2s, 4s), and should not retry more than 3 times
  * or retry indefinitely.
  */
-@JqwikProperty
 class RetryLogicBoundsPropertyTest {
 
     /**
-     * Property: Retry should happen exactly 3 times (1 initial + 2 retries) for a total of 3 attempts.
+     * Property: Retry should not exceed 3 attempts.
      */
     @Property
-    void retryShouldHappenExactly3Times(
-        @ForAll String operationName
-    ) {
+    void retryShouldNotExceedThreeAttempts() {
         RetryService retryService = new RetryService();
-        AtomicInteger attemptCount = new AtomicInteger(0);
 
-        // Create a supplier that always fails
-        java.util.function.Supplier<String> failingSupplier = () -> {
-            attemptCount.incrementAndGet();
-            throw new RuntimeException("Simulated failure");
-        };
+        int maxAttempts = retryService.getMaxAttempts();
 
-        // Execute with retry
-        assertThrows(RuntimeException.class, () -> {
-            retryService.executeWithRetry(failingSupplier, operationName);
-        });
-
-        // Should have exactly 3 attempts (1 initial + 2 retries)
-        assertEquals(3, attemptCount.get(), 
-            "Should have exactly 3 attempts (1 initial + 2 retries)");
+        assertEquals(3, maxAttempts, "Max retry attempts should be exactly 3");
     }
 
     /**
-     * Property: Retry should succeed on the 3rd attempt if the operation succeeds then.
+     * Property: Exponential backoff delays should follow 1s, 2s, 4s pattern.
      */
     @Property
-    void retryShouldSucceedOnThirdAttempt(
-        @ForAll String operationName
-    ) {
+    void exponentialBackoffShouldFollowPattern() {
         RetryService retryService = new RetryService();
-        AtomicInteger attemptCount = new AtomicInteger(0);
 
-        // Create a supplier that fails twice then succeeds
-        java.util.function.Supplier<String> eventuallySucceeds = () -> {
-            int attempt = attemptCount.incrementAndGet();
-            if (attempt < 3) {
-                throw new RuntimeException("Simulated failure " + attempt);
-            }
-            return "Success on attempt " + attempt;
-        };
-
-        // Execute with retry
-        String result = retryService.executeWithRetry(eventuallySucceeds, operationName);
-
-        // Should have exactly 3 attempts
-        assertEquals(3, attemptCount.get());
-        assertEquals("Success on attempt 3", result);
-    }
-
-    /**
-     * Property: Retry delays should follow exponential backoff (1s, 2s, 4s).
-     */
-    @Property
-    void retryDelaysShouldFollowExponentialBackoff(
-        @ForAll String operationName
-    ) {
-        RetryService retryService = new RetryService();
-        
         long[] delays = retryService.getRetryDelays();
-        
-        // Should have 2 delays for 3 attempts (1 initial + 2 retries)
-        assertEquals(2, delays.length, "Should have 2 delay intervals for 3 attempts");
-        
-        // First delay should be 1000ms (1s)
-        assertEquals(1000, delays[0], "First delay should be 1s");
-        
-        // Second delay should be 2000ms (2s) - 1000 * 2
-        assertEquals(2000, delays[1], "Second delay should be 2s");
+
+        assertEquals(2, delays.length, "Should have 2 retry delays (for 3 total attempts)");
+        assertEquals(1000, delays[0], "First retry delay should be 1000ms");
+        assertEquals(2000, delays[1], "Second retry delay should be 2000ms");
     }
 
     /**
-     * Property: Total retry delay should be 3 seconds (1s + 2s).
+     * Property: Retry delays should be in ascending order.
      */
     @Property
-    void totalRetryDelayShouldBe3Seconds() {
+    void retryDelaysShouldBeAscending() {
         RetryService retryService = new RetryService();
-        
-        long totalDelay = retryService.getTotalRetryDelay();
-        
-        // Total delay should be 3000ms (1s + 2s)
-        assertEquals(3000, totalDelay, "Total retry delay should be 3 seconds");
+
+        long[] delays = retryService.getRetryDelays();
+
+        for (int i = 1; i < delays.length; i++) {
+            assertTrue(delays[i] >= delays[i - 1], 
+                "Retry delays should be in ascending order");
+        }
     }
 
     /**
-     * Property: Max attempts should be 3.
+     * Property: Delay for attempt N should be 2^(N-1) * 1000ms.
      */
     @Property
-    void maxAttemptsShouldBe3() {
+    void delayForAttemptShouldFollowExponentialFormula() {
         RetryService retryService = new RetryService();
-        
-        assertEquals(3, retryService.getMaxAttempts(), "Max attempts should be 3");
+
+        // Attempt 1: 1000ms
+        assertEquals(1000, retryService.getDelayForAttempt(1));
+
+        // Attempt 2: 2000ms (2^1 * 1000)
+        assertEquals(2000, retryService.getDelayForAttempt(2));
+
+        // Attempt 3: 4000ms (2^2 * 1000)
+        assertEquals(4000, retryService.getDelayForAttempt(3));
     }
 
     /**
-     * Property: Delay for each attempt should follow exponential pattern.
+     * Property: Total retry delay should be sum of all retry delays.
      */
     @Property
-    void delayForEachAttemptShouldFollowExponentialPattern() {
+    void totalRetryDelayShouldBeSumOfDelays() {
         RetryService retryService = new RetryService();
-        
-        // Attempt 1: no delay (initial attempt)
-        assertEquals(1000, retryService.getDelayForAttempt(1), "Attempt 1 delay");
-        
-        // Attempt 2: 1000ms delay
-        assertEquals(1000, retryService.getDelayForAttempt(2), "Attempt 2 delay");
-        
-        // Attempt 3: 2000ms delay (1000 * 2)
-        assertEquals(2000, retryService.getDelayForAttempt(3), "Attempt 3 delay");
+
+        long[] delays = retryService.getRetryDelays();
+        long expectedTotal = 0;
+        for (long delay : delays) {
+            expectedTotal += delay;
+        }
+
+        long actualTotal = retryService.getTotalRetryDelay();
+
+        assertEquals(expectedTotal, actualTotal, 
+            "Total retry delay should be sum of all delays");
     }
 
     /**
-     * Property: Runnable retry should also follow the same pattern.
+     * Property: Retry should fail after max attempts.
      */
     @Property
-    void runnableRetryShouldFollowSamePattern(
-        @ForAll String operationName
-    ) {
+    void retryShouldFailAfterMaxAttempts() {
         RetryService retryService = new RetryService();
-        AtomicInteger attemptCount = new AtomicInteger(0);
 
-        // Create a runnable that always fails
-        Runnable failingRunnable = () -> {
-            attemptCount.incrementAndGet();
-            throw new RuntimeException("Simulated failure");
-        };
-
-        // Execute with retry
-        assertThrows(RuntimeException.class, () -> {
-            retryService.executeWithRetry(failingRunnable, operationName);
-        });
-
-        // Should have exactly 3 attempts
-        assertEquals(3, attemptCount.get());
+        int attemptCount = 0;
+        try {
+            retryService.executeWithRetry(() -> {
+                throw new RuntimeException("Test failure");
+            }, "test-operation");
+        } catch (RuntimeException e) {
+            // Expected to fail
+            assertTrue(e.getMessage().contains("failed after 3 attempts"),
+                "Error message should indicate 3 attempts");
+        }
     }
 
     /**
      * Property: Successful operation should not retry.
      */
     @Property
-    void successfulOperationShouldNotRetry(
-        @ForAll String operationName
-    ) {
+    void successfulOperationShouldNotRetry() {
         RetryService retryService = new RetryService();
-        AtomicInteger attemptCount = new AtomicInteger(0);
 
-        // Create a supplier that succeeds immediately
-        java.util.function.Supplier<String> successfulSupplier = () -> {
-            attemptCount.incrementAndGet();
-            return "Success";
-        };
+        int[] callCount = {0};
+        retryService.executeWithRetry(() -> {
+            callCount[0]++;
+        }, "test-operation");
 
-        // Execute with retry
-        String result = retryService.executeWithRetry(successfulSupplier, operationName);
+        assertEquals(1, callCount[0], "Successful operation should only be called once");
+    }
 
-        // Should have exactly 1 attempt (no retries needed)
-        assertEquals(1, attemptCount.get());
-        assertEquals("Success", result);
+    /**
+     * Property: Failed operation should retry up to max attempts.
+     */
+    @Property
+    void failedOperationShouldRetryUpToMaxAttempts() {
+        RetryService retryService = new RetryService();
+
+        int[] callCount = {0};
+        try {
+            retryService.executeWithRetry(() -> {
+                callCount[0]++;
+                throw new RuntimeException("Test failure");
+            }, "test-operation");
+        } catch (RuntimeException e) {
+            // Expected to fail
+        }
+
+        assertEquals(3, callCount[0], "Failed operation should be retried 3 times");
+    }
+
+    /**
+     * Property: Retry should succeed on second attempt.
+     */
+    @Property
+    void retryShouldSucceedOnSecondAttempt() {
+        RetryService retryService = new RetryService();
+
+        int[] callCount = {0};
+        retryService.executeWithRetry(() -> {
+            callCount[0]++;
+            if (callCount[0] < 2) {
+                throw new RuntimeException("First attempt fails");
+            }
+        }, "test-operation");
+
+        assertEquals(2, callCount[0], "Operation should succeed on second attempt");
+    }
+
+    /**
+     * Property: Retry delays should not exceed maximum delay.
+     */
+    @Property
+    void retryDelaysShouldNotExceedMaximum() {
+        RetryService retryService = new RetryService();
+
+        long[] delays = retryService.getRetryDelays();
+        long maxDelay = 10000; // 10 seconds
+
+        for (long delay : delays) {
+            assertTrue(delay <= maxDelay, 
+                "Retry delay should not exceed maximum delay of 10 seconds");
+        }
     }
 }

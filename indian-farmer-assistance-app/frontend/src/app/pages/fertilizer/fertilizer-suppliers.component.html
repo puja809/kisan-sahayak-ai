@@ -1,0 +1,414 @@
+<div class="fertilizer-suppliers-container">
+  <div class="header">
+    <h1>Fertilizer Suppliers</h1>
+    <p>Find fertilizer suppliers in your area</p>
+  </div>
+
+  <!-- Search Form -->
+  <div class="search-section">
+    <form [formGroup]="filterForm" (ngSubmit)="searchSuppliers()" class="search-form">
+      <div class="form-group">
+        <label for="state">State</label>
+        <select id="state" formControlName="state" class="form-control">
+          <option value="">Select State</option>
+          <option *ngFor="let state of filterOptions.states" [value]="state">
+            {{ state }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="district">District</label>
+        <select id="district" formControlName="district" class="form-control">
+          <option value="">Select District</option>
+          <option *ngFor="let district of filterOptions.districts" [value]="district">
+            {{ district }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="fertilizerType">Fertilizer Type (Optional)</label>
+        <select id="fertilizerType" formControlName="fertilizerType" class="form-control">
+          <option value="">All Types</option>
+          <option *ngFor="let type of filterOptions.fertilizerTypes" [value]="type">
+            {{ type }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="sortBy">Sort By</label>
+        <select id="sortBy" formControlName="sortBy" class="form-control">
+          <option value="total">Total Suppliers</option>
+          <option value="wholesalers">Wholesalers</option>
+          <option value="retailers">Retailers</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary" [disabled]="!filterForm.valid || loading">
+        <span *ngIf="!loading">Search</span>
+        <span *ngIf="loading">
+          <i class="spinner"></i> Searching...
+        </span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <!-- Results Section -->
+  <div *ngIf="suppliers.length > 0" class="results-section">
+    <div class="results-header">
+      <h2>Found {{ totalRecords }} Suppliers</h2>
+      <p class="results-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }} - 
+        {{ Math.min(currentPage * pageSize, totalRecords) }} of {{ totalRecords }}
+      </p>
+    </div>
+
+    <!-- Suppliers List -->
+    <div class="suppliers-list">
+      <div *ngFor="let supplier of getPaginatedSuppliers()" class="supplier-card">
+        <div class="supplier-header">
+          <h3>{{ supplier.supplierName || 'Supplier ' + supplier.slNo }}</h3>
+          <span class="badge" [ngClass]="'badge-' + getStatusColor(supplier)">
+            {{ getAvailabilityStatus(supplier) }}
+          </span>
+        </div>
+
+        <div class="supplier-details">
+          <div class="detail-row">
+            <span class="label">Fertilizer Type:</span>
+            <span class="value">{{ supplier.fertilizerType }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="label">Location:</span>
+            <span class="value">{{ supplier.district }}, {{ supplier.state }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="label">Wholesalers:</span>
+            <span class="value">{{ supplier.noOfWholesalers }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="label">Retailers:</span>
+            <span class="value">{{ supplier.noOfRetailers }}</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="label">Total Suppliers:</span>
+            <span class="value badge badge-info">{{ getTotalSuppliers(supplier) }}</span>
+          </div>
+
+          <div class="detail-row" *ngIf="supplier.contactInfo">
+            <span class="label">Contact:</span>
+            <span class="value">{{ supplier.contactInfo }}</span>
+          </div>
+        </div>
+
+        <div class="supplier-actions">
+          <button *ngIf="supplier.contactInfo" 
+                  (click)="callSupplier(supplier)" 
+                  class="btn btn-sm btn-success">
+            <i class="phone-icon"></i> Call
+          </button>
+          <button class="btn btn-sm btn-info">
+            <i class="info-icon"></i> Details
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="getTotalPages() > 1" class="pagination">
+      <button (click)="previousPage()" [disabled]="currentPage === 1" class="btn btn-sm">
+        Previous
+      </button>
+      
+      <span class="page-info">
+        Page {{ currentPage }} of {{ getTotalPages() }}
+      </span>
+      
+      <button (click)="nextPage()" [disabled]="currentPage === getTotalPages()" class="btn btn-sm">
+        Next
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="suppliers.length === 0 && !loading && !error" class="empty-state">
+    <p>Select state and district to find fertilizer suppliers</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading suppliers...</p>
+  </div>
+</div>
+
+<style>
+  .fertilizer-suppliers-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+
+  .search-section {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+
+  .search-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    align-items: flex-end;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group label {
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .form-control {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background: #007bff;
+    color: white;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #0056b3;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-success {
+    background: #28a745;
+    color: white;
+  }
+
+  .btn-info {
+    background: #17a2b8;
+    color: white;
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .alert {
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+
+  .alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+
+  .results-section {
+    margin-bottom: 30px;
+  }
+
+  .results-header {
+    margin-bottom: 20px;
+  }
+
+  .results-header h2 {
+    font-size: 20px;
+    margin-bottom: 5px;
+  }
+
+  .results-info {
+    color: #666;
+    font-size: 14px;
+  }
+
+  .suppliers-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .supplier-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+
+  .supplier-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+
+  .supplier-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 12px;
+  }
+
+  .supplier-header h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .badge-success {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .badge-warning {
+    background: #fff3cd;
+    color: #856404;
+  }
+
+  .badge-danger {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .badge-info {
+    background: #d1ecf1;
+    color: #0c5460;
+  }
+
+  .supplier-details {
+    margin-bottom: 12px;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+
+  .detail-row .label {
+    font-weight: 500;
+    color: #666;
+  }
+
+  .detail-row .value {
+    color: #333;
+  }
+
+  .supplier-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .supplier-actions button {
+    flex: 1;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .page-info {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+  }
+
+  .loading-state {
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 768px) {
+    .search-form {
+      grid-template-columns: 1fr;
+    }
+
+    .suppliers-list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

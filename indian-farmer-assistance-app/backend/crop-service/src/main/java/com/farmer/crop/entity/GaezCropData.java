@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -61,8 +60,8 @@ public class GaezCropData {
     /**
      * Overall suitability score (0-100)
      */
-    @Column(name = "overall_suitability_score", precision = 5, scale = 2)
-    private BigDecimal overallSuitabilityScore;
+    @Column(name = "overall_suitability_score")
+    private Double overallSuitabilityScore;
 
     /**
      * Suitability classification
@@ -74,44 +73,44 @@ public class GaezCropData {
     /**
      * Climate suitability score (0-100)
      */
-    @Column(name = "climate_suitability_score", precision = 5, scale = 2)
-    private BigDecimal climateSuitabilityScore;
+    @Column(name = "climate_suitability_score")
+    private Double climateSuitabilityScore;
 
     /**
      * Soil suitability score (0-100)
      */
-    @Column(name = "soil_suitability_score", precision = 5, scale = 2)
-    private BigDecimal soilSuitabilityScore;
+    @Column(name = "soil_suitability_score")
+    private Double soilSuitabilityScore;
 
     /**
      * Terrain suitability score (0-100)
      */
-    @Column(name = "terrain_suitability_score", precision = 5, scale = 2)
-    private BigDecimal terrainSuitabilityScore;
+    @Column(name = "terrain_suitability_score")
+    private Double terrainSuitabilityScore;
 
     /**
      * Water availability suitability score (0-100)
      */
-    @Column(name = "water_suitability_score", precision = 5, scale = 2)
-    private BigDecimal waterSuitabilityScore;
+    @Column(name = "water_suitability_score")
+    private Double waterSuitabilityScore;
 
     /**
      * Potential yield under rain-fed conditions (kg/ha)
      */
-    @Column(name = "rainfed_potential_yield", precision = 10, scale = 2)
-    private BigDecimal rainfedPotentialYield;
+    @Column(name = "rainfed_potential_yield")
+    private Double rainfedPotentialYield;
 
     /**
      * Potential yield under irrigated conditions (kg/ha)
      */
-    @Column(name = "irrigated_potential_yield", precision = 10, scale = 2)
-    private BigDecimal irrigatedPotentialYield;
+    @Column(name = "irrigated_potential_yield")
+    private Double irrigatedPotentialYield;
 
     /**
      * Water requirements (mm per growing season)
      */
-    @Column(name = "water_requirements_mm", precision = 10, scale = 2)
-    private BigDecimal waterRequirementsMm;
+    @Column(name = "water_requirements_mm")
+    private Double waterRequirementsMm;
 
     /**
      * Growing season duration (days)
@@ -147,44 +146,44 @@ public class GaezCropData {
     /**
      * Minimum temperature tolerance (°C)
      */
-    @Column(name = "min_temp_tolerance", precision = 5, scale = 2)
-    private BigDecimal minTempTolerance;
+    @Column(name = "min_temp_tolerance")
+    private Double minTempTolerance;
 
     /**
      * Maximum temperature tolerance (°C)
      */
-    @Column(name = "max_temp_tolerance", precision = 5, scale = 2)
-    private BigDecimal maxTempTolerance;
+    @Column(name = "max_temp_tolerance")
+    private Double maxTempTolerance;
 
     /**
      * Minimum rainfall requirement (mm)
      */
-    @Column(name = "min_rainfall_mm", precision = 10, scale = 2)
-    private BigDecimal minRainfallMm;
+    @Column(name = "min_rainfall_mm")
+    private Double minRainfallMm;
 
     /**
      * Maximum rainfall tolerance (mm)
      */
-    @Column(name = "max_rainfall_mm", precision = 10, scale = 2)
-    private BigDecimal maxRainfallMm;
+    @Column(name = "max_rainfall_mm")
+    private Double maxRainfallMm;
 
     /**
      * Soil pH minimum
      */
-    @Column(name = "soil_ph_min", precision = 4, scale = 2)
-    private BigDecimal soilPhMin;
+    @Column(name = "soil_ph_min")
+    private Double soilPhMin;
 
     /**
      * Soil pH maximum
      */
-    @Column(name = "soil_ph_max", precision = 4, scale = 2)
-    private BigDecimal soilPhMax;
+    @Column(name = "soil_ph_max")
+    private Double soilPhMax;
 
     /**
      * Maximum slope tolerance (%)
      */
-    @Column(name = "max_slope_percent", precision = 5, scale = 2)
-    private BigDecimal maxSlopePercent;
+    @Column(name = "max_slope_percent")
+    private Double maxSlopePercent;
 
     /**
      * GAEZ data version

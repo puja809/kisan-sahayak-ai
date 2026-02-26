@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,8 +49,8 @@ class MandiLocationServicePropertyTest {
     private MandiLocationService mandiLocationService;
 
     // Test farmer location (Bangalore, Karnataka)
-    private final BigDecimal FARMER_LATITUDE = BigDecimal.valueOf(12.9716);
-    private final BigDecimal FARMER_LONGITUDE = BigDecimal.valueOf(77.5946);
+    private final Double FARMER_LATITUDE = Double.valueOf(12.9716);
+    private final Double FARMER_LONGITUDE = Double.valueOf(77.5946);
 
     @BeforeEach
     void setUp() {
@@ -73,9 +73,9 @@ class MandiLocationServicePropertyTest {
                 double lat1, double lon1, double lat2, double lon2, double expectedDistance) {
             // Property: Distance calculation should be accurate using Haversine formula
             
-            BigDecimal distance = mandiLocationService.calculateDistance(
-                    BigDecimal.valueOf(lat1), BigDecimal.valueOf(lon1),
-                    BigDecimal.valueOf(lat2), BigDecimal.valueOf(lon2));
+            Double distance = mandiLocationService.calculateDistance(
+                    Double.valueOf(lat1), Double.valueOf(lon1),
+                    Double.valueOf(lat2), Double.valueOf(lon2));
             
             // Allow 10% tolerance for the calculation
             double actualDistance = distance.doubleValue();
@@ -91,11 +91,11 @@ class MandiLocationServicePropertyTest {
         void distanceShouldBeZeroForSameLocation() {
             // Property: Distance should be zero for the same location
             
-            BigDecimal distance = mandiLocationService.calculateDistance(
+            Double distance = mandiLocationService.calculateDistance(
                     FARMER_LATITUDE, FARMER_LONGITUDE,
                     FARMER_LATITUDE, FARMER_LONGITUDE);
             
-            assertEquals(0, distance.compareTo(BigDecimal.ZERO),
+            assertEquals(0, distance.compareTo(0.0),
                     "Distance should be zero for the same location");
         }
 
@@ -104,11 +104,11 @@ class MandiLocationServicePropertyTest {
         void distanceShouldHandleNullCoordinates() {
             // Property: Distance calculation should handle null coordinates gracefully
             
-            BigDecimal distance = mandiLocationService.calculateDistance(
+            Double distance = mandiLocationService.calculateDistance(
                     FARMER_LATITUDE, FARMER_LONGITUDE,
                     null, FARMER_LONGITUDE);
             
-            assertEquals(BigDecimal.valueOf(Double.MAX_VALUE).compareTo(distance), 0,
+            assertEquals(Double.valueOf(Double.MAX_VALUE).compareTo(distance), 0,
                     "Distance should return MAX_VALUE for null coordinates");
         }
     }
@@ -130,12 +130,12 @@ class MandiLocationServicePropertyTest {
             // for any two adjacent items in the list, the first should have a distance 
             // less than or equal to the second.
             
-            List<BigDecimal> distances = Arrays.asList(
-                    BigDecimal.valueOf(d1),
-                    BigDecimal.valueOf(d2),
-                    BigDecimal.valueOf(d3),
-                    BigDecimal.valueOf(d4),
-                    BigDecimal.valueOf(d5)
+            List<Double> distances = Arrays.asList(
+                    Double.valueOf(d1),
+                    Double.valueOf(d2),
+                    Double.valueOf(d3),
+                    Double.valueOf(d4),
+                    Double.valueOf(d5)
             );
             
             // Sort the distances
@@ -167,7 +167,7 @@ class MandiLocationServicePropertyTest {
             // Property: Single item list should remain unchanged after sorting
             
             List<MandiPriceDto> prices = Collections.singletonList(
-                    createPriceDto("Mandi A", BigDecimal.valueOf(50))
+                    createPriceDto("Mandi A", Double.valueOf(50))
             );
             
             List<MandiPriceDto> sorted = mandiLocationService.sortPricesByDistance(
@@ -182,20 +182,20 @@ class MandiLocationServicePropertyTest {
             // Property: Multiple items should be sorted by distance in ascending order
             
             List<MandiPriceDto> prices = new ArrayList<>();
-            prices.add(createPriceDto("Mandi A", BigDecimal.valueOf(50)));
-            prices.add(createPriceDto("Mandi B", BigDecimal.valueOf(20)));
-            prices.add(createPriceDto("Mandi C", BigDecimal.valueOf(80)));
-            prices.add(createPriceDto("Mandi D", BigDecimal.valueOf(35)));
+            prices.add(createPriceDto("Mandi A", Double.valueOf(50)));
+            prices.add(createPriceDto("Mandi B", Double.valueOf(20)));
+            prices.add(createPriceDto("Mandi C", Double.valueOf(80)));
+            prices.add(createPriceDto("Mandi D", Double.valueOf(35)));
             
             List<MandiPriceDto> sorted = mandiLocationService.sortPricesByDistance(
                     prices, FARMER_LATITUDE, FARMER_LONGITUDE);
             
             // Verify ascending order
             for (int i = 0; i < sorted.size() - 1; i++) {
-                BigDecimal current = sorted.get(i).getDistanceKm();
-                BigDecimal next = sorted.get(i + 1).getDistanceKm();
+                Double current = sorted.get(i).getDistanceKm();
+                Double next = sorted.get(i + 1).getDistanceKm();
                 
-                assertTrue(current.compareTo(next) <= 0,
+                assertTrue(current <= next,
                         String.format("Distance at index %d (%s) should be <= distance at index %d (%s)",
                                 i, current, i + 1, next));
             }
@@ -212,9 +212,9 @@ class MandiLocationServicePropertyTest {
             // Property: Sorting should produce consistent results for the same input
             
             List<MandiPriceDto> prices = new ArrayList<>();
-            prices.add(createPriceDto("Mandi A", BigDecimal.valueOf(50)));
-            prices.add(createPriceDto("Mandi B", BigDecimal.valueOf(20)));
-            prices.add(createPriceDto("Mandi C", BigDecimal.valueOf(80)));
+            prices.add(createPriceDto("Mandi A", Double.valueOf(50)));
+            prices.add(createPriceDto("Mandi B", Double.valueOf(20)));
+            prices.add(createPriceDto("Mandi C", Double.valueOf(80)));
             
             // Sort multiple times
             List<MandiPriceDto> sorted1 = mandiLocationService.sortPricesByDistance(
@@ -234,13 +234,13 @@ class MandiLocationServicePropertyTest {
         void distanceCalculationShouldBeSymmetric() {
             // Property: Distance from A to B should equal distance from B to A
             
-            BigDecimal distanceAB = mandiLocationService.calculateDistance(
-                    BigDecimal.valueOf(12.9716), BigDecimal.valueOf(77.5946),
-                    BigDecimal.valueOf(13.0000), BigDecimal.valueOf(77.6000));
+            Double distanceAB = mandiLocationService.calculateDistance(
+                    Double.valueOf(12.9716), Double.valueOf(77.5946),
+                    Double.valueOf(13.0000), Double.valueOf(77.6000));
             
-            BigDecimal distanceBA = mandiLocationService.calculateDistance(
-                    BigDecimal.valueOf(13.0000), BigDecimal.valueOf(77.6000),
-                    BigDecimal.valueOf(12.9716), BigDecimal.valueOf(77.5946));
+            Double distanceBA = mandiLocationService.calculateDistance(
+                    Double.valueOf(13.0000), Double.valueOf(77.6000),
+                    Double.valueOf(12.9716), Double.valueOf(77.5946));
             
             assertEquals(0, distanceAB.compareTo(distanceBA),
                     "Distance should be symmetric (A to B = B to A)");
@@ -252,21 +252,21 @@ class MandiLocationServicePropertyTest {
             // Property: Distance should satisfy triangle inequality
             // d(A, C) <= d(A, B) + d(B, C)
             
-            BigDecimal distanceAC = mandiLocationService.calculateDistance(
-                    BigDecimal.valueOf(12.9716), BigDecimal.valueOf(77.5946),
-                    BigDecimal.valueOf(13.1000), BigDecimal.valueOf(77.7000));
+            Double distanceAC = mandiLocationService.calculateDistance(
+                    Double.valueOf(12.9716), Double.valueOf(77.5946),
+                    Double.valueOf(13.1000), Double.valueOf(77.7000));
             
-            BigDecimal distanceAB = mandiLocationService.calculateDistance(
-                    BigDecimal.valueOf(12.9716), BigDecimal.valueOf(77.5946),
-                    BigDecimal.valueOf(13.0000), BigDecimal.valueOf(77.6000));
+            Double distanceAB = mandiLocationService.calculateDistance(
+                    Double.valueOf(12.9716), Double.valueOf(77.5946),
+                    Double.valueOf(13.0000), Double.valueOf(77.6000));
             
-            BigDecimal distanceBC = mandiLocationService.calculateDistance(
-                    BigDecimal.valueOf(13.0000), BigDecimal.valueOf(77.6000),
-                    BigDecimal.valueOf(13.1000), BigDecimal.valueOf(77.7000));
+            Double distanceBC = mandiLocationService.calculateDistance(
+                    Double.valueOf(13.0000), Double.valueOf(77.6000),
+                    Double.valueOf(13.1000), Double.valueOf(77.7000));
             
-            BigDecimal sumABBC = distanceAB.add(distanceBC);
+            Double sumABBC = distanceAB + distanceBC;
             
-            assertTrue(distanceAC.compareTo(sumABBC) <= 0,
+            assertTrue(distanceAC <= sumABBC,
                     "Distance should satisfy triangle inequality: d(A,C) <= d(A,B) + d(B,C)");
         }
     }
@@ -292,11 +292,11 @@ class MandiLocationServicePropertyTest {
                     .state(state)
                     .district(district)
                     .address("Test Address")
-                    .latitude(BigDecimal.valueOf(12.9716))
-                    .longitude(BigDecimal.valueOf(77.5946))
+                    .latitude(Double.valueOf(12.9716))
+                    .longitude(Double.valueOf(77.5946))
                     .contactNumber("+91-1234567890")
                     .operatingHours("6 AM - 2 PM")
-                    .distanceKm(BigDecimal.ZERO)
+                    .distanceKm(0.0)
                     .isActive(true)
                     .build();
             
@@ -313,7 +313,7 @@ class MandiLocationServicePropertyTest {
     /**
      * Helper method to create a MandiPriceDto with a specific distance.
      */
-    private MandiPriceDto createPriceDto(String mandiName, BigDecimal distance) {
+    private MandiPriceDto createPriceDto(String mandiName, Double distance) {
         return MandiPriceDto.builder()
                 .id(1L)
                 .commodityName("Paddy")
@@ -322,10 +322,10 @@ class MandiLocationServicePropertyTest {
                 .state("Karnataka")
                 .district("Bangalore Rural")
                 .priceDate(LocalDate.now())
-                .modalPrice(BigDecimal.valueOf(2500))
-                .minPrice(BigDecimal.valueOf(2300))
-                .maxPrice(BigDecimal.valueOf(2700))
-                .arrivalQuantityQuintals(BigDecimal.valueOf(100))
+                .modalPrice(Double.valueOf(2500))
+                .minPrice(Double.valueOf(2300))
+                .maxPrice(Double.valueOf(2700))
+                .arrivalQuantityQuintals(Double.valueOf(100))
                 .unit("Quintal")
                 .source("AGMARKNET")
                 .distanceKm(distance)

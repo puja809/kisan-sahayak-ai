@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,7 +54,7 @@ public class FertilizerTrackingResponseDto {
     /**
      * Total area in acres
      */
-    private BigDecimal areaAcres;
+    private Double areaAcres;
 
     /**
      * Fertilizer application history
@@ -103,13 +102,13 @@ public class FertilizerTrackingResponseDto {
         private Long id;
         private String fertilizerType;
         private String fertilizerCategory;
-        private BigDecimal quantityKg;
+        private Double quantityKg;
         private LocalDate applicationDate;
         private String applicationStage;
-        private BigDecimal cost;
-        private BigDecimal nitrogenKg;
-        private BigDecimal phosphorusKg;
-        private BigDecimal potassiumKg;
+        private Double cost;
+        private Double nitrogenKg;
+        private Double phosphorusKg;
+        private Double potassiumKg;
         private String notes;
         private LocalDateTime createdAt;
     }
@@ -122,13 +121,13 @@ public class FertilizerTrackingResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class TotalNutrientInputDto {
-        private BigDecimal totalNitrogenKg;
-        private BigDecimal totalPhosphorusKg;
-        private BigDecimal totalPotassiumKg;
-        private BigDecimal totalSulfurKg;
-        private BigDecimal totalZincKg;
-        private BigDecimal totalQuantityKg;
-        private BigDecimal totalCost;
+        private Double totalNitrogenKg;
+        private Double totalPhosphorusKg;
+        private Double totalPotassiumKg;
+        private Double totalSulfurKg;
+        private Double totalZincKg;
+        private Double totalQuantityKg;
+        private Double totalCost;
     }
 
     /**
@@ -154,9 +153,9 @@ public class FertilizerTrackingResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CostSummaryDto {
-        private BigDecimal totalCost;
-        private BigDecimal costPerAcre;
-        private BigDecimal costPerKgNutrient;
+        private Double totalCost;
+        private Double costPerAcre;
+        private Double costPerKgNutrient;
         private String costTrend;
         private List<CostTrendPointDto> costTrendHistory;
     }
@@ -170,7 +169,7 @@ public class FertilizerTrackingResponseDto {
     @AllArgsConstructor
     public static class CostTrendPointDto {
         private LocalDate date;
-        private BigDecimal cost;
+        private Double cost;
     }
 
     /**
@@ -181,9 +180,9 @@ public class FertilizerTrackingResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class NutrientEfficiencyDto {
-        private BigDecimal yieldPerKgNitrogen;
-        private BigDecimal yieldPerKgPhosphorus;
-        private BigDecimal yieldPerKgPotassium;
+        private Double yieldPerKgNitrogen;
+        private Double yieldPerKgPhosphorus;
+        private Double yieldPerKgPotassium;
         private String efficiencyRating;
         private List<String> improvementSuggestions;
     }

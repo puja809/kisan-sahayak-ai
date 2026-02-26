@@ -2,7 +2,7 @@ package com.farmer.mandi.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -56,17 +56,17 @@ public class MandiPrices {
     @Column(name = "price_date", nullable = false)
     private LocalDate priceDate;
 
-    @Column(name = "modal_price", precision = 10, scale = 2)
-    private BigDecimal modalPrice;
+    @Column(name = "modal_price")
+    private Double modalPrice;
 
-    @Column(name = "min_price", precision = 10, scale = 2)
-    private BigDecimal minPrice;
+    @Column(name = "min_price")
+    private Double minPrice;
 
-    @Column(name = "max_price", precision = 10, scale = 2)
-    private BigDecimal maxPrice;
+    @Column(name = "max_price")
+    private Double maxPrice;
 
-    @Column(name = "arrival_quantity_quintals", precision = 12, scale = 2)
-    private BigDecimal arrivalQuantityQuintals;
+    @Column(name = "arrival_quantity_quintals")
+    private Double arrivalQuantityQuintals;
 
     @Column(name = "unit", length = 20)
     @Builder.Default
@@ -80,10 +80,10 @@ public class MandiPrices {
     private LocalDateTime createdAt;
 
     @Column(name = "latitude")
-    private BigDecimal latitude;
+    private Double latitude;
 
     @Column(name = "longitude")
-    private BigDecimal longitude;
+    private Double longitude;
 
     @PrePersist
     protected void onCreate() {
@@ -101,7 +101,6 @@ public class MandiPrices {
         if (minPrice == null || modalPrice == null || maxPrice == null) {
             return false;
         }
-        return minPrice.compareTo(modalPrice) <= 0 && 
-               modalPrice.compareTo(maxPrice) <= 0;
+        return (minPrice <= modalPrice && modalPrice <= maxPrice);
     }
 }

@@ -362,3 +362,4 @@ class AgroEcologicalZoneServiceTest {
         assertEquals("AEZ-05", response.getZone().getZoneCode());
     }
 }
+

@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -81,12 +80,12 @@ public class SeedVarietyDto {
     /**
      * Average yield (quintals per hectare)
      */
-    private BigDecimal averageYieldQtlHa;
+    private Double averageYieldQtlHa;
     
     /**
      * Potential yield (quintals per hectare)
      */
-    private BigDecimal potentialYieldQtlHa;
+    private Double potentialYieldQtlHa;
     
     /**
      * Special characteristics
@@ -106,7 +105,7 @@ public class SeedVarietyDto {
     /**
      * Water requirement (mm)
      */
-    private BigDecimal waterRequirementMm;
+    private Double waterRequirementMm;
     
     /**
      * Whether this is a drought-tolerant variety
@@ -126,7 +125,7 @@ public class SeedVarietyDto {
     /**
      * Seed rate (kg per hectare)
      */
-    private BigDecimal seedRateKgHa;
+    private Double seedRateKgHa;
     
     /**
      * Recommended spacing (cm)
@@ -151,7 +150,7 @@ public class SeedVarietyDto {
     /**
      * Approximate seed cost (INR per kg)
      */
-    private BigDecimal seedCostPerKg;
+    private Double seedCostPerKg;
     
     /**
      * Season suitability

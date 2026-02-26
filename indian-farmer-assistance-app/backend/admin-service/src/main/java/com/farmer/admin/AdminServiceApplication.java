@@ -1,7 +1,11 @@
 package com.farmer.admin;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -10,6 +14,15 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @SpringBootApplication
 @EnableScheduling
+@EnableDiscoveryClient
+@OpenAPIDefinition(
+    info = @Info(
+        title = "Admin Service API",
+        version = "1.0.0",
+        description = "Admin document management, scheme administration, and analytics service",
+        contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")
+    )
+)
 public class AdminServiceApplication {
 
     public static void main(String[] args) {

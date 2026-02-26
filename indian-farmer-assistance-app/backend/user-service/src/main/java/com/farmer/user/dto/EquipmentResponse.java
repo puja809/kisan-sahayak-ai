@@ -3,7 +3,7 @@ package com.farmer.user.dto;
 import com.farmer.user.entity.Equipment;
 import lombok.*;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -25,11 +25,11 @@ public class EquipmentResponse {
     private String model;
     private String serialNumber;
     private LocalDate purchaseDate;
-    private BigDecimal purchaseCost;
+    private Double purchaseCost;
     private String ownershipType;
     private LocalDate lastMaintenanceDate;
     private LocalDate nextMaintenanceDate;
-    private BigDecimal currentValue;
+    private Double currentValue;
     private String status;
     private String notes;
     private Boolean isActive;

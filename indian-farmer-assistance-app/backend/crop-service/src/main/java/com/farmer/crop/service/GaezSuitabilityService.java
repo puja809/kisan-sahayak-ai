@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,14 +37,14 @@ public class GaezSuitabilityService {
     private static final Logger logger = LoggerFactory.getLogger(GaezSuitabilityService.class);
     
     // Weight factors for overall suitability calculation
-    private static final BigDecimal CLIMATE_WEIGHT = new BigDecimal("0.30");
-    private static final BigDecimal SOIL_WEIGHT = new BigDecimal("0.25");
-    private static final BigDecimal TERRAIN_WEIGHT = new BigDecimal("0.15");
-    private static final BigDecimal WATER_WEIGHT = new BigDecimal("0.20");
-    private static final BigDecimal SOIL_HEALTH_WEIGHT = new BigDecimal("0.10");
+    private static final Double CLIMATE_WEIGHT = 0.30;
+    private static final Double SOIL_WEIGHT = 0.25;
+    private static final Double TERRAIN_WEIGHT = 0.15;
+    private static final Double WATER_WEIGHT = 0.20;
+    private static final Double SOIL_HEALTH_WEIGHT = 0.10;
     
     // Minimum suitability threshold
-    private static final BigDecimal MIN_SUITABILITY_THRESHOLD = new BigDecimal("40.0");
+    private static final Double MIN_SUITABILITY_THRESHOLD = 40.0;
     
     private final GaezCropDataRepository gaezCropDataRepository;
     private final SoilHealthCardRepository soilHealthCardRepository;
@@ -166,25 +166,25 @@ public class GaezSuitabilityService {
             SoilHealthCard soilHealthCard) {
         
         // Start with GAEZ base scores
-        BigDecimal climateScore = gaezData.getClimateSuitabilityScore();
-        BigDecimal soilScore = gaezData.getSoilSuitabilityScore();
-        BigDecimal terrainScore = gaezData.getTerrainSuitabilityScore();
-        BigDecimal waterScore = gaezData.getWaterSuitabilityScore();
+        Double climateScore = gaezData.getClimateSuitabilityScore();
+        Double soilScore = gaezData.getSoilSuitabilityScore();
+        Double terrainScore = gaezData.getTerrainSuitabilityScore();
+        Double waterScore = gaezData.getWaterSuitabilityScore();
         
         // Adjust for irrigation type
         waterScore = adjustForIrrigation(waterScore, irrigationType);
         
         // Adjust for soil health if available
-        BigDecimal soilHealthAdjustment = BigDecimal.ZERO;
+        Double soilHealthAdjustment = 0.0;
         List<String> soilHealthRecommendations = new ArrayList<>();
         
         if (soilHealthCard != null) {
             soilHealthAdjustment = calculateSoilHealthAdjustment(gaezData, soilHealthCard, soilHealthRecommendations);
-            soilScore = soilScore.add(soilHealthAdjustment);
+            soilScore = soilScore + (soilHealthAdjustment);
         }
 
         // Calculate overall score
-        BigDecimal overallScore = calculateOverallScore(
+        Double overallScore = calculateOverallScore(
                 climateScore, soilScore, terrainScore, waterScore, soilHealthAdjustment);
 
         // Determine suitability classification
@@ -225,21 +225,21 @@ public class GaezSuitabilityService {
      * @param irrigationType Type of irrigation available
      * @return Adjusted score
      */
-    private BigDecimal adjustForIrrigation(BigDecimal baseScore, 
+    private Double adjustForIrrigation(Double baseScore, 
             CropRecommendationRequestDto.IrrigationType irrigationType) {
         
         if (irrigationType == null) {
             return baseScore;
         }
 
-        BigDecimal adjustment = switch (irrigationType) {
-            case RAINFED -> new BigDecimal("-10");  // Reduce score for rain-fed only
-            case DRIP, SPRINKLER -> new BigDecimal("5");  // Increase for efficient irrigation
-            case CANAL, BOREWELL -> new BigDecimal("2");  // Slight increase for reliable irrigation
-            case MIXED -> baseScore;  // No adjustment needed
+        Double adjustment = switch (irrigationType) {
+            case RAINFED -> -10.0;  // Reduce score for rain-fed only
+            case DRIP, SPRINKLER -> 5.0;  // Increase for efficient irrigation
+            case CANAL, BOREWELL -> 2.0;  // Slight increase for reliable irrigation
+            case MIXED -> 0.0;  // No adjustment needed
         };
 
-        return baseScore.add(adjustment).max(BigDecimal.ZERO).min(new BigDecimal("100"));
+        return Math.max(baseScore + adjustment, 0.0);
     }
 
     /**
@@ -250,103 +250,103 @@ public class GaezSuitabilityService {
      * @param recommendations List to add recommendations to
      * @return Adjustment score
      */
-    private BigDecimal calculateSoilHealthAdjustment(
+    private Double calculateSoilHealthAdjustment(
             GaezCropData gaezData,
             SoilHealthCard soilHealthCard,
             List<String> recommendations) {
         
-        BigDecimal adjustment = BigDecimal.ZERO;
+        Double adjustment = 0.0;
         
         // Check primary nutrients
         if (soilHealthCard.getNitrogenKgHa() != null) {
-            BigDecimal nitrogenStatus = getNitrogenAdjustment(soilHealthCard.getNitrogenKgHa());
-            adjustment = adjustment.add(nitrogenStatus);
-            if (nitrogenStatus.compareTo(BigDecimal.ZERO) < 0) {
+            Double nitrogenStatus = getNitrogenAdjustment(soilHealthCard.getNitrogenKgHa());
+            adjustment = adjustment + (nitrogenStatus);
+            if (nitrogenStatus.compareTo(0.0) < 0) {
                 recommendations.add("Low nitrogen: Consider nitrogen application");
             }
         }
         
         if (soilHealthCard.getPhosphorusKgHa() != null) {
-            BigDecimal phosphorusStatus = getPhosphorusAdjustment(soilHealthCard.getPhosphorusKgHa());
-            adjustment = adjustment.add(phosphorusStatus);
-            if (phosphorusStatus.compareTo(BigDecimal.ZERO) < 0) {
+            Double phosphorusStatus = getPhosphorusAdjustment(soilHealthCard.getPhosphorusKgHa());
+            adjustment = adjustment + (phosphorusStatus);
+            if (phosphorusStatus.compareTo(0.0) < 0) {
                 recommendations.add("Low phosphorus: Consider phosphorus application");
             }
         }
         
         if (soilHealthCard.getPotassiumKgHa() != null) {
-            BigDecimal potassiumStatus = getPotassiumAdjustment(soilHealthCard.getPotassiumKgHa());
-            adjustment = adjustment.add(potassiumStatus);
-            if (potassiumStatus.compareTo(BigDecimal.ZERO) < 0) {
+            Double potassiumStatus = getPotassiumAdjustment(soilHealthCard.getPotassiumKgHa());
+            adjustment = adjustment + (potassiumStatus);
+            if (potassiumStatus.compareTo(0.0) < 0) {
                 recommendations.add("Low potassium: Consider potassium application");
             }
         }
         
         // Check secondary nutrients (Sulfur)
-        if (soilHealthCard.getSulfurPpm() != null && soilHealthCard.getSulfurPpm().compareTo(new BigDecimal("10")) < 0) {
-            adjustment = adjustment.subtract(new BigDecimal("2"));
+        if (soilHealthCard.getSulfurPpm() != null && soilHealthCard.getSulfurPpm().compareTo(10.0) < 0) {
+            adjustment = adjustment - (2.0);
             recommendations.add("Sulfur deficiency: Apply sulfur fertilizer");
         }
         
         // Check micronutrients
-        if (soilHealthCard.getZincPpm() != null && soilHealthCard.getZincPpm().compareTo(new BigDecimal("0.6")) < 0) {
-            adjustment = adjustment.subtract(new BigDecimal("3"));
+        if (soilHealthCard.getZincPpm() != null && soilHealthCard.getZincPpm().compareTo(0.6) < 0) {
+            adjustment = adjustment - (3.0);
             recommendations.add("Zinc deficiency: Apply zinc sulfate");
         }
         
-        if (soilHealthCard.getIronPpm() != null && soilHealthCard.getIronPpm().compareTo(new BigDecimal("4.5")) < 0) {
-            adjustment = adjustment.subtract(new BigDecimal("2"));
+        if (soilHealthCard.getIronPpm() != null && soilHealthCard.getIronPpm().compareTo(4.5) < 0) {
+            adjustment = adjustment - (2.0);
             recommendations.add("Iron deficiency: Consider iron application");
         }
         
         // Check pH
         if (soilHealthCard.getPh() != null) {
-            BigDecimal phAdjustment = getPhAdjustment(soilHealthCard.getPh());
-            adjustment = adjustment.add(phAdjustment);
+            Double phAdjustment = getPhAdjustment(soilHealthCard.getPh());
+            adjustment = adjustment + phAdjustment;
         }
         
         // Limit adjustment range
-        return adjustment.max(new BigDecimal("-15")).min(new BigDecimal("10"));
+        return Math.max(adjustment, -15.0) < 10.0 ? Math.max(adjustment, -15.0) : 10.0;
     }
 
-    private BigDecimal getNitrogenAdjustment(BigDecimal nitrogen) {
-        if (nitrogen.compareTo(new BigDecimal("560")) >= 0) {
-            return new BigDecimal("5");
-        } else if (nitrogen.compareTo(new BigDecimal("280")) >= 0) {
-            return new BigDecimal("0");
+    private Double getNitrogenAdjustment(Double nitrogen) {
+        if (nitrogen.compareTo(560.0) >= 0) {
+            return 5.0;
+        } else if (nitrogen.compareTo(280.0) >= 0) {
+            return 0.0;
         } else {
-            return new BigDecimal("-5");
+            return new Double("-5");
         }
     }
 
-    private BigDecimal getPhosphorusAdjustment(BigDecimal phosphorus) {
-        if (phosphorus.compareTo(new BigDecimal("25")) >= 0) {
-            return new BigDecimal("5");
-        } else if (phosphorus.compareTo(new BigDecimal("10")) >= 0) {
-            return new BigDecimal("0");
+    private Double getPhosphorusAdjustment(Double phosphorus) {
+        if (phosphorus.compareTo(25.0) >= 0) {
+            return 5.0;
+        } else if (phosphorus.compareTo(10.0) >= 0) {
+            return 0.0;
         } else {
-            return new BigDecimal("-5");
+            return new Double("-5");
         }
     }
 
-    private BigDecimal getPotassiumAdjustment(BigDecimal potassium) {
-        if (potassium.compareTo(new BigDecimal("280")) >= 0) {
-            return new BigDecimal("5");
-        } else if (potassium.compareTo(new BigDecimal("108")) >= 0) {
-            return new BigDecimal("0");
+    private Double getPotassiumAdjustment(Double potassium) {
+        if (potassium.compareTo(280.0) >= 0) {
+            return 5.0;
+        } else if (potassium.compareTo(108.0) >= 0) {
+            return 0.0;
         } else {
-            return new BigDecimal("-5");
+            return new Double("-5");
         }
     }
 
-    private BigDecimal getPhAdjustment(BigDecimal ph) {
+    private Double getPhAdjustment(Double ph) {
         // Optimal pH range is 6.0-7.5 for most crops
-        if (ph.compareTo(new BigDecimal("6.0")) >= 0 && ph.compareTo(new BigDecimal("7.5")) <= 0) {
-            return new BigDecimal("5");
-        } else if (ph.compareTo(new BigDecimal("5.5")) >= 0 && ph.compareTo(new BigDecimal("8.0")) <= 0) {
-            return new BigDecimal("0");
+        if (ph.compareTo(6.0) >= 0 && ph.compareTo(7.5) <= 0) {
+            return 5.0;
+        } else if (ph.compareTo(5.5) >= 0 && ph.compareTo(8.0) <= 0) {
+            return 0.0;
         } else {
-            return new BigDecimal("-5");
+            return new Double("-5");
         }
     }
 
@@ -360,23 +360,19 @@ public class GaezSuitabilityService {
      * @param soilHealthAdjustment Additional adjustment from soil health
      * @return Overall suitability score
      */
-    private BigDecimal calculateOverallScore(
-            BigDecimal climateScore,
-            BigDecimal soilScore,
-            BigDecimal terrainScore,
-            BigDecimal waterScore,
-            BigDecimal soilHealthAdjustment) {
+    private Double calculateOverallScore(
+            Double climateScore, Double soilScore, Double terrainScore, Double waterScore, Double soilHealthAdjustment) {
         
-        BigDecimal weightedScore = climateScore.multiply(CLIMATE_WEIGHT)
-                .add(soilScore.multiply(SOIL_WEIGHT))
-                .add(terrainScore.multiply(TERRAIN_WEIGHT))
-                .add(waterScore.multiply(WATER_WEIGHT));
+        Double weightedScore = climateScore * (CLIMATE_WEIGHT)
+                 + (soilScore * (SOIL_WEIGHT))
+                 + (terrainScore * (TERRAIN_WEIGHT))
+                 + (waterScore * (WATER_WEIGHT));
         
         // Add soil health adjustment
-        BigDecimal overall = weightedScore.add(soilHealthAdjustment);
+        Double overall = weightedScore + soilHealthAdjustment;
         
         // Round to 2 decimal places
-        return overall.setScale(2, RoundingMode.HALF_UP).max(BigDecimal.ZERO).min(new BigDecimal("100"));
+        return Math.max(overall, 0.0);
     }
 
     /**
@@ -385,12 +381,12 @@ public class GaezSuitabilityService {
      * @param score Overall suitability score
      * @return Suitability classification
      */
-    private GaezCropSuitabilityDto.SuitabilityClassification determineClassification(BigDecimal score) {
-        if (score.compareTo(new BigDecimal("80")) >= 0) {
+    private GaezCropSuitabilityDto.SuitabilityClassification determineClassification(Double score) {
+        if (score.compareTo(80.0) >= 0) {
             return GaezCropSuitabilityDto.SuitabilityClassification.HIGHLY_SUITABLE;
-        } else if (score.compareTo(new BigDecimal("60")) >= 0) {
+        } else if (score.compareTo(60.0) >= 0) {
             return GaezCropSuitabilityDto.SuitabilityClassification.SUITABLE;
-        } else if (score.compareTo(new BigDecimal("40")) >= 0) {
+        } else if (score.compareTo(40.0) >= 0) {
             return GaezCropSuitabilityDto.SuitabilityClassification.MARGINALLY_SUITABLE;
         } else {
             return GaezCropSuitabilityDto.SuitabilityClassification.NOT_SUITABLE;
@@ -405,8 +401,8 @@ public class GaezSuitabilityService {
      * @param isMinimum Whether to calculate minimum yield
      * @return Expected yield
      */
-    private BigDecimal calculateExpectedYield(GaezCropData gaezData, BigDecimal suitabilityScore, boolean isMinimum) {
-        BigDecimal potentialYield = gaezData.getIrrigatedPotentialYield() != null 
+    private Double calculateExpectedYield(GaezCropData gaezData, Double suitabilityScore, boolean isMinimum) {
+        Double potentialYield = gaezData.getIrrigatedPotentialYield() != null 
                 ? gaezData.getIrrigatedPotentialYield()
                 : gaezData.getRainfedPotentialYield();
         
@@ -415,15 +411,15 @@ public class GaezSuitabilityService {
         }
         
         // Yield factor based on suitability
-        BigDecimal yieldFactor = suitabilityScore.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
+        Double yieldFactor = suitabilityScore / 100.0;
         
         if (isMinimum) {
-            yieldFactor = yieldFactor.multiply(new BigDecimal("0.7"));  // 70% of potential
+            yieldFactor = yieldFactor * (0.7);  // 70% of potential
         } else {
-            yieldFactor = yieldFactor.multiply(new BigDecimal("0.85"));  // 85% of potential
+            yieldFactor = yieldFactor * (0.85);  // 85% of potential
         }
         
-        return potentialYield.multiply(yieldFactor).setScale(0, RoundingMode.HALF_UP);
+        return potentialYield * (yieldFactor);
     }
 
     /**
@@ -545,3 +541,11 @@ public class GaezSuitabilityService {
         return SoilHealthCard.SoilHealthStatus.valueOf(status.name());
     }
 }
+
+
+
+
+
+
+
+

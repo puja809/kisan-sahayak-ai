@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
     @Index(name = "idx_location_cache_coordinates", columnList = "latitude, longitude"),
     @Index(name = "idx_location_cache_district_state", columnList = "district, state")
 })
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,10 +25,10 @@ public class LocationCache {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "latitude", nullable = false, precision = 10, scale = 8)
+    @Column(name = "latitude", nullable = false)
     private Double latitude;
 
-    @Column(name = "longitude", nullable = false, precision = 11, scale = 8)
+    @Column(name = "longitude", nullable = false)
     private Double longitude;
 
     @Column(name = "district", length = 100)

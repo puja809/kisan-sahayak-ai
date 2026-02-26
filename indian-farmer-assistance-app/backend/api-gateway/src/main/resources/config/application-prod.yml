@@ -7,10 +7,10 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:prod-mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:farmer_prod}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:postgresql://postgres-devmistri-woodmistri.l.aivencloud.com:27847/farmer_prod?sslmode=require
+    username: avnadmin
+    password: AVNS_PwVwi4E8Z93rTJBjvXd
+    driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 20
       maximum-pool-size: 100
@@ -24,19 +24,18 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           batch_size: 50
         order_inserts: true
         order_updates: true
   data:
     mongodb:
-      uri: mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_HOST:prod-mongodb}:${MONGODB_PORT:27017}/${MONGODB_DATABASE:farmer_prod}?authSource=admin&replicaSet=rs0
+      uri: mongodb+srv://kisan-sahayak-user:Kisan@123@cluster0.efsc2bd.mongodb.net/farmer_prod?appName=Cluster0
       auto-index-creation: true
     redis:
-      host: ${REDIS_HOST:prod-redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      url: rediss://default:AVNS_yEYyYRBao3uwcQsJb2l@woodmistri-redis-woodmistri.e.aivencloud.com:27848
+      database: 1
       lettuce:
         pool:
           max-active: 50

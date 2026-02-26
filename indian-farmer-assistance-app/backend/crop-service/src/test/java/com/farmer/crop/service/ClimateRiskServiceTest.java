@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,7 @@ class ClimateRiskServiceTest {
     void testAnalyzeClimateRisk() {
         // Act
         ClimateRiskDto climateRisk = climateRiskService.analyzeClimateRisk(
-                "RICE", new BigDecimal("-15"), new BigDecimal("1"));
+                "RICE", -15.0, 1.0);
 
         // Assert
         assertNotNull(climateRisk);
@@ -51,7 +50,7 @@ class ClimateRiskServiceTest {
     void testAnalyzeClimateRisk_RainfallDeficit() {
         // Act - Significant rainfall deficit
         ClimateRiskDto climateRisk = climateRiskService.analyzeClimateRisk(
-                "GROUNDNUT", new BigDecimal("-25"), BigDecimal.ZERO);
+                "GROUNDNUT", -25.0, 0.0);
 
         // Assert
         assertNotNull(climateRisk);
@@ -65,7 +64,7 @@ class ClimateRiskServiceTest {
     void testAnalyzeClimateRisk_RainfallExcess() {
         // Act - Significant rainfall excess
         ClimateRiskDto climateRisk = climateRiskService.analyzeClimateRisk(
-                "RICE", new BigDecimal("30"), BigDecimal.ZERO);
+                "RICE", 30.0, 0.0);
 
         // Assert
         assertNotNull(climateRisk);
@@ -82,7 +81,7 @@ class ClimateRiskServiceTest {
 
         // Act
         Map<String, ClimateRiskDto> riskMap = climateRiskService.analyzeClimateRiskForCrops(
-                cropCodes, new BigDecimal("-10"));
+                cropCodes, -10.0);
 
         // Assert
         assertNotNull(riskMap);
@@ -132,31 +131,31 @@ class ClimateRiskServiceTest {
     @DisplayName("Should calculate climate-adjusted score with negative adjustment for high risk")
     void testCalculateClimateAdjustedScore_HighRisk() {
         // Arrange
-        BigDecimal baseScore = new BigDecimal("80");
+        Double baseScore = 80.0;
         ClimateRiskDto climateRisk = ClimateRiskDto.builder()
                 .riskLevel(ClimateRiskLevel.HIGH)
                 .build();
 
         // Act
-        BigDecimal adjustedScore = climateRiskService.calculateClimateAdjustedScore(
+        Double adjustedScore = climateRiskService.calculateClimateAdjustedScore(
                 baseScore, climateRisk);
 
         // Assert
         assertNotNull(adjustedScore);
-        assertTrue(adjustedScore.compareTo(baseScore) < 0);
+        assertTrue(adjustedScore < baseScore);
     }
 
     @Test
     @DisplayName("Should calculate climate-adjusted score with no adjustment for low risk")
     void testCalculateClimateAdjustedScore_LowRisk() {
         // Arrange
-        BigDecimal baseScore = new BigDecimal("80");
+        Double baseScore = 80.0;
         ClimateRiskDto climateRisk = ClimateRiskDto.builder()
                 .riskLevel(ClimateRiskLevel.LOW)
                 .build();
 
         // Act
-        BigDecimal adjustedScore = climateRiskService.calculateClimateAdjustedScore(
+        Double adjustedScore = climateRiskService.calculateClimateAdjustedScore(
                 baseScore, climateRisk);
 
         // Assert
@@ -168,10 +167,10 @@ class ClimateRiskServiceTest {
     @DisplayName("Should return base score when climate risk is null")
     void testCalculateClimateAdjustedScore_NullClimateRisk() {
         // Arrange
-        BigDecimal baseScore = new BigDecimal("80");
+        Double baseScore = 80.0;
 
         // Act
-        BigDecimal adjustedScore = climateRiskService.calculateClimateAdjustedScore(
+        Double adjustedScore = climateRiskService.calculateClimateAdjustedScore(
                 baseScore, null);
 
         // Assert
@@ -183,7 +182,7 @@ class ClimateRiskServiceTest {
     void testAnalyzeClimateRisk_MitigationStrategies() {
         // Act
         ClimateRiskDto climateRisk = climateRiskService.analyzeClimateRisk(
-                "GROUNDNUT", new BigDecimal("-25"), BigDecimal.ZERO);
+                "GROUNDNUT", -25.0, 0.0);
 
         // Assert
         assertNotNull(climateRisk);
@@ -196,7 +195,7 @@ class ClimateRiskServiceTest {
     void testAnalyzeClimateRisk_ResilientVarieties() {
         // Act
         ClimateRiskDto climateRisk = climateRiskService.analyzeClimateRisk(
-                "RICE", new BigDecimal("-15"), BigDecimal.ZERO);
+                "RICE", -15.0, 0.0);
 
         // Assert
         assertNotNull(climateRisk);
@@ -209,7 +208,7 @@ class ClimateRiskServiceTest {
     void testAnalyzeClimateRisk_InsuranceRecommendation() {
         // Act - High risk scenario
         ClimateRiskDto climateRisk = climateRiskService.analyzeClimateRisk(
-                "RICE", new BigDecimal("-30"), new BigDecimal("2"));
+                "RICE", -30.0, 2.0);
 
         // Assert
         assertNotNull(climateRisk);
@@ -223,7 +222,7 @@ class ClimateRiskServiceTest {
     void testAnalyzeClimateRisk_UnknownCrop() {
         // Act
         ClimateRiskDto climateRisk = climateRiskService.analyzeClimateRisk(
-                "UNKNOWN", new BigDecimal("-10"), BigDecimal.ZERO);
+                "UNKNOWN", -10.0, 0.0);
 
         // Assert
         assertNotNull(climateRisk);
@@ -235,18 +234,18 @@ class ClimateRiskServiceTest {
     @DisplayName("Should clamp adjusted score to valid range")
     void testCalculateClimateAdjustedScore_Clamping() {
         // Arrange
-        BigDecimal baseScore = new BigDecimal("20");
+        Double baseScore = 20.0;
         ClimateRiskDto climateRisk = ClimateRiskDto.builder()
                 .riskLevel(ClimateRiskLevel.VERY_HIGH)
                 .build();
 
         // Act
-        BigDecimal adjustedScore = climateRiskService.calculateClimateAdjustedScore(
+        Double adjustedScore = climateRiskService.calculateClimateAdjustedScore(
                 baseScore, climateRisk);
 
         // Assert
         assertNotNull(adjustedScore);
-        assertTrue(adjustedScore.compareTo(BigDecimal.ZERO) >= 0);
+        assertTrue(adjustedScore >= 0.0);
     }
 
     @Test
@@ -254,7 +253,7 @@ class ClimateRiskServiceTest {
     void testAnalyzeClimateRisk_DroughtRisk() {
         // Act - Drought-prone crop with rainfall deficit
         ClimateRiskDto climateRisk = climateRiskService.analyzeClimateRisk(
-                "GROUNDNUT", new BigDecimal("-25"), BigDecimal.ZERO);
+                "GROUNDNUT", -25.0, 0.0);
 
         // Assert
         assertNotNull(climateRisk);
@@ -266,10 +265,11 @@ class ClimateRiskServiceTest {
     void testAnalyzeClimateRisk_FloodRisk() {
         // Act - Flood-prone crop with rainfall excess
         ClimateRiskDto climateRisk = climateRiskService.analyzeClimateRisk(
-                "RICE", new BigDecimal("30"), BigDecimal.ZERO);
+                "RICE", 30.0, 0.0);
 
         // Assert
         assertNotNull(climateRisk);
         assertNotNull(climateRisk.getFloodRisk());
     }
 }
+

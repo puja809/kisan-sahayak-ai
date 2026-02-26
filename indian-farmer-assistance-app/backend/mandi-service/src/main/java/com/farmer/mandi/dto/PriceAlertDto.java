@@ -1,7 +1,7 @@
 package com.farmer.mandi.dto;
 
 import lombok.*;
-import java.math.BigDecimal;
+
 import java.time.LocalDateTime;
 
 /**
@@ -20,7 +20,7 @@ public class PriceAlertDto {
     private String farmerId;
     private String commodity;
     private String variety;
-    private BigDecimal targetPrice;
+    private Double targetPrice;
     private String alertType;
     private Boolean neighboringDistrictsOnly;
     private Boolean isActive;

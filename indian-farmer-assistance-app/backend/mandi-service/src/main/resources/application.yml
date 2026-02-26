@@ -1,17 +1,17 @@
 # Mandi Service Configuration
 
 server:
-  port: 8085
+  port: ${MANDI_SERVICE_PORT:8096}
 
 spring:
   application:
     name: mandi-service
   
   datasource:
-    url: jdbc:mysql://localhost:3306/farmer_assistance?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: root
-    password: password
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${MANDI_DB_URL:jdbc:postgresql://localhost:5432/farmer_assistance}
+    username: ${MANDI_DB_USERNAME:postgres}
+    password: ${MANDI_DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
   
   jpa:
     hibernate:
@@ -19,14 +19,24 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   
   data:
     redis:
-      host: localhost
-      port: 6379
+      url: ${MANDI_REDIS_URL:redis://localhost:6379}
+      database: 4
       timeout: 60000ms
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
 # AGMARKNET API Configuration
 agmarknet:
@@ -36,10 +46,24 @@ agmarknet:
     read-timeout: 60
     max-retries: 3
 
+# data.gov.in API Configuration
+api:
+  datagov:
+    mandi-price:
+      url: https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070
+      api-key: ${MANDI_DATAGOV_PRICE_API_KEY:your_api_key_here}
+    fertilizer-supplier:
+      url: https://api.data.gov.in/resource/56f40818-fd03-4010-9a43-f34ca74b3f7c
+      api-key: ${MANDI_DATAGOV_FERTILIZER_API_KEY:your_api_key_here}
+    timeout: 10000
+    retry:
+      max-attempts: 3
+
 # Redis Cache Configuration
 redis:
   cache:
     mandi-price-ttl-hours: 1
+    fertilizer-supplier-ttl-hours: 24
 
 # Logging Configuration
 logging:
@@ -47,3 +71,17 @@ logging:
     com.farmer.mandi: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: WARN
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+  show-actuator: true
+  use-fqn: true

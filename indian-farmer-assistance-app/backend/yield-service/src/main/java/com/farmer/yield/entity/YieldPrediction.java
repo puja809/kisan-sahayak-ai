@@ -1,7 +1,6 @@
 package com.farmer.yield.entity;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -37,17 +36,17 @@ public class YieldPrediction {
     @Column(name = "prediction_date", nullable = false)
     private LocalDate predictionDate;
 
-    @Column(name = "predicted_yield_min_quintals", nullable = false, precision = 10, scale = 2)
-    private BigDecimal predictedYieldMinQuintals;
+    @Column(name = "predicted_yield_min_quintals", nullable = false)
+    private Double predictedYieldMinQuintals;
 
-    @Column(name = "predicted_yield_expected_quintals", nullable = false, precision = 10, scale = 2)
-    private BigDecimal predictedYieldExpectedQuintals;
+    @Column(name = "predicted_yield_expected_quintals", nullable = false)
+    private Double predictedYieldExpectedQuintals;
 
-    @Column(name = "predicted_yield_max_quintals", nullable = false, precision = 10, scale = 2)
-    private BigDecimal predictedYieldMaxQuintals;
+    @Column(name = "predicted_yield_max_quintals", nullable = false)
+    private Double predictedYieldMaxQuintals;
 
-    @Column(name = "confidence_interval_percent", precision = 5, scale = 2)
-    private BigDecimal confidenceIntervalPercent;
+    @Column(name = "confidence_interval_percent")
+    private Double confidenceIntervalPercent;
 
     @Column(name = "factors_considered", columnDefinition = "JSON")
     private String factorsConsidered;
@@ -55,14 +54,14 @@ public class YieldPrediction {
     @Column(name = "model_version", length = 50)
     private String modelVersion;
 
-    @Column(name = "actual_yield_quintals", precision = 10, scale = 2)
-    private BigDecimal actualYieldQuintals;
+    @Column(name = "actual_yield_quintals")
+    private Double actualYieldQuintals;
 
-    @Column(name = "variance_quintals", precision = 10, scale = 2)
-    private BigDecimal varianceQuintals;
+    @Column(name = "variance_quintals")
+    private Double varianceQuintals;
 
-    @Column(name = "variance_percent", precision = 5, scale = 2)
-    private BigDecimal variancePercent;
+    @Column(name = "variance_percent")
+    private Double variancePercent;
 
     @Column(name = "previous_prediction_id")
     private Long previousPredictionId;
@@ -123,35 +122,35 @@ public class YieldPrediction {
         this.predictionDate = predictionDate;
     }
 
-    public BigDecimal getPredictedYieldMinQuintals() {
+    public Double getPredictedYieldMinQuintals() {
         return predictedYieldMinQuintals;
     }
 
-    public void setPredictedYieldMinQuintals(BigDecimal predictedYieldMinQuintals) {
+    public void setPredictedYieldMinQuintals(Double predictedYieldMinQuintals) {
         this.predictedYieldMinQuintals = predictedYieldMinQuintals;
     }
 
-    public BigDecimal getPredictedYieldExpectedQuintals() {
+    public Double getPredictedYieldExpectedQuintals() {
         return predictedYieldExpectedQuintals;
     }
 
-    public void setPredictedYieldExpectedQuintals(BigDecimal predictedYieldExpectedQuintals) {
+    public void setPredictedYieldExpectedQuintals(Double predictedYieldExpectedQuintals) {
         this.predictedYieldExpectedQuintals = predictedYieldExpectedQuintals;
     }
 
-    public BigDecimal getPredictedYieldMaxQuintals() {
+    public Double getPredictedYieldMaxQuintals() {
         return predictedYieldMaxQuintals;
     }
 
-    public void setPredictedYieldMaxQuintals(BigDecimal predictedYieldMaxQuintals) {
+    public void setPredictedYieldMaxQuintals(Double predictedYieldMaxQuintals) {
         this.predictedYieldMaxQuintals = predictedYieldMaxQuintals;
     }
 
-    public BigDecimal getConfidenceIntervalPercent() {
+    public Double getConfidenceIntervalPercent() {
         return confidenceIntervalPercent;
     }
 
-    public void setConfidenceIntervalPercent(BigDecimal confidenceIntervalPercent) {
+    public void setConfidenceIntervalPercent(Double confidenceIntervalPercent) {
         this.confidenceIntervalPercent = confidenceIntervalPercent;
     }
 
@@ -171,27 +170,27 @@ public class YieldPrediction {
         this.modelVersion = modelVersion;
     }
 
-    public BigDecimal getActualYieldQuintals() {
+    public Double getActualYieldQuintals() {
         return actualYieldQuintals;
     }
 
-    public void setActualYieldQuintals(BigDecimal actualYieldQuintals) {
+    public void setActualYieldQuintals(Double actualYieldQuintals) {
         this.actualYieldQuintals = actualYieldQuintals;
     }
 
-    public BigDecimal getVarianceQuintals() {
+    public Double getVarianceQuintals() {
         return varianceQuintals;
     }
 
-    public void setVarianceQuintals(BigDecimal varianceQuintals) {
+    public void setVarianceQuintals(Double varianceQuintals) {
         this.varianceQuintals = varianceQuintals;
     }
 
-    public BigDecimal getVariancePercent() {
+    public Double getVariancePercent() {
         return variancePercent;
     }
 
-    public void setVariancePercent(BigDecimal variancePercent) {
+    public void setVariancePercent(Double variancePercent) {
         this.variancePercent = variancePercent;
     }
 
@@ -240,14 +239,12 @@ public class YieldPrediction {
      * 
      * @param actualYield The actual harvested yield
      */
-    public void calculateVariance(BigDecimal actualYield) {
+    public void calculateVariance(Double actualYield) {
         this.actualYieldQuintals = actualYield;
         if (actualYield != null && predictedYieldExpectedQuintals != null) {
-            this.varianceQuintals = actualYield.subtract(predictedYieldExpectedQuintals);
-            if (predictedYieldExpectedQuintals.compareTo(BigDecimal.ZERO) > 0) {
-                this.variancePercent = this.varianceQuintals
-                        .multiply(new BigDecimal("100"))
-                        .divide(predictedYieldExpectedQuintals, 2, java.math.RoundingMode.HALF_UP);
+            this.varianceQuintals = actualYield - predictedYieldExpectedQuintals;
+            if (predictedYieldExpectedQuintals > 0) {
+                this.variancePercent = (this.varianceQuintals * 100) / predictedYieldExpectedQuintals;
             }
         }
     }
@@ -263,19 +260,16 @@ public class YieldPrediction {
             return false;
         }
         
-        BigDecimal previousExpected = previousPrediction.getPredictedYieldExpectedQuintals();
-        BigDecimal currentExpected = this.predictedYieldExpectedQuintals;
+        Double previousExpected = previousPrediction.getPredictedYieldExpectedQuintals();
+        Double currentExpected = this.predictedYieldExpectedQuintals;
         
-        if (previousExpected.compareTo(BigDecimal.ZERO) == 0) {
-            return currentExpected.compareTo(BigDecimal.ZERO) != 0;
+        if (previousExpected == 0) {
+            return currentExpected != 0;
         }
         
-        BigDecimal deviation = currentExpected.subtract(previousExpected)
-                .abs()
-                .multiply(new BigDecimal("100"))
-                .divide(previousExpected, 2, java.math.RoundingMode.HALF_UP);
+        Double deviation = Math.abs(currentExpected - previousExpected) * 100 / previousExpected;
         
-        return deviation.compareTo(new BigDecimal("10")) >= 0;
+        return deviation >= 10;
     }
 
     /**
@@ -303,22 +297,22 @@ public class YieldPrediction {
             return this;
         }
 
-        public Builder predictedYieldMinQuintals(BigDecimal predictedYieldMinQuintals) {
+        public Builder predictedYieldMinQuintals(Double predictedYieldMinQuintals) {
             prediction.setPredictedYieldMinQuintals(predictedYieldMinQuintals);
             return this;
         }
 
-        public Builder predictedYieldExpectedQuintals(BigDecimal predictedYieldExpectedQuintals) {
+        public Builder predictedYieldExpectedQuintals(Double predictedYieldExpectedQuintals) {
             prediction.setPredictedYieldExpectedQuintals(predictedYieldExpectedQuintals);
             return this;
         }
 
-        public Builder predictedYieldMaxQuintals(BigDecimal predictedYieldMaxQuintals) {
+        public Builder predictedYieldMaxQuintals(Double predictedYieldMaxQuintals) {
             prediction.setPredictedYieldMaxQuintals(predictedYieldMaxQuintals);
             return this;
         }
 
-        public Builder confidenceIntervalPercent(BigDecimal confidenceIntervalPercent) {
+        public Builder confidenceIntervalPercent(Double confidenceIntervalPercent) {
             prediction.setConfidenceIntervalPercent(confidenceIntervalPercent);
             return this;
         }
@@ -335,6 +329,11 @@ public class YieldPrediction {
 
         public Builder previousPredictionId(Long previousPredictionId) {
             prediction.setPreviousPredictionId(previousPredictionId);
+            return this;
+        }
+
+        public Builder notificationSent(Boolean notificationSent) {
+            prediction.setNotificationSent(notificationSent);
             return this;
         }
 

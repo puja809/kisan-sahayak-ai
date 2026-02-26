@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -39,69 +37,69 @@ public class YieldPredictionService {
 
     private static final Logger logger = LoggerFactory.getLogger(YieldPredictionService.class);
     private static final String MODEL_VERSION = "1.0.0";
-    private static final BigDecimal DEFAULT_CONFIDENCE_INTERVAL = new BigDecimal("85");
-    private static final BigDecimal SIGNIFICANT_DEVIATION_THRESHOLD = new BigDecimal("10");
+    private static final Double DEFAULT_CONFIDENCE_INTERVAL = 85.0;
+    private static final Double SIGNIFICANT_DEVIATION_THRESHOLD = 10.0;
 
     private final YieldPredictionRepository yieldPredictionRepository;
     private final WeatherClient weatherClient;
     private final MandiPriceClient mandiPriceClient;
 
     // Base yield estimates per acre for different crops (quintals per acre)
-    private static final Map<String, BigDecimal[]> CROP_BASE_YIELDS = new HashMap<>();
+    private static final Map<String, Double[]> CROP_BASE_YIELDS = new HashMap<>();
     
     // Growth stage multipliers
-    private static final Map<String, BigDecimal> GROWTH_STAGE_MULTIPLIERS = new HashMap<>();
+    private static final Map<String, Double> GROWTH_STAGE_MULTIPLIERS = new HashMap<>();
     
     // Weather impact factors
-    private static final BigDecimal OPTIMAL_RAINFALL_MM = new BigDecimal("500");
-    private static final BigDecimal OPTIMAL_TEMPERATURE_CELSIUS = new BigDecimal("28");
-    private static final BigDecimal EXTREME_EVENT_PENALTY = new BigDecimal("0.15");
+    private static final Double OPTIMAL_RAINFALL_MM = 500.0;
+    private static final Double OPTIMAL_TEMPERATURE_CELSIUS = 28.0;
+    private static final Double EXTREME_EVENT_PENALTY = 0.15;
     
     // Soil health impact factors
-    private static final BigDecimal OPTIMAL_NITROGEN = new BigDecimal("280");
-    private static final BigDecimal OPTIMAL_PHOSPHORUS = new BigDecimal("10");
-    private static final BigDecimal OPTIMAL_POTASSIUM = new BigDecimal("108");
-    private static final BigDecimal OPTIMAL_PH = new BigDecimal("6.5");
+    private static final Double OPTIMAL_NITROGEN = 280.0;
+    private static final Double OPTIMAL_PHOSPHORUS = 10.0;
+    private static final Double OPTIMAL_POTASSIUM = 108.0;
+    private static final Double OPTIMAL_PH = 6.5;
     
     // Irrigation impact factors
-    private static final Map<String, BigDecimal> IRRIGATION_MULTIPLIERS = new HashMap<>();
+    private static final Map<String, Double> IRRIGATION_MULTIPLIERS = new HashMap<>();
     
     // Pest/disease impact factors
-    private static final BigDecimal PEST_INCIDENT_PENALTY = new BigDecimal("0.05");
-    private static final BigDecimal DISEASE_INCIDENT_PENALTY = new BigDecimal("0.08");
-    private static final BigDecimal UNCONTROLLED_PEST_PENALTY = new BigDecimal("0.20");
-    private static final BigDecimal SEVERE_INCIDENT_PENALTY = new BigDecimal("0.30");
+    private static final Double PEST_INCIDENT_PENALTY = 0.05;
+    private static final Double DISEASE_INCIDENT_PENALTY = 0.08;
+    private static final Double UNCONTROLLED_PEST_PENALTY = 0.20;
+    private static final Double SEVERE_INCIDENT_PENALTY = 0.30;
 
     static {
         // Base yields: [low, expected, high] quintals per acre
-        CROP_BASE_YIELDS.put("RICE", new BigDecimal[]{new BigDecimal("15"), new BigDecimal("25"), new BigDecimal("35")});
-        CROP_BASE_YIELDS.put("WHEAT", new BigDecimal[]{new BigDecimal("12"), new BigDecimal("20"), new BigDecimal("28")});
-        CROP_BASE_YIELDS.put("COTTON", new BigDecimal[]{new BigDecimal("8"), new BigDecimal("15"), new BigDecimal("22")});
-        CROP_BASE_YIELDS.put("SOYBEAN", new BigDecimal[]{new BigDecimal("8"), new BigDecimal("12"), new BigDecimal("18")});
-        CROP_BASE_YIELDS.put("GROUNDNUT", new BigDecimal[]{new BigDecimal("10"), new BigDecimal("15"), new BigDecimal("22")});
-        CROP_BASE_YIELDS.put("MUSTARD", new BigDecimal[]{new BigDecimal("6"), new BigDecimal("10"), new BigDecimal("15")});
-        CROP_BASE_YIELDS.put("PULSES", new BigDecimal[]{new BigDecimal("5"), new BigDecimal("8"), new BigDecimal("12")});
-        CROP_BASE_YIELDS.put("MAIZE", new BigDecimal[]{new BigDecimal("18"), new BigDecimal("28"), new BigDecimal("40")});
-        CROP_BASE_YIELDS.put("SUGARCANE", new BigDecimal[]{new BigDecimal("250"), new BigDecimal("350"), new BigDecimal("450")});
-        CROP_BASE_YIELDS.put("POTATO", new BigDecimal[]{new BigDecimal("80"), new BigDecimal("120"), new BigDecimal("160")});
-        CROP_BASE_YIELDS.put("ONION", new BigDecimal[]{new BigDecimal("100"), new BigDecimal("150"), new BigDecimal("200")});
-        CROP_BASE_YIELDS.put("TOMATO", new BigDecimal[]{new BigDecimal("120"), new BigDecimal("180"), new BigDecimal("250")});
+        CROP_BASE_YIELDS.put("RICE", new Double[]{15.0, 25.0, 35.0});
+        CROP_BASE_YIELDS.put("WHEAT", new Double[]{12.0, 20.0, 28.0});
+        CROP_BASE_YIELDS.put("COTTON", new Double[]{8.0, 15.0, 22.0});
+        CROP_BASE_YIELDS.put("SOYBEAN", new Double[]{8.0, 12.0, 18.0});
+        CROP_BASE_YIELDS.put("GROUNDNUT", new Double[]{10.0, 15.0, 22.0});
+        CROP_BASE_YIELDS.put("MUSTARD", new Double[]{6.0, 10.0, 15.0});
+        CROP_BASE_YIELDS.put("PULSES", new Double[]{5.0, 8.0, 12.0});
+        CROP_BASE_YIELDS.put("MAIZE", new Double[]{18.0, 28.0, 40.0});
+        CROP_BASE_YIELDS.put("SUGARCANE", new Double[]{250.0, 350.0, 450.0});
+        CROP_BASE_YIELDS.put("POTATO", new Double[]{80.0, 120.0, 160.0});
+        CROP_BASE_YIELDS.put("ONION", new Double[]{100.0, 150.0, 200.0});
+        CROP_BASE_YIELDS.put("TOMATO", new Double[]{120.0, 180.0, 250.0});
 
         // Growth stage multipliers (based on days since sowing percentage of total growth period)
-        GROWTH_STAGE_MULTIPLIERS.put("SOWING", new BigDecimal("0.95"));
-        GROWTH_STAGE_MULTIPLIERS.put("GERMINATION", new BigDecimal("0.90"));
-        GROWTH_STAGE_MULTIPLIERS.put("VEGETATIVE", new BigDecimal("0.85"));
-        GROWTH_STAGE_MULTIPLIERS.put("FLOWERING", new BigDecimal("0.80"));
-        GROWTH_STAGE_MULTIPLIERS.put("FRUITING", new BigDecimal("0.85"));
-        GROWTH_STAGE_MULTIPLIERS.put("MATURATION", new BigDecimal("0.90"));
-        GROWTH_STAGE_MULTIPLIERS.put("HARVEST", new BigDecimal("1.00"));
+        GROWTH_STAGE_MULTIPLIERS.put("SOWING", 0.95);
+        GROWTH_STAGE_MULTIPLIERS.put("GERMINATION", 0.90);
+        GROWTH_STAGE_MULTIPLIERS.put("VEGETATIVE", 0.85);
+        GROWTH_STAGE_MULTIPLIERS.put("FLOWERING", 0.80);
+        GROWTH_STAGE_MULTIPLIERS.put("FRUITING", 0.85);
+        GROWTH_STAGE_MULTIPLIERS.put("MATURATION", 0.90);
+        GROWTH_STAGE_MULTIPLIERS.put("HARVEST", 1.00);
 
         // Irrigation multipliers
-        IRRIGATION_MULTIPLIERS.put("RAINFED", new BigDecimal("0.85"));
-        IRRIGATION_MULTIPLIERS.put("DRIP", new BigDecimal("1.15"));
-        IRRIGATION_MULTIPLIERS.put("SPRINKLER", new BigDecimal("1.10"));
-        IRRIGATION_MULTIPLIERS.put("CANAL", new BigDecimal("1.05"));
-        IRRIGATION_MULTIPLIERS.put("BOREWELL", new BigDecimal("1.08"));
+        IRRIGATION_MULTIPLIERS.put("RAINFED", 0.85);
+        IRRIGATION_MULTIPLIERS.put("DRIP", 1.15);
+        IRRIGATION_MULTIPLIERS.put("SPRINKLER", 1.10);
+        IRRIGATION_MULTIPLIERS.put("CANAL", 1.05);
+        IRRIGATION_MULTIPLIERS.put("BOREWELL", 1.08);
     }
 
     public YieldPredictionService(
@@ -129,74 +127,72 @@ public class YieldPredictionService {
             // Step 1: Get base yield for the crop
             String cropKey = request.getCropName() != null ? 
                     request.getCropName().toUpperCase() : "RICE";
-            BigDecimal[] baseYields = CROP_BASE_YIELDS.getOrDefault(cropKey, 
-                    new BigDecimal[]{new BigDecimal("15"), new BigDecimal("25"), new BigDecimal("35")});
+            Double[] baseYields = CROP_BASE_YIELDS.getOrDefault(cropKey, 
+                    new Double[]{15.0, 25.0, 35.0});
             
             // Step 2: Calculate adjustment factors
             List<String> factorsConsidered = new ArrayList<>();
             List<String> factorAdjustments = new ArrayList<>();
-            BigDecimal cumulativeMultiplier = BigDecimal.ONE;
+            Double cumulativeMultiplier = 1.0;
             
             // Growth stage adjustment
-            BigDecimal growthStageMultiplier = calculateGrowthStageMultiplier(request.getGrowthStage());
-            if (growthStageMultiplier.compareTo(BigDecimal.ONE) != 0) {
-                cumulativeMultiplier = cumulativeMultiplier.multiply(growthStageMultiplier);
+            Double growthStageMultiplier = calculateGrowthStageMultiplier(request.getGrowthStage());
+            if (growthStageMultiplier != 1.0) {
+                cumulativeMultiplier = cumulativeMultiplier * growthStageMultiplier;
                 factorsConsidered.add("Growth Stage: " + request.getGrowthStage());
                 factorAdjustments.add(String.format("Growth stage adjustment: %.1f%%", 
-                        growthStageMultiplier.multiply(new BigDecimal("100")).subtract(new BigDecimal("100"))));
+                        (growthStageMultiplier - 1.0) * 100));
             }
             
             // Weather adjustment
-            BigDecimal weatherMultiplier = calculateWeatherMultiplier(request, factorsConsidered, factorAdjustments);
-            cumulativeMultiplier = cumulativeMultiplier.multiply(weatherMultiplier);
+            Double weatherMultiplier = calculateWeatherMultiplier(request, factorsConsidered, factorAdjustments);
+            cumulativeMultiplier = cumulativeMultiplier * weatherMultiplier;
             
             // Soil health adjustment
-            BigDecimal soilMultiplier = calculateSoilMultiplier(request, factorsConsidered, factorAdjustments);
-            cumulativeMultiplier = cumulativeMultiplier.multiply(soilMultiplier);
+            Double soilMultiplier = calculateSoilMultiplier(request, factorsConsidered, factorAdjustments);
+            cumulativeMultiplier = cumulativeMultiplier * soilMultiplier;
             
             // Irrigation adjustment
-            BigDecimal irrigationMultiplier = calculateIrrigationMultiplier(request, factorsConsidered, factorAdjustments);
-            cumulativeMultiplier = cumulativeMultiplier.multiply(irrigationMultiplier);
+            Double irrigationMultiplier = calculateIrrigationMultiplier(request, factorsConsidered, factorAdjustments);
+            cumulativeMultiplier = cumulativeMultiplier * irrigationMultiplier;
             
             // Pest/disease adjustment
-            BigDecimal pestDiseaseMultiplier = calculatePestDiseaseMultiplier(request, factorsConsidered, factorAdjustments);
-            cumulativeMultiplier = cumulativeMultiplier.multiply(pestDiseaseMultiplier);
+            Double pestDiseaseMultiplier = calculatePestDiseaseMultiplier(request, factorsConsidered, factorAdjustments);
+            cumulativeMultiplier = cumulativeMultiplier * pestDiseaseMultiplier;
             
             // Historical data adjustment
-            BigDecimal historicalMultiplier = calculateHistoricalMultiplier(request, factorsConsidered, factorAdjustments);
-            if (historicalMultiplier.compareTo(BigDecimal.ONE) != 0) {
-                cumulativeMultiplier = cumulativeMultiplier.multiply(historicalMultiplier);
+            Double historicalMultiplier = calculateHistoricalMultiplier(request, factorsConsidered, factorAdjustments);
+            if (historicalMultiplier != 1.0) {
+                cumulativeMultiplier = cumulativeMultiplier * historicalMultiplier;
             }
             
             // Step 3: Calculate final yield estimates
-            BigDecimal area = request.getAreaAcres() != null ? request.getAreaAcres() : BigDecimal.ONE;
+            Double area = request.getAreaAcres() != null ? request.getAreaAcres() : 1.0;
             
-            BigDecimal expectedYieldPerAcre = baseYields[1].multiply(cumulativeMultiplier)
-                    .setScale(2, RoundingMode.HALF_UP);
+            Double expectedYieldPerAcre = Math.round(baseYields[1] * cumulativeMultiplier * 100.0) / 100.0;
             
             // Calculate min and max based on confidence interval
-            BigDecimal confidenceFactor = DEFAULT_CONFIDENCE_INTERVAL.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
-            BigDecimal range = baseYields[1].subtract(baseYields[0]).multiply(confidenceFactor);
+            Double confidenceFactor = DEFAULT_CONFIDENCE_INTERVAL / 100.0;
+            Double range = (baseYields[1] - baseYields[0]) * confidenceFactor;
             
-            BigDecimal minYieldPerAcre = expectedYieldPerAcre.subtract(range)
-                    .max(baseYields[0].multiply(new BigDecimal("0.7")))
-                    .setScale(2, RoundingMode.HALF_UP);
-            BigDecimal maxYieldPerAcre = expectedYieldPerAcre.add(range)
-                    .max(baseYields[2].multiply(new BigDecimal("1.1")))
-                    .setScale(2, RoundingMode.HALF_UP);
+            Double minYieldPerAcre = Math.round((expectedYieldPerAcre - range) * 100.0) / 100.0;
+            minYieldPerAcre = Math.max(minYieldPerAcre, Math.round(baseYields[0] * 0.7 * 100.0) / 100.0);
+            
+            Double maxYieldPerAcre = Math.round((expectedYieldPerAcre + range) * 100.0) / 100.0;
+            maxYieldPerAcre = Math.max(maxYieldPerAcre, Math.round(baseYields[2] * 1.1 * 100.0) / 100.0);
             
             // Ensure min <= expected <= max
-            if (minYieldPerAcre.compareTo(expectedYieldPerAcre) > 0) {
+            if (minYieldPerAcre > expectedYieldPerAcre) {
                 minYieldPerAcre = expectedYieldPerAcre;
             }
-            if (maxYieldPerAcre.compareTo(expectedYieldPerAcre) < 0) {
+            if (maxYieldPerAcre < expectedYieldPerAcre) {
                 maxYieldPerAcre = expectedYieldPerAcre;
             }
             
             // Step 4: Calculate total yields for the area
-            BigDecimal totalExpectedYield = expectedYieldPerAcre.multiply(area).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal totalMinYield = minYieldPerAcre.multiply(area).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal totalMaxYield = maxYieldPerAcre.multiply(area).setScale(2, RoundingMode.HALF_UP);
+            Double totalExpectedYield = Math.round(expectedYieldPerAcre * area * 100.0) / 100.0;
+            Double totalMinYield = Math.round(minYieldPerAcre * area * 100.0) / 100.0;
+            Double totalMaxYield = Math.round(maxYieldPerAcre * area * 100.0) / 100.0;
             
             // Step 5: Check for significant deviation from previous prediction
             YieldPrediction previousPrediction = yieldPredictionRepository
@@ -204,18 +200,15 @@ public class YieldPredictionService {
                     .orElse(null);
             
             boolean significantDeviation = false;
-            BigDecimal deviationPercent = BigDecimal.ZERO;
+            Double deviationPercent = 0.0;
             String deviationNote = null;
             
             if (previousPrediction != null) {
-                BigDecimal previousExpected = previousPrediction.getPredictedYieldExpectedQuintals();
-                if (previousExpected != null && previousExpected.compareTo(BigDecimal.ZERO) > 0) {
-                    deviationPercent = totalExpectedYield.subtract(previousExpected)
-                            .abs()
-                            .multiply(new BigDecimal("100"))
-                            .divide(previousExpected, 2, RoundingMode.HALF_UP);
+                Double previousExpected = previousPrediction.getPredictedYieldExpectedQuintals();
+                if (previousExpected != null && previousExpected > 0) {
+                    deviationPercent = Math.abs(totalExpectedYield - previousExpected) * 100 / previousExpected;
                     
-                    if (deviationPercent.compareTo(SIGNIFICANT_DEVIATION_THRESHOLD) >= 0) {
+                    if (deviationPercent >= SIGNIFICANT_DEVIATION_THRESHOLD) {
                         significantDeviation = true;
                         deviationNote = String.format("Yield estimate changed by %.1f%% from previous prediction", deviationPercent);
                     }
@@ -273,21 +266,19 @@ public class YieldPredictionService {
             
             // Step 9: Add historical comparison
             if (Boolean.TRUE.equals(request.getIncludeHistoricalData())) {
-                BigDecimal historicalAvg = yieldPredictionRepository
+                Double historicalAvg = yieldPredictionRepository
                         .calculateAverageActualYieldForFarmerAndCrop(
                                 request.getFarmerId(), 
                                 request.getHistoricalCropName() != null ? 
-                                        request.getHistoricalCropName() : request.getCropName());
-                if (historicalAvg != null && historicalAvg.compareTo(BigDecimal.ZERO) > 0) {
-                    BigDecimal varianceFromHistorical = expectedYieldPerAcre.subtract(historicalAvg)
-                            .multiply(new BigDecimal("100"))
-                            .divide(historicalAvg, 2, RoundingMode.HALF_UP);
+                                        Long.parseLong(request.getHistoricalCropName()) : request.getCropId());
+                if (historicalAvg != null && historicalAvg > 0) {
+                    Double varianceFromHistorical = (expectedYieldPerAcre - historicalAvg) * 100 / historicalAvg;
                     responseBuilder.historicalAverageYieldQuintalsPerAcre(historicalAvg);
                     responseBuilder.yieldVarianceFromHistoricalPercent(varianceFromHistorical);
                     responseBuilder.historicalComparisonNote(String.format(
                             "%.1f%% %s than your historical average of %.2f quintals/acre",
-                            varianceFromHistorical.abs(),
-                            varianceFromHistorical.compareTo(BigDecimal.ZERO) > 0 ? "above" : "below",
+                            Math.abs(varianceFromHistorical),
+                            varianceFromHistorical > 0 ? "above" : "below",
                             historicalAvg));
                 }
             }
@@ -329,8 +320,8 @@ public class YieldPredictionService {
             prediction = yieldPredictionRepository.save(prediction);
             
             // Get historical variance data
-            BigDecimal avgVariance = yieldPredictionRepository
-                    .calculateAverageVarianceForCrop(request.getCropId().toString());
+            Double avgVariance = yieldPredictionRepository
+                    .calculateAverageVarianceForCrop(request.getCropId());
             
             // Build response
             VarianceTrackingDto.VarianceTrackingDtoBuilder responseBuilder = VarianceTrackingDto.builder()
@@ -346,10 +337,9 @@ public class YieldPredictionService {
             
             // Categorize variance
             if (prediction.getVariancePercent() != null) {
-                if (prediction.getVariancePercent().compareTo(new BigDecimal("-10")) > 0 &&
-                    prediction.getVariancePercent().compareTo(new BigDecimal("10")) < 0) {
+                if (prediction.getVariancePercent() > -10 && prediction.getVariancePercent() < 10) {
                     responseBuilder.varianceCategory("neutral");
-                } else if (prediction.getVariancePercent().compareTo(BigDecimal.ZERO) > 0) {
+                } else if (prediction.getVariancePercent() > 0) {
                     responseBuilder.varianceCategory("positive");
                 } else {
                     responseBuilder.varianceCategory("negative");
@@ -400,138 +390,126 @@ public class YieldPredictionService {
     /**
      * Calculate growth stage multiplier.
      */
-    private BigDecimal calculateGrowthStageMultiplier(String growthStage) {
+    private Double calculateGrowthStageMultiplier(String growthStage) {
         if (growthStage == null) {
-            return BigDecimal.ONE;
+            return 1.0;
         }
         return GROWTH_STAGE_MULTIPLIERS.getOrDefault(
                 growthStage.toUpperCase().replace(" ", "_"), 
-                BigDecimal.ONE);
+                1.0);
     }
 
     /**
      * Calculate weather impact multiplier.
      */
-    private BigDecimal calculateWeatherMultiplier(
+    private Double calculateWeatherMultiplier(
             YieldEstimateRequestDto request,
             List<String> factors,
             List<String> adjustments) {
         
-        BigDecimal multiplier = BigDecimal.ONE;
+        Double multiplier = 1.0;
         
         // Rainfall impact
         if (request.getTotalRainfallMm() != null) {
-            BigDecimal rainfallDiff = request.getTotalRainfallMm().subtract(OPTIMAL_RAINFALL_MM)
-                    .abs();
-            BigDecimal rainfallAdjustment = rainfallDiff.divide(OPTIMAL_RAINFALL_MM, 4, RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal("0.1"));
+            Double rainfallDiff = Math.abs(request.getTotalRainfallMm() - OPTIMAL_RAINFALL_MM);
+            Double rainfallAdjustment = (rainfallDiff / OPTIMAL_RAINFALL_MM) * 0.1;
             
-            if (request.getTotalRainfallMm().compareTo(OPTIMAL_RAINFALL_MM) < 0) {
+            if (request.getTotalRainfallMm() < OPTIMAL_RAINFALL_MM) {
                 // Less than optimal - negative impact
-                multiplier = multiplier.subtract(rainfallAdjustment.min(new BigDecimal("0.2")));
+                multiplier = multiplier - Math.min(rainfallAdjustment, 0.2);
                 adjustments.add(String.format("Below optimal rainfall (%.0fmm): -%.1f%%", 
-                        request.getTotalRainfallMm(), rainfallAdjustment.multiply(new BigDecimal("100"))));
+                        request.getTotalRainfallMm(), rainfallAdjustment * 100));
             } else {
                 // More than optimal - slight positive impact
-                multiplier = multiplier.add(rainfallAdjustment.min(new BigDecimal("0.1")));
+                multiplier = multiplier + Math.min(rainfallAdjustment, 0.1);
                 adjustments.add(String.format("Above optimal rainfall (%.0fmm): +%.1f%%", 
-                        request.getTotalRainfallMm(), rainfallAdjustment.multiply(new BigDecimal("100"))));
+                        request.getTotalRainfallMm(), rainfallAdjustment * 100));
             }
             factors.add("Rainfall: " + request.getTotalRainfallMm() + "mm");
         }
         
         // Temperature impact
         if (request.getAverageTemperatureCelsius() != null) {
-            BigDecimal tempDiff = request.getAverageTemperatureCelsius().subtract(OPTIMAL_TEMPERATURE_CELSIUS)
-                    .abs();
-            BigDecimal tempAdjustment = tempDiff.divide(OPTIMAL_TEMPERATURE_CELSIUS, 4, RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal("0.15"));
+            Double tempDiff = Math.abs(request.getAverageTemperatureCelsius() - OPTIMAL_TEMPERATURE_CELSIUS);
+            Double tempAdjustment = (tempDiff / OPTIMAL_TEMPERATURE_CELSIUS) * 0.15;
             
-            multiplier = multiplier.subtract(tempAdjustment.min(new BigDecimal("0.25")));
+            multiplier = multiplier - Math.min(tempAdjustment, 0.25);
             adjustments.add(String.format("Temperature deviation (%.1f°C): -%.1f%%", 
-                    tempDiff, tempAdjustment.multiply(new BigDecimal("100"))));
+                    tempDiff, tempAdjustment * 100));
             factors.add("Temperature: " + request.getAverageTemperatureCelsius() + "°C");
         }
         
         // Extreme weather events
         if (request.getExtremeWeatherEventsCount() != null && request.getExtremeWeatherEventsCount() > 0) {
-            BigDecimal extremePenalty = EXTREME_EVENT_PENALTY
-                    .multiply(new BigDecimal(request.getExtremeWeatherEventsCount()))
-                    .min(new BigDecimal("0.30"));
-            multiplier = multiplier.subtract(extremePenalty);
+            Double extremePenalty = Math.min(EXTREME_EVENT_PENALTY * request.getExtremeWeatherEventsCount(), 0.30);
+            multiplier = multiplier - extremePenalty;
             adjustments.add(String.format("Extreme weather events (%d): -%.1f%%", 
-                    request.getExtremeWeatherEventsCount(), extremePenalty.multiply(new BigDecimal("100"))));
+                    request.getExtremeWeatherEventsCount(), extremePenalty * 100));
             factors.add("Extreme Weather Events: " + request.getExtremeWeatherEventsCount());
         }
         
-        return multiplier.max(new BigDecimal("0.5"));
+        return Math.max(multiplier, 0.5);
     }
 
     /**
      * Calculate soil health impact multiplier.
      */
-    private BigDecimal calculateSoilMultiplier(
+    private Double calculateSoilMultiplier(
             YieldEstimateRequestDto request,
             List<String> factors,
             List<String> adjustments) {
         
-        BigDecimal multiplier = BigDecimal.ONE;
+        Double multiplier = 1.0;
         
         // Nitrogen impact
         if (request.getSoilNitrogenKgHa() != null) {
-            BigDecimal nDiff = OPTIMAL_NITROGEN.subtract(request.getSoilNitrogenKgHa())
-                    .max(BigDecimal.ZERO);
-            BigDecimal nAdjustment = nDiff.divide(OPTIMAL_NITROGEN, 4, RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal("0.2"));
-            multiplier = multiplier.subtract(nAdjustment);
+            Double nDiff = Math.max(OPTIMAL_NITROGEN - request.getSoilNitrogenKgHa(), 0);
+            Double nAdjustment = (nDiff / OPTIMAL_NITROGEN) * 0.2;
+            multiplier = multiplier - nAdjustment;
             adjustments.add(String.format("Soil nitrogen (%.0f kg/ha): -%.1f%%", 
-                    request.getSoilNitrogenKgHa(), nAdjustment.multiply(new BigDecimal("100"))));
+                    request.getSoilNitrogenKgHa(), nAdjustment * 100));
             factors.add("Soil N: " + request.getSoilNitrogenKgHa() + " kg/ha");
         }
         
         // Phosphorus impact
         if (request.getSoilPhosphorusKgHa() != null) {
-            BigDecimal pDiff = OPTIMAL_PHOSPHORUS.subtract(request.getSoilPhosphorusKgHa())
-                    .max(BigDecimal.ZERO);
-            BigDecimal pAdjustment = pDiff.divide(OPTIMAL_PHOSPHORUS, 4, RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal("0.15"));
-            multiplier = multiplier.subtract(pAdjustment);
+            Double pDiff = Math.max(OPTIMAL_PHOSPHORUS - request.getSoilPhosphorusKgHa(), 0);
+            Double pAdjustment = (pDiff / OPTIMAL_PHOSPHORUS) * 0.15;
+            multiplier = multiplier - pAdjustment;
             adjustments.add(String.format("Soil phosphorus (%.1f kg/ha): -%.1f%%", 
-                    request.getSoilPhosphorusKgHa(), pAdjustment.multiply(new BigDecimal("100"))));
+                    request.getSoilPhosphorusKgHa(), pAdjustment * 100));
             factors.add("Soil P: " + request.getSoilPhosphorusKgHa() + " kg/ha");
         }
         
         // Potassium impact
         if (request.getSoilPotassiumKgHa() != null) {
-            BigDecimal kDiff = OPTIMAL_POTASSIUM.subtract(request.getSoilPotassiumKgHa())
-                    .max(BigDecimal.ZERO);
-            BigDecimal kAdjustment = kDiff.divide(OPTIMAL_POTASSIUM, 4, RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal("0.1"));
-            multiplier = multiplier.subtract(kAdjustment);
+            Double kDiff = Math.max(OPTIMAL_POTASSIUM - request.getSoilPotassiumKgHa(), 0);
+            Double kAdjustment = (kDiff / OPTIMAL_POTASSIUM) * 0.1;
+            multiplier = multiplier - kAdjustment;
             adjustments.add(String.format("Soil potassium (%.0f kg/ha): -%.1f%%", 
-                    request.getSoilPotassiumKgHa(), kAdjustment.multiply(new BigDecimal("100"))));
+                    request.getSoilPotassiumKgHa(), kAdjustment * 100));
             factors.add("Soil K: " + request.getSoilPotassiumKgHa() + " kg/ha");
         }
         
         // pH impact
         if (request.getSoilPh() != null) {
-            BigDecimal phDiff = request.getSoilPh().subtract(OPTIMAL_PH).abs();
-            if (phDiff.compareTo(new BigDecimal("0.5")) > 0) {
-                BigDecimal phAdjustment = phDiff.multiply(new BigDecimal("0.1"));
-                multiplier = multiplier.subtract(phAdjustment.min(new BigDecimal("0.15")));
+            Double phDiff = Math.abs(request.getSoilPh() - OPTIMAL_PH);
+            if (phDiff > 0.5) {
+                Double phAdjustment = phDiff * 0.1;
+                multiplier = multiplier - Math.min(phAdjustment, 0.15);
                 adjustments.add(String.format("Soil pH deviation (%.1f): -%.1f%%", 
-                        phDiff, phAdjustment.multiply(new BigDecimal("100"))));
+                        phDiff, phAdjustment * 100));
             }
             factors.add("Soil pH: " + request.getSoilPh());
         }
         
-        return multiplier.max(new BigDecimal("0.6"));
+        return Math.max(multiplier, 0.6);
     }
 
     /**
      * Calculate irrigation impact multiplier.
      */
-    private BigDecimal calculateIrrigationMultiplier(
+    private Double calculateIrrigationMultiplier(
             YieldEstimateRequestDto request,
             List<String> factors,
             List<String> adjustments) {
@@ -539,11 +517,11 @@ public class YieldPredictionService {
         String irrigationType = request.getIrrigationType() != null ? 
                 request.getIrrigationType().toUpperCase() : "RAINFED";
         
-        BigDecimal multiplier = IRRIGATION_MULTIPLIERS.getOrDefault(irrigationType, BigDecimal.ONE);
+        Double multiplier = IRRIGATION_MULTIPLIERS.getOrDefault(irrigationType, 1.0);
         
-        if (multiplier.compareTo(BigDecimal.ONE) != 0) {
+        if (multiplier != 1.0) {
             adjustments.add(String.format("Irrigation type (%s): %+.1f%%", 
-                    irrigationType, multiplier.subtract(BigDecimal.ONE).multiply(new BigDecimal("100"))));
+                    irrigationType, (multiplier - 1.0) * 100));
         }
         factors.add("Irrigation: " + irrigationType);
         
@@ -552,7 +530,7 @@ public class YieldPredictionService {
             if (request.getIrrigationFrequencyPerWeek() < 1 && "RAINFED".equals(irrigationType)) {
                 // Rainfed with no irrigation - already accounted for
             } else if (request.getIrrigationFrequencyPerWeek() >= 3) {
-                multiplier = multiplier.multiply(new BigDecimal("1.05"));
+                multiplier = multiplier * 1.05;
                 adjustments.add("High irrigation frequency: +5%");
             }
         }
@@ -563,133 +541,124 @@ public class YieldPredictionService {
     /**
      * Calculate pest/disease impact multiplier.
      */
-    private BigDecimal calculatePestDiseaseMultiplier(
+    private Double calculatePestDiseaseMultiplier(
             YieldEstimateRequestDto request,
             List<String> factors,
             List<String> adjustments) {
         
-        BigDecimal multiplier = BigDecimal.ONE;
+        Double multiplier = 1.0;
         
         // Pest incidents
         if (request.getPestIncidentCount() != null && request.getPestIncidentCount() > 0) {
-            BigDecimal pestPenalty = PEST_INCIDENT_PENALTY
-                    .multiply(new BigDecimal(request.getPestIncidentCount()))
-                    .min(new BigDecimal("0.25"));
+            Double pestPenalty = Math.min(PEST_INCIDENT_PENALTY * request.getPestIncidentCount(), 0.25);
             
             if ("ongoing".equalsIgnoreCase(request.getPestDiseaseControlStatus()) ||
                 "severe".equalsIgnoreCase(request.getPestDiseaseControlStatus())) {
-                pestPenalty = pestPenalty.multiply(new BigDecimal("2"));
+                pestPenalty = pestPenalty * 2;
             }
             
-            multiplier = multiplier.subtract(pestPenalty);
+            multiplier = multiplier - pestPenalty;
             adjustments.add(String.format("Pest incidents (%d): -%.1f%%", 
-                    request.getPestIncidentCount(), pestPenalty.multiply(new BigDecimal("100"))));
+                    request.getPestIncidentCount(), pestPenalty * 100));
             factors.add("Pest Incidents: " + request.getPestIncidentCount());
         }
         
         // Disease incidents
         if (request.getDiseaseIncidentCount() != null && request.getDiseaseIncidentCount() > 0) {
-            BigDecimal diseasePenalty = DISEASE_INCIDENT_PENALTY
-                    .multiply(new BigDecimal(request.getDiseaseIncidentCount()))
-                    .min(new BigDecimal("0.30"));
+            Double diseasePenalty = Math.min(DISEASE_INCIDENT_PENALTY * request.getDiseaseIncidentCount(), 0.30);
             
             if ("ongoing".equalsIgnoreCase(request.getPestDiseaseControlStatus()) ||
                 "severe".equalsIgnoreCase(request.getPestDiseaseControlStatus())) {
-                diseasePenalty = diseasePenalty.multiply(new BigDecimal("2"));
+                diseasePenalty = diseasePenalty * 2;
             }
             
-            multiplier = multiplier.subtract(diseasePenalty);
+            multiplier = multiplier - diseasePenalty;
             adjustments.add(String.format("Disease incidents (%d): -%.1f%%", 
-                    request.getDiseaseIncidentCount(), diseasePenalty.multiply(new BigDecimal("100"))));
+                    request.getDiseaseIncidentCount(), diseasePenalty * 100));
             factors.add("Disease Incidents: " + request.getDiseaseIncidentCount());
         }
         
         // Affected area
-        if (request.getAffectedAreaPercent() != null && request.getAffectedAreaPercent().compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal areaPenalty = request.getAffectedAreaPercent()
-                    .divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal("0.3"));
-            multiplier = multiplier.subtract(areaPenalty);
+        if (request.getAffectedAreaPercent() != null && request.getAffectedAreaPercent() > 0) {
+            Double areaPenalty = (request.getAffectedAreaPercent() / 100) * 0.3;
+            multiplier = multiplier - areaPenalty;
             adjustments.add(String.format("Affected area (%.1f%%): -%.1f%%", 
-                    request.getAffectedAreaPercent(), areaPenalty.multiply(new BigDecimal("100"))));
+                    request.getAffectedAreaPercent(), areaPenalty * 100));
             factors.add("Affected Area: " + request.getAffectedAreaPercent() + "%");
         }
         
-        return multiplier.max(new BigDecimal("0.4"));
+        return Math.max(multiplier, 0.4);
     }
 
     /**
      * Calculate historical data multiplier.
      */
-    private BigDecimal calculateHistoricalMultiplier(
+    private Double calculateHistoricalMultiplier(
             YieldEstimateRequestDto request,
             List<String> factors,
             List<String> adjustments) {
         
         if (!Boolean.TRUE.equals(request.getIncludeHistoricalData())) {
-            return BigDecimal.ONE;
+            return 1.0;
         }
         
         String cropName = request.getHistoricalCropName() != null ? 
                 request.getHistoricalCropName() : request.getCropName();
         
-        BigDecimal historicalAvg = yieldPredictionRepository
-                .calculateAverageActualYieldForFarmerAndCrop(request.getFarmerId(), cropName);
+        Double historicalAvg = yieldPredictionRepository
+                .calculateAverageActualYieldForFarmerAndCrop(request.getFarmerId(), request.getCropId());
         
-        if (historicalAvg != null && historicalAvg.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal[] baseYields = CROP_BASE_YIELDS.getOrDefault(
+        if (historicalAvg != null && historicalAvg > 0) {
+            Double[] baseYields = CROP_BASE_YIELDS.getOrDefault(
                     cropName.toUpperCase(), 
-                    new BigDecimal[]{new BigDecimal("15"), new BigDecimal("25"), new BigDecimal("35")});
+                    new Double[]{15.0, 25.0, 35.0});
             
-            BigDecimal expectedBase = baseYields[1];
-            BigDecimal historicalRatio = historicalAvg.divide(expectedBase, 4, RoundingMode.HALF_UP);
+            Double expectedBase = baseYields[1];
+            Double historicalRatio = historicalAvg / expectedBase;
             
-            if (historicalRatio.compareTo(new BigDecimal("0.8")) < 0 || 
-                historicalRatio.compareTo(new BigDecimal("1.2")) > 0) {
+            if (historicalRatio < 0.8 || historicalRatio > 1.2) {
                 adjustments.add(String.format("Historical yield adjustment: %+.1f%%", 
-                        historicalRatio.subtract(BigDecimal.ONE).multiply(new BigDecimal("100"))));
+                        (historicalRatio - 1.0) * 100));
                 factors.add("Historical Data: Based on your " + cropName + " records");
             }
             
             return historicalRatio;
         }
         
-        return BigDecimal.ONE;
+        return 1.0;
     }
 
     /**
      * Generate financial projection based on yield estimates and mandi prices.
      */
     private FinancialProjectionDto generateFinancialProjection(
-            String cropName, BigDecimal expectedYield, BigDecimal minYield, BigDecimal maxYield) {
+            String cropName, Double expectedYield, Double minYield, Double maxYield) {
         
         try {
             // Get current prices from mandi service
             var priceData = mandiPriceClient.getCurrentPrice(cropName);
             
-            BigDecimal currentPrice = priceData.getOrDefault("modalPrice", new BigDecimal("2000"));
-            BigDecimal minPrice = priceData.getOrDefault("minPrice", currentPrice.multiply(new BigDecimal("0.9")));
-            BigDecimal maxPrice = priceData.getOrDefault("maxPrice", currentPrice.multiply(new BigDecimal("1.1")));
+            Double currentPrice = priceData.getOrDefault("modalPrice", 2000.0);
+            Double minPrice = priceData.getOrDefault("minPrice", currentPrice * 0.9);
+            Double maxPrice = priceData.getOrDefault("maxPrice", currentPrice * 1.1);
             
             // Calculate revenue
-            BigDecimal expectedRevenue = expectedYield.multiply(currentPrice).setScale(0, RoundingMode.HALF_UP);
-            BigDecimal minRevenue = minYield.multiply(minPrice).setScale(0, RoundingMode.HALF_UP);
-            BigDecimal maxRevenue = maxYield.multiply(maxPrice).setScale(0, RoundingMode.HALF_UP);
+            Double expectedRevenue = (double) Math.round(expectedYield * currentPrice);
+            Double minRevenue = (double) Math.round(minYield * minPrice);
+            Double maxRevenue = (double) Math.round(maxYield * maxPrice);
             
             // Estimate costs (simplified - in real implementation, would use actual cost data)
-            BigDecimal estimatedCosts = expectedYield.multiply(new BigDecimal("500")) // ~500 INR per quintal input cost
-                    .setScale(0, RoundingMode.HALF_UP);
+            Double estimatedCosts = (double) Math.round(expectedYield * 500); // ~500 INR per quintal input cost
             
             // Calculate profit
-            BigDecimal expectedProfit = expectedRevenue.subtract(estimatedCosts);
-            BigDecimal minProfit = minRevenue.subtract(estimatedCosts);
-            BigDecimal maxProfit = maxRevenue.subtract(estimatedCosts);
+            Double expectedProfit = expectedRevenue - estimatedCosts;
+            Double minProfit = minRevenue - estimatedCosts;
+            Double maxProfit = maxRevenue - estimatedCosts;
             
             // Calculate ROI
-            BigDecimal roi = BigDecimal.ZERO;
-            if (estimatedCosts.compareTo(BigDecimal.ZERO) > 0) {
-                roi = expectedProfit.multiply(new BigDecimal("100"))
-                        .divide(estimatedCosts, 2, RoundingMode.HALF_UP);
+            Double roi = 0.0;
+            if (estimatedCosts > 0) {
+                roi = (expectedProfit * 100) / estimatedCosts;
             }
             
             // Generate market advisory
@@ -721,7 +690,7 @@ public class YieldPredictionService {
             return FinancialProjectionDto.builder()
                     .commodityName(cropName)
                     .estimatedYieldQuintals(expectedYield)
-                    .estimatedRevenueExpected(expectedYield.multiply(new BigDecimal("2000")))
+                    .estimatedRevenueExpected(expectedYield * 2000)
                     .marketAdvisory("monitor")
                     .advisoryReason("Price data unavailable - please check local mandi prices")
                     .build();

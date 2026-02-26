@@ -16,7 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,7 +61,7 @@ class DeadlineNotificationServiceTest {
                 .schemeType(Scheme.SchemeType.CENTRAL)
                 .applicationStartDate(LocalDate.now().minusDays(30))
                 .applicationEndDate(LocalDate.now().plusDays(7))
-                .benefitAmount(new BigDecimal("6000"))
+                .benefitAmount(new Double("6000"))
                 .isActive(true)
                 .build();
 
@@ -74,7 +74,7 @@ class DeadlineNotificationServiceTest {
                 .state("Karnataka")
                 .applicationStartDate(LocalDate.now().minusDays(30))
                 .applicationEndDate(LocalDate.now().plusDays(1))
-                .benefitAmount(new BigDecimal("50000"))
+                .benefitAmount(new Double("50000"))
                 .isActive(true)
                 .build();
 
@@ -316,7 +316,7 @@ class DeadlineNotificationServiceTest {
                 .schemeName("PM Fasal Bima Yojana")
                 .schemeType(Scheme.SchemeType.CENTRAL)
                 .applicationEndDate(LocalDate.now().plusDays(7))
-                .benefitAmount(new BigDecimal("50000"))
+                .benefitAmount(new Double("50000"))
                 .isActive(true)
                 .build();
 

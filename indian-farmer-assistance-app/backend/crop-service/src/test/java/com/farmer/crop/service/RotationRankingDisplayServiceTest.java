@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -41,11 +41,11 @@ class RotationRankingDisplayServiceTest {
             // Given
             List<RotationOptionDto> options = Arrays.asList(
                     createOption("Rice -> Wheat -> Greengram", 
-                            new BigDecimal("70"), new BigDecimal("75"), new BigDecimal("80")),
+                            70.0, 75.0, 80.0),
                     createOption("Maize -> Wheat -> Chickpea", 
-                            new BigDecimal("85"), new BigDecimal("80"), new BigDecimal("75")),
+                            85.0, 80.0, 75.0),
                     createOption("Soybean -> Wheat -> Mustard", 
-                            new BigDecimal("80"), new BigDecimal("78"), new BigDecimal("82"))
+                            80.0, 78.0, 82.0)
             );
 
             // When
@@ -86,11 +86,11 @@ class RotationRankingDisplayServiceTest {
             // Given
             List<RotationOptionDto> options = Arrays.asList(
                     createOption("Rice -> Wheat -> Greengram", 
-                            new BigDecimal("70"), new BigDecimal("75"), new BigDecimal("80")),
+                            70.0, 75.0, 80.0),
                     createOption("Soybean -> Wheat -> Mustard", 
-                            new BigDecimal("90"), new BigDecimal("78"), new BigDecimal("82")),
+                            90.0, 78.0, 82.0),
                     createOption("Maize -> Wheat -> Chickpea", 
-                            new BigDecimal("80"), new BigDecimal("80"), new BigDecimal("75"))
+                            80.0, 80.0, 75.0)
             );
 
             // When
@@ -100,7 +100,7 @@ class RotationRankingDisplayServiceTest {
             assertNotNull(ranked);
             assertEquals(3, ranked.size());
             assertEquals("Soybean -> Wheat -> Mustard", ranked.get(0).getCropSequence());
-            assertEquals(new BigDecimal("90"), ranked.get(0).getSoilHealthBenefit());
+            assertEquals(90.0, ranked.get(0).getSoilHealthBenefit());
         }
 
         @Test
@@ -109,11 +109,11 @@ class RotationRankingDisplayServiceTest {
             // Given
             List<RotationOptionDto> options = Arrays.asList(
                     createOption("Pearl Millet -> Wheat -> Mustard", 
-                            new BigDecimal("75"), new BigDecimal("90"), new BigDecimal("70")),
+                            75.0, 90.0, 70.0),
                     createOption("Rice -> Wheat -> Greengram", 
-                            new BigDecimal("70"), new BigDecimal("75"), new BigDecimal("80")),
+                            70.0, 75.0, 80.0),
                     createOption("Maize -> Wheat -> Chickpea", 
-                            new BigDecimal("80"), new BigDecimal("80"), new BigDecimal("75"))
+                            80.0, 80.0, 75.0)
             );
 
             // When
@@ -123,7 +123,7 @@ class RotationRankingDisplayServiceTest {
             assertNotNull(ranked);
             assertEquals(3, ranked.size());
             assertEquals("Pearl Millet -> Wheat -> Mustard", ranked.get(0).getCropSequence());
-            assertEquals(new BigDecimal("90"), ranked.get(0).getClimateResilience());
+            assertEquals(90.0, ranked.get(0).getClimateResilience());
         }
 
         @Test
@@ -132,11 +132,11 @@ class RotationRankingDisplayServiceTest {
             // Given
             List<RotationOptionDto> options = Arrays.asList(
                     createOption("Rice -> Wheat -> Greengram", 
-                            new BigDecimal("70"), new BigDecimal("75"), new BigDecimal("80")),
+                            70.0, 75.0, 80.0),
                     createOption("Mango -> Banana -> Taro", 
-                            new BigDecimal("60"), new BigDecimal("65"), new BigDecimal("95")),
+                            60.0, 65.0, 95.0),
                     createOption("Cotton -> Wheat -> Mustard", 
-                            new BigDecimal("75"), new BigDecimal("72"), new BigDecimal("88"))
+                            75.0, 72.0, 88.0)
             );
 
             // When
@@ -146,7 +146,7 @@ class RotationRankingDisplayServiceTest {
             assertNotNull(ranked);
             assertEquals(3, ranked.size());
             assertEquals("Mango -> Banana -> Taro", ranked.get(0).getCropSequence());
-            assertEquals(new BigDecimal("95"), ranked.get(0).getEconomicViability());
+            assertEquals(95.0, ranked.get(0).getEconomicViability());
         }
     }
 
@@ -159,22 +159,22 @@ class RotationRankingDisplayServiceTest {
         void testCalculateOverallBenefitScore() {
             // Given
             RotationOptionDto option = createOption("Rice -> Wheat -> Greengram",
-                    new BigDecimal("80"), new BigDecimal("75"), new BigDecimal("85"));
+                    80.0, 75.0, 85.0);
 
             // When
-            BigDecimal overall = service.calculateOverallBenefitScore(option);
+            Double overall = service.calculateOverallBenefitScore(option);
 
             // Then
             assertNotNull(overall);
             // Expected: 80 * 0.40 + 75 * 0.30 + 85 * 0.30 = 32 + 22.5 + 25.5 = 80
-            assertEquals(new BigDecimal("80.00"), overall);
+            assertEquals(80.0, overall);
         }
 
         @Test
         @DisplayName("Should return zero for null option")
         void testCalculateOverallBenefitScoreNull() {
-            BigDecimal overall = service.calculateOverallBenefitScore(null);
-            assertEquals(BigDecimal.ZERO, overall);
+            Double overall = service.calculateOverallBenefitScore(null);
+            assertEquals(0.0, overall);
         }
 
         @Test
@@ -183,16 +183,16 @@ class RotationRankingDisplayServiceTest {
             // Given
             RotationOptionDto option = new RotationOptionDto();
             option.setCropSequence("Test");
-            option.setSoilHealthBenefit(new BigDecimal("80"));
+            option.setSoilHealthBenefit(80.0);
             // climateResilience and economicViability are null
 
             // When
-            BigDecimal overall = service.calculateOverallBenefitScore(option);
+            Double overall = service.calculateOverallBenefitScore(option);
 
             // Then
             assertNotNull(overall);
             // Expected: 80 * 0.40 + 0 + 0 = 32
-            assertEquals(new BigDecimal("32.00"), overall);
+            assertEquals(32.0, overall);
         }
 
         @Test
@@ -200,16 +200,16 @@ class RotationRankingDisplayServiceTest {
         void testWeightedAverageCalculation() {
             // Test with specific values
             RotationOptionDto option = createOption("Test",
-                    new BigDecimal("100"), new BigDecimal("100"), new BigDecimal("100"));
+                    100.0, 100.0, 100.0);
 
-            BigDecimal overall = service.calculateOverallBenefitScore(option);
-            assertEquals(0, new BigDecimal("100.00").compareTo(overall));
+            Double overall = service.calculateOverallBenefitScore(option);
+            assertEquals(0, Double.valueOf(100.0).compareTo(overall));
 
             // Test with minimum values
             option = createOption("Test",
-                    BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+                    0.0, 0.0, 0.0);
             overall = service.calculateOverallBenefitScore(option);
-            assertEquals(0, BigDecimal.ZERO.compareTo(overall));
+            assertEquals(0, Double.valueOf(0.0).compareTo(overall));
         }
     }
 
@@ -223,9 +223,9 @@ class RotationRankingDisplayServiceTest {
             // Given
             List<RotationOptionDto> options = Arrays.asList(
                     createOption("Rice -> Wheat -> Greengram", 
-                            new BigDecimal("80"), new BigDecimal("75"), new BigDecimal("85")),
+                            80.0, 75.0, 85.0),
                     createOption("Maize -> Chickpea -> Sesame", 
-                            new BigDecimal("85"), new BigDecimal("80"), new BigDecimal("78"))
+                            85.0, 80.0, 78.0)
             );
 
             // When
@@ -253,7 +253,7 @@ class RotationRankingDisplayServiceTest {
         void testSingleCropSchedule() {
             // Given
             RotationOptionDto option = createOption("Rice", 
-                    new BigDecimal("80"), new BigDecimal("75"), new BigDecimal("85"));
+                    80.0, 75.0, 85.0);
 
             // When
             List<RotationOptionDto> withSchedules = service.generateSeasonWiseSchedules(List.of(option));
@@ -291,7 +291,7 @@ class RotationRankingDisplayServiceTest {
         void testResidueManagementCereals() {
             // Given
             RotationOptionDto option = createOption("Rice -> Wheat -> Greengram",
-                    new BigDecimal("80"), new BigDecimal("75"), new BigDecimal("85"));
+                    80.0, 75.0, 85.0);
 
             // When
             List<RotationOptionDto> withRecs = service.addResidueManagementRecommendations(List.of(option));
@@ -314,7 +314,7 @@ class RotationRankingDisplayServiceTest {
         void testResidueManagementLegumes() {
             // Given
             RotationOptionDto option = createOption("Greengram -> Chickpea -> Lentil",
-                    new BigDecimal("85"), new BigDecimal("80"), new BigDecimal("78"));
+                    85.0, 80.0, 78.0);
 
             // When
             List<RotationOptionDto> withRecs = service.addResidueManagementRecommendations(List.of(option));
@@ -332,7 +332,7 @@ class RotationRankingDisplayServiceTest {
         void testResidueManagementBrassicas() {
             // Given
             RotationOptionDto option = createOption("Mustard -> Cabbage -> Cauliflower",
-                    new BigDecimal("75"), new BigDecimal("78"), new BigDecimal("80"));
+                    75.0, 78.0, 80.0);
 
             // When
             List<RotationOptionDto> withRecs = service.addResidueManagementRecommendations(List.of(option));
@@ -350,7 +350,7 @@ class RotationRankingDisplayServiceTest {
         void testResidueManagementUnknownCrops() {
             // Given - crop not in our database
             RotationOptionDto option = createOption("UnknownCrop1 -> UnknownCrop2",
-                    new BigDecimal("70"), new BigDecimal("75"), new BigDecimal("80"));
+                    70.0, 75.0, 80.0);
 
             // When
             List<RotationOptionDto> withRecs = service.addResidueManagementRecommendations(List.of(option));
@@ -551,9 +551,9 @@ class RotationRankingDisplayServiceTest {
             // Given
             List<RotationOptionDto> options = Arrays.asList(
                     createOption("Rice -> Wheat -> Greengram",
-                            new BigDecimal("80"), new BigDecimal("75"), new BigDecimal("85")),
+                            80.0, 75.0, 85.0),
                     createOption("Maize -> Chickpea -> Sesame",
-                            new BigDecimal("85"), new BigDecimal("80"), new BigDecimal("78"))
+                            85.0, 80.0, 78.0)
             );
 
             // When
@@ -618,8 +618,8 @@ class RotationRankingDisplayServiceTest {
     }
 
     // Helper method to create test rotation options
-    private RotationOptionDto createOption(String sequence, BigDecimal soilHealth, 
-            BigDecimal climate, BigDecimal economic) {
+    private RotationOptionDto createOption(String sequence, Double soilHealth, 
+            Double climate, Double economic) {
         return RotationOptionDto.builder()
                 .id(System.nanoTime())
                 .cropSequence(sequence)
@@ -636,3 +636,4 @@ class RotationRankingDisplayServiceTest {
                 .build();
     }
 }
+

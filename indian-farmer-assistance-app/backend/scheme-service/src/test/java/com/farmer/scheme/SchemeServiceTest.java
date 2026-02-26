@@ -12,7 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -47,7 +47,7 @@ class SchemeServiceTest {
                 .schemeType(SchemeType.CENTRAL)
                 .description("Income support of Rs. 6,000 per year to farmer families")
                 .eligibilityCriteria("{\"landholding\": \"any\", \"income\": \"less than 3 lakh/year\"}")
-                .benefitAmount(new BigDecimal("6000.00"))
+                .benefitAmount(new Double("6000.00"))
                 .benefitDescription("Rs. 6,000 per year in three installments of Rs. 2,000 each")
                 .applicationStartDate(LocalDate.now().minusDays(30))
                 .applicationEndDate(LocalDate.now().plusDays(60))
@@ -219,7 +219,7 @@ class SchemeServiceTest {
         Scheme schemeDetails = Scheme.builder()
                 .schemeName("Updated Scheme Name")
                 .description("Updated description")
-                .benefitAmount(new BigDecimal("10000.00"))
+                .benefitAmount(new Double("10000.00"))
                 .build();
 
         when(schemeRepository.findById(1L)).thenReturn(Optional.of(testScheme));
@@ -232,7 +232,7 @@ class SchemeServiceTest {
         assertNotNull(result);
         assertEquals("Updated Scheme Name", result.getSchemeName());
         assertEquals("Updated description", result.getDescription());
-        assertEquals(new BigDecimal("10000.00"), result.getBenefitAmount());
+        assertEquals(new Double("10000.00"), result.getBenefitAmount());
         verify(schemeRepository).findById(1L);
         verify(schemeRepository).save(any(Scheme.class));
     }

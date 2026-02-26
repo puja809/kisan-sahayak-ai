@@ -4,7 +4,6 @@ import com.farmer.crop.dto.*;
 import com.farmer.crop.enums.CropFamily;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
@@ -178,78 +177,78 @@ public class RotationRankingDisplayService {
     }
 
     // Climate resilience scores by crop
-    private static final Map<String, BigDecimal> CLIMATE_RESILIENCE_SCORES;
+    private static final Map<String, Double> CLIMATE_RESILIENCE_SCORES;
     static {
-        Map<String, BigDecimal> map = new HashMap<>();
-        map.put("Rice", new BigDecimal("75"));
-        map.put("Wheat", new BigDecimal("65"));
-        map.put("Maize", new BigDecimal("80"));
-        map.put("Sorghum", new BigDecimal("85"));
-        map.put("Pearl Millet", new BigDecimal("90"));
-        map.put("Finger Millet", new BigDecimal("88"));
-        map.put("Barley", new BigDecimal("70"));
-        map.put("Greengram", new BigDecimal("82"));
-        map.put("Blackgram", new BigDecimal("80"));
-        map.put("Redgram", new BigDecimal("78"));
-        map.put("Chickpea", new BigDecimal("75"));
-        map.put("Lentil", new BigDecimal("72"));
-        map.put("Peas", new BigDecimal("70"));
-        map.put("Groundnut", new BigDecimal("77"));
-        map.put("Soybean", new BigDecimal("78"));
-        map.put("Mustard", new BigDecimal("76"));
-        map.put("Sunflower", new BigDecimal("80"));
-        map.put("Sesame", new BigDecimal("85"));
-        map.put("Cotton", new BigDecimal("72"));
-        map.put("Sugarcane", new BigDecimal("68"));
-        map.put("Potato", new BigDecimal("65"));
-        map.put("Tomato", new BigDecimal("70"));
-        map.put("Onion", new BigDecimal("68"));
-        map.put("Cabbage", new BigDecimal("65"));
-        map.put("Cauliflower", new BigDecimal("64"));
-        map.put("Carrot", new BigDecimal("70"));
-        map.put("Banana", new BigDecimal("62"));
-        map.put("Mango", new BigDecimal("60"));
-        map.put("Citrus", new BigDecimal("65"));
-        map.put("Turmeric", new BigDecimal("72"));
-        map.put("Ginger", new BigDecimal("70"));
+        Map<String, Double> map = new HashMap<>();
+        map.put("Rice", 75.0);
+        map.put("Wheat", 65.0);
+        map.put("Maize", 80.0);
+        map.put("Sorghum", 85.0);
+        map.put("Pearl Millet", 90.0);
+        map.put("Finger Millet", 88.0);
+        map.put("Barley", 70.0);
+        map.put("Greengram", 82.0);
+        map.put("Blackgram", 80.0);
+        map.put("Redgram", 78.0);
+        map.put("Chickpea", 75.0);
+        map.put("Lentil", 72.0);
+        map.put("Peas", 70.0);
+        map.put("Groundnut", 77.0);
+        map.put("Soybean", 78.0);
+        map.put("Mustard", 76.0);
+        map.put("Sunflower", 80.0);
+        map.put("Sesame", 85.0);
+        map.put("Cotton", 72.0);
+        map.put("Sugarcane", 68.0);
+        map.put("Potato", 65.0);
+        map.put("Tomato", 70.0);
+        map.put("Onion", 68.0);
+        map.put("Cabbage", 65.0);
+        map.put("Cauliflower", 64.0);
+        map.put("Carrot", 70.0);
+        map.put("Banana", 62.0);
+        map.put("Mango", 60.0);
+        map.put("Citrus", 65.0);
+        map.put("Turmeric", 72.0);
+        map.put("Ginger", 70.0);
         CLIMATE_RESILIENCE_SCORES = Collections.unmodifiableMap(map);
     }
 
     // Economic viability scores by crop
-    private static final Map<String, BigDecimal> ECONOMIC_VIABILITY_SCORES;
+    private static final Map<String, Double> ECONOMIC_VIABILITY_SCORES;
     static {
-        Map<String, BigDecimal> map = new HashMap<>();
-        map.put("Rice", new BigDecimal("85"));
-        map.put("Wheat", new BigDecimal("80"));
-        map.put("Maize", new BigDecimal("82"));
-        map.put("Sorghum", new BigDecimal("70"));
-        map.put("Pearl Millet", new BigDecimal("65"));
-        map.put("Finger Millet", new BigDecimal("72"));
-        map.put("Barley", new BigDecimal("68"));
-        map.put("Greengram", new BigDecimal("78"));
-        map.put("Blackgram", new BigDecimal("76"));
-        map.put("Redgram", new BigDecimal("80"));
-        map.put("Chickpea", new BigDecimal("75"));
-        map.put("Lentil", new BigDecimal("73"));
-        map.put("Peas", new BigDecimal("77"));
-        map.put("Groundnut", new BigDecimal("82"));
-        map.put("Soybean", new BigDecimal("78"));
-        map.put("Mustard", new BigDecimal("76"));
-        map.put("Sunflower", new BigDecimal("79"));
-        map.put("Sesame", new BigDecimal("75"));
-        map.put("Cotton", new BigDecimal("88"));
-        map.put("Sugarcane", new BigDecimal("85"));
-        map.put("Potato", new BigDecimal("84"));
-        map.put("Tomato", new BigDecimal("86"));
-        map.put("Onion", new BigDecimal("83"));
-        map.put("Cabbage", new BigDecimal("75"));
-        map.put("Cauliflower", new BigDecimal("76"));
-        map.put("Carrot", new BigDecimal("78"));
-        map.put("Banana", new BigDecimal("90"));
-        map.put("Mango", new BigDecimal("92"));
-        map.put("Citrus", new BigDecimal("85"));
-        map.put("Turmeric", new BigDecimal("88"));
-        map.put("Ginger", new BigDecimal("90"));
+        Map<String, Double> map = new HashMap<>();
+        map.put("Rice", 85.0);
+        map.put("Wheat", 80.0);
+        map.put("Maize", 82.0);
+        map.put("Sorghum", 70.0);
+        map.put("Pearl Millet", 65.0);
+        map.put("Finger Millet", 72.0);
+        map.put("Barley", 68.0);
+        map.put("Greengram", 78.0);
+        map.put("Blackgram", 76.0);
+        map.put("Redgram", 80.0);
+        map.put("Chickpea", 75.0);
+        map.put("Lentil", 73.0);
+        map.put("Peas", 77.0);
+        map.put("Groundnut", 82.0);
+        map.put("Soybean", 78.0);
+        map.put("Mustard", 76.0);
+        map.put("Sunflower", 79.0);
+        map.put("Sesame", 75.0);
+        map.put("Cotton", 88.0);
+        map.put("Sugarcane", 85.0);
+        map.put("Potato", 84.0);
+        map.put("Tomato", 86.0);
+        map.put("Onion", 83.0);
+        map.put("Cabbage", 75.0);
+        map.put("Cauliflower", 76.0);
+        map.put("Carrot", 78.0);
+        map.put("Banana", 90.0);
+        map.put("Mango", 92.0);
+        map.put("Citrus", 85.0);
+        map.put("Turmeric", 88.0);
+        map.put("Ginger", 90.0);
         ECONOMIC_VIABILITY_SCORES = Collections.unmodifiableMap(map);
     }
 
@@ -336,23 +335,23 @@ public class RotationRankingDisplayService {
      * @param option The rotation option to calculate for
      * @return Overall benefit score (0-100)
      */
-    public BigDecimal calculateOverallBenefitScore(RotationOptionDto option) {
+    public Double calculateOverallBenefitScore(RotationOptionDto option) {
         if (option == null) {
-            return BigDecimal.ZERO;
+            return 0.0;
         }
 
-        BigDecimal soilHealth = option.getSoilHealthBenefit() != null ?
-                option.getSoilHealthBenefit() : BigDecimal.ZERO;
-        BigDecimal climate = option.getClimateResilience() != null ?
-                option.getClimateResilience() : BigDecimal.ZERO;
-        BigDecimal economic = option.getEconomicViability() != null ?
-                option.getEconomicViability() : BigDecimal.ZERO;
+        Double soilHealth = option.getSoilHealthBenefit() != null ?
+                option.getSoilHealthBenefit() : 0.0;
+        Double climate = option.getClimateResilience() != null ?
+                option.getClimateResilience() : 0.0;
+        Double economic = option.getEconomicViability() != null ?
+                option.getEconomicViability() : 0.0;
 
         // Weighted average: 40% soil health, 30% climate resilience, 30% economic viability
-        return soilHealth.multiply(new BigDecimal("0.40"))
-                .add(climate.multiply(new BigDecimal("0.30")))
-                .add(economic.multiply(new BigDecimal("0.30")))
-                .setScale(2, RoundingMode.HALF_UP);
+        return soilHealth*(0.40)
+                +(climate*(0.30))
+                +(economic*(0.30))
+                ;
     }
 
     /**
@@ -506,10 +505,10 @@ public class RotationRankingDisplayService {
         
         // Calculate scores for the first crop in sequence
         String mainCrop = cropSequence.get(0);
-        BigDecimal soilHealth = calculateSoilHealthBenefit(cropSequence);
-        BigDecimal climateResilience = getClimateResilienceScore(mainCrop);
-        BigDecimal economicViability = getEconomicViabilityScore(mainCrop);
-        BigDecimal overallScore = calculateOverallBenefitScoreFromComponents(
+        Double soilHealth = calculateSoilHealthBenefit(cropSequence);
+        Double climateResilience = getClimateResilienceScore(mainCrop);
+        Double economicViability = getEconomicViabilityScore(mainCrop);
+        Double overallScore = calculateOverallBenefitScoreFromComponents(
                 soilHealth, climateResilience, economicViability);
 
         // Get residue management for main crop
@@ -542,12 +541,12 @@ public class RotationRankingDisplayService {
     /**
      * Calculates soil health benefit score for a rotation sequence.
      */
-    private BigDecimal calculateSoilHealthBenefit(List<String> cropSequence) {
+    private Double calculateSoilHealthBenefit(List<String> cropSequence) {
         if (cropSequence == null || cropSequence.isEmpty()) {
-            return new BigDecimal("50");
+            return 50.0;
         }
 
-        BigDecimal totalScore = BigDecimal.ZERO;
+        Double totalScore = 0.0;
         int legumeCount = 0;
         int deepRootedCount = 0;
 
@@ -555,16 +554,16 @@ public class RotationRankingDisplayService {
             CropFamily family = CropFamily.getFamilyForCrop(crop);
             if (family != null) {
                 // Base score from family
-                BigDecimal familyScore = switch (family) {
-                    case LEGUMES -> new BigDecimal("90"); // Nitrogen fixation
-                    case GREEN_MANURE -> new BigDecimal("95"); // Excellent for soil
-                    case CEREALS -> new BigDecimal("70"); // Moderate
-                    case BRASSICAS -> new BigDecimal("65"); // Heavy feeder
-                    case OILSEEDS -> new BigDecimal("72"); // Moderate
-                    case ROOT_TUBERS -> new BigDecimal("75"); // Soil structure
-                    default -> new BigDecimal("68");
+                Double familyScore = switch (family) {
+                    case LEGUMES -> 90.0; // Nitrogen fixation
+                    case GREEN_MANURE -> 95.0; // Excellent for soil
+                    case CEREALS -> 70.0; // Moderate
+                    case BRASSICAS -> 65.0; // Heavy feeder
+                    case OILSEEDS -> 72.0; // Moderate
+                    case ROOT_TUBERS -> 75.0; // Soil structure
+                    default -> 68.0;
                 };
-                totalScore = totalScore.add(familyScore);
+                totalScore = totalScore + familyScore;
 
                 if (family == CropFamily.LEGUMES || family == CropFamily.GREEN_MANURE) {
                     legumeCount++;
@@ -573,56 +572,55 @@ public class RotationRankingDisplayService {
                     deepRootedCount++;
                 }
             } else {
-                totalScore = totalScore.add(new BigDecimal("65"));
+                totalScore = totalScore + 65.0;
             }
         }
 
         // Average score
-        BigDecimal avgScore = totalScore.divide(
-                new BigDecimal(cropSequence.size()), 2, RoundingMode.HALF_UP);
+        Double avgScore = totalScore / cropSequence.size();
 
         // Bonus for legume inclusion (nitrogen fixation)
         if (legumeCount > 0) {
-            avgScore = avgScore.add(new BigDecimal("5"));
+            avgScore = avgScore + (5.0);
         }
 
         // Bonus for deep-rooted crops (nutrient cycling)
         if (deepRootedCount > 0) {
-            avgScore = avgScore.add(new BigDecimal("3"));
+            avgScore = avgScore + (3.0);
         }
 
-        return avgScore.min(new BigDecimal("100"));
+        return avgScore;
     }
 
     /**
      * Gets climate resilience score for a crop.
      */
-    private BigDecimal getClimateResilienceScore(String crop) {
+    private Double getClimateResilienceScore(String crop) {
         if (crop == null) {
-            return new BigDecimal("65");
+            return 65.0;
         }
-        return CLIMATE_RESILIENCE_SCORES.getOrDefault(crop, new BigDecimal("70"));
+        return CLIMATE_RESILIENCE_SCORES.getOrDefault(crop, 70.0);
     }
 
     /**
      * Gets economic viability score for a crop.
      */
-    private BigDecimal getEconomicViabilityScore(String crop) {
+    private Double getEconomicViabilityScore(String crop) {
         if (crop == null) {
-            return new BigDecimal("65");
+            return 65.0;
         }
-        return ECONOMIC_VIABILITY_SCORES.getOrDefault(crop, new BigDecimal("70"));
+        return ECONOMIC_VIABILITY_SCORES.getOrDefault(crop, 70.0);
     }
 
     /**
      * Calculates overall benefit score from individual components.
      */
-    private BigDecimal calculateOverallBenefitScoreFromComponents(
-            BigDecimal soilHealth, BigDecimal climate, BigDecimal economic) {
-        return soilHealth.multiply(new BigDecimal("0.40"))
-                .add(climate.multiply(new BigDecimal("0.30")))
-                .add(economic.multiply(new BigDecimal("0.30")))
-                .setScale(2, RoundingMode.HALF_UP);
+    private Double calculateOverallBenefitScoreFromComponents(
+            Double soilHealth, Double climate, Double economic) {
+        return soilHealth * (0.40)
+                + (climate * (0.30))
+                + (economic * (0.30))
+                ;
     }
 
     /**
@@ -741,3 +739,11 @@ public class RotationRankingDisplayService {
         return result;
     }
 }
+
+
+
+
+
+
+
+

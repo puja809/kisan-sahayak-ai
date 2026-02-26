@@ -127,9 +127,8 @@ public class AdminAuditController {
                 .oldValue(auditLog.getOldValue())
                 .newValue(auditLog.getNewValue())
                 .ipAddress(auditLog.getIpAddress())
+                .userAgent(auditLog.getUserAgent())
                 .timestamp(auditLog.getTimestamp())
-                .status(auditLog.getStatus())
-                .errorMessage(auditLog.getErrorMessage())
                 .build();
     }
 }

@@ -1,6 +1,5 @@
 package com.farmer.yield.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -24,7 +23,7 @@ public class YieldEstimateRequestDto {
     private String cropName;
     private String cropVariety;
     private LocalDate sowingDate;
-    private BigDecimal areaAcres;
+    private Double areaAcres;
     private String growthStage;
     
     // Historical data reference
@@ -32,26 +31,26 @@ public class YieldEstimateRequestDto {
     private String historicalCropName; // For looking up past yields
     
     // Weather data (optional - will be fetched from weather service if not provided)
-    private BigDecimal totalRainfallMm;
-    private BigDecimal averageTemperatureCelsius;
+    private Double totalRainfallMm;
+    private Double averageTemperatureCelsius;
     private Integer extremeWeatherEventsCount;
     private String weatherTrend; // "improving", "stable", "declining"
     
     // Soil health data (optional - will use defaults if not provided)
-    private BigDecimal soilNitrogenKgHa;
-    private BigDecimal soilPhosphorusKgHa;
-    private BigDecimal soilPotassiumKgHa;
-    private BigDecimal soilPh;
+    private Double soilNitrogenKgHa;
+    private Double soilPhosphorusKgHa;
+    private Double soilPotassiumKgHa;
+    private Double soilPh;
     
     // Irrigation information
     private String irrigationType; // "RAINFED", "DRIP", "SPRINKLER", "CANAL", "BOREWELL"
     private Integer irrigationFrequencyPerWeek;
-    private BigDecimal waterAvailabilityIndex; // 0-1 scale
+    private Double waterAvailabilityIndex; // 0-1 scale
     
     // Pest/disease incidents
     private Integer pestIncidentCount;
     private Integer diseaseIncidentCount;
-    private BigDecimal affectedAreaPercent;
+    private Double affectedAreaPercent;
     private String pestDiseaseControlStatus; // "controlled", "ongoing", "severe"
     
     // Financial projection preference
@@ -98,11 +97,11 @@ public class YieldEstimateRequestDto {
         this.sowingDate = sowingDate;
     }
 
-    public BigDecimal getAreaAcres() {
+    public Double getAreaAcres() {
         return areaAcres;
     }
 
-    public void setAreaAcres(BigDecimal areaAcres) {
+    public void setAreaAcres(Double areaAcres) {
         this.areaAcres = areaAcres;
     }
 
@@ -130,19 +129,19 @@ public class YieldEstimateRequestDto {
         this.historicalCropName = historicalCropName;
     }
 
-    public BigDecimal getTotalRainfallMm() {
+    public Double getTotalRainfallMm() {
         return totalRainfallMm;
     }
 
-    public void setTotalRainfallMm(BigDecimal totalRainfallMm) {
+    public void setTotalRainfallMm(Double totalRainfallMm) {
         this.totalRainfallMm = totalRainfallMm;
     }
 
-    public BigDecimal getAverageTemperatureCelsius() {
+    public Double getAverageTemperatureCelsius() {
         return averageTemperatureCelsius;
     }
 
-    public void setAverageTemperatureCelsius(BigDecimal averageTemperatureCelsius) {
+    public void setAverageTemperatureCelsius(Double averageTemperatureCelsius) {
         this.averageTemperatureCelsius = averageTemperatureCelsius;
     }
 
@@ -162,35 +161,35 @@ public class YieldEstimateRequestDto {
         this.weatherTrend = weatherTrend;
     }
 
-    public BigDecimal getSoilNitrogenKgHa() {
+    public Double getSoilNitrogenKgHa() {
         return soilNitrogenKgHa;
     }
 
-    public void setSoilNitrogenKgHa(BigDecimal soilNitrogenKgHa) {
+    public void setSoilNitrogenKgHa(Double soilNitrogenKgHa) {
         this.soilNitrogenKgHa = soilNitrogenKgHa;
     }
 
-    public BigDecimal getSoilPhosphorusKgHa() {
+    public Double getSoilPhosphorusKgHa() {
         return soilPhosphorusKgHa;
     }
 
-    public void setSoilPhosphorusKgHa(BigDecimal soilPhosphorusKgHa) {
+    public void setSoilPhosphorusKgHa(Double soilPhosphorusKgHa) {
         this.soilPhosphorusKgHa = soilPhosphorusKgHa;
     }
 
-    public BigDecimal getSoilPotassiumKgHa() {
+    public Double getSoilPotassiumKgHa() {
         return soilPotassiumKgHa;
     }
 
-    public void setSoilPotassiumKgHa(BigDecimal soilPotassiumKgHa) {
+    public void setSoilPotassiumKgHa(Double soilPotassiumKgHa) {
         this.soilPotassiumKgHa = soilPotassiumKgHa;
     }
 
-    public BigDecimal getSoilPh() {
+    public Double getSoilPh() {
         return soilPh;
     }
 
-    public void setSoilPh(BigDecimal soilPh) {
+    public void setSoilPh(Double soilPh) {
         this.soilPh = soilPh;
     }
 
@@ -210,11 +209,11 @@ public class YieldEstimateRequestDto {
         this.irrigationFrequencyPerWeek = irrigationFrequencyPerWeek;
     }
 
-    public BigDecimal getWaterAvailabilityIndex() {
+    public Double getWaterAvailabilityIndex() {
         return waterAvailabilityIndex;
     }
 
-    public void setWaterAvailabilityIndex(BigDecimal waterAvailabilityIndex) {
+    public void setWaterAvailabilityIndex(Double waterAvailabilityIndex) {
         this.waterAvailabilityIndex = waterAvailabilityIndex;
     }
 
@@ -234,11 +233,11 @@ public class YieldEstimateRequestDto {
         this.diseaseIncidentCount = diseaseIncidentCount;
     }
 
-    public BigDecimal getAffectedAreaPercent() {
+    public Double getAffectedAreaPercent() {
         return affectedAreaPercent;
     }
 
-    public void setAffectedAreaPercent(BigDecimal affectedAreaPercent) {
+    public void setAffectedAreaPercent(Double affectedAreaPercent) {
         this.affectedAreaPercent = affectedAreaPercent;
     }
 

@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -173,12 +173,12 @@ public class ProfileDashboardService {
         Double totalInputCosts = cropRepository.calculateTotalInputCost(userId, yearStart, today);
         Double totalRevenue = cropRepository.calculateTotalRevenue(userId, yearStart, today);
 
-        BigDecimal inputCosts = totalInputCosts != null ? BigDecimal.valueOf(totalInputCosts) : BigDecimal.ZERO;
-        BigDecimal revenue = totalRevenue != null ? BigDecimal.valueOf(totalRevenue) : BigDecimal.ZERO;
-        BigDecimal profitLoss = revenue.subtract(inputCosts);
+        Double inputCosts = totalInputCosts != null ? totalInputCosts : 0.0;
+        Double revenue = totalRevenue != null ? totalRevenue : 0.0;
+        Double profitLoss = revenue - inputCosts;
 
-        Double profitMargin = inputCosts.compareTo(BigDecimal.ZERO) > 0
-                ? profitLoss.divide(inputCosts, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue()
+        Double profitMargin = inputCosts > 0.0
+                ? (profitLoss / inputCosts) * 100.0
                 : 0.0;
 
         // Current season (simplified - using last 6 months)
@@ -186,9 +186,9 @@ public class ProfileDashboardService {
         Double seasonInputCosts = cropRepository.calculateTotalInputCost(userId, seasonStart, today);
         Double seasonRevenue = cropRepository.calculateTotalRevenue(userId, seasonStart, today);
 
-        BigDecimal seasonCosts = seasonInputCosts != null ? BigDecimal.valueOf(seasonInputCosts) : BigDecimal.ZERO;
-        BigDecimal seasonRevenueBd = seasonRevenue != null ? BigDecimal.valueOf(seasonRevenue) : BigDecimal.ZERO;
-        BigDecimal seasonProfitLoss = seasonRevenueBd.subtract(seasonCosts);
+        Double seasonCosts = seasonInputCosts != null ? seasonInputCosts : 0.0;
+        Double seasonRevenueBd = seasonRevenue != null ? seasonRevenue : 0.0;
+        Double seasonProfitLoss = seasonRevenueBd - seasonCosts;
 
         return ProfileDashboardResponse.FinancialSummary.builder()
                 .totalInputCosts(inputCosts)
