@@ -9,11 +9,26 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface LoginResponse {
-  token: string;
+export interface AdminLoginRequest {
+  phone: string;
+  password?: string;
+}
+
+export interface UserResponse {
   farmerId: string;
   name: string;
+  phone: string;
+  email?: string;
   preferredLanguage: string;
+  state: string;
+  district: string;
+  role?: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: UserResponse;
 }
 
 export interface User {
@@ -24,13 +39,14 @@ export interface User {
   preferredLanguage: string;
   state: string;
   district: string;
+  role?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = '/api/v1/users';
+  private apiUrl = '/api/v1/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(this.getCachedUser());
   public currentUser$ = this.currentUserSubject.asObservable();
   private tokenKey = 'auth_token';
@@ -43,14 +59,15 @@ export class AuthService {
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
       tap(response => {
-        localStorage.setItem(this.tokenKey, response.token);
+        localStorage.setItem(this.tokenKey, response.accessToken);
         const user: User = {
-          farmerId: response.farmerId,
-          name: response.name,
-          phone: '',
-          preferredLanguage: response.preferredLanguage,
-          state: '',
-          district: ''
+          farmerId: response.user.farmerId,
+          name: response.user.name,
+          phone: response.user.phone || '',
+          preferredLanguage: response.user.preferredLanguage || 'en',
+          state: response.user.state || '',
+          district: response.user.district || '',
+          role: response.user.role || 'FARMER'
         };
         localStorage.setItem(this.userKey, JSON.stringify(user));
         this.currentUserSubject.next(user);
@@ -62,21 +79,47 @@ export class AuthService {
     );
   }
 
+  adminLogin(request: AdminLoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/admin-login`, request).pipe(
+      tap(response => {
+        localStorage.setItem(this.tokenKey, response.accessToken);
+        const user: User = {
+          farmerId: response.user.farmerId,
+          name: response.user.name,
+          phone: response.user.phone || '',
+          preferredLanguage: response.user.preferredLanguage || 'en',
+          state: response.user.state || '',
+          district: response.user.district || '',
+          role: response.user.role || 'ADMIN' // Ensure role is ADMIN
+        };
+        localStorage.setItem(this.userKey, JSON.stringify(user));
+        this.currentUserSubject.next(user);
+      }),
+      catchError(error => {
+        console.error('Admin Login failed:', error);
+        throw error;
+      })
+    );
+  }
+
   register(user: User & { password: string }): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/register`, user).pipe(
       tap(response => {
-        localStorage.setItem(this.tokenKey, response.token);
-        const cachedUser: User = {
-          farmerId: response.farmerId,
-          name: response.name,
-          phone: user.phone,
-          email: user.email,
-          preferredLanguage: response.preferredLanguage,
-          state: user.state,
-          district: user.district
-        };
-        localStorage.setItem(this.userKey, JSON.stringify(cachedUser));
-        this.currentUserSubject.next(cachedUser);
+        if (response.accessToken) {
+          localStorage.setItem(this.tokenKey, response.accessToken);
+          const cachedUser: User = {
+            farmerId: response.user?.farmerId || user.farmerId,
+            name: response.user?.name || user.name,
+            phone: response.user?.phone || user.phone,
+            email: response.user?.email || user.email,
+            preferredLanguage: response.user?.preferredLanguage || user.preferredLanguage,
+            state: response.user?.state || user.state,
+            district: response.user?.district || user.district,
+            role: response.user?.role || 'FARMER'
+          };
+          localStorage.setItem(this.userKey, JSON.stringify(cachedUser));
+          this.currentUserSubject.next(cachedUser);
+        }
       }),
       catchError(error => {
         console.error('Registration failed:', error);

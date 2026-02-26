@@ -90,6 +90,7 @@ com\farmer\user\entity\RoleModificationAudit$RoleModificationAuditBuilder.class
 com\farmer\user\security\AuthorizationLoggingInterceptor.class
 com\farmer\user\security\JwtService.class
 com\farmer\user\service\AgriStackService$AgriStackException.class
+com\farmer\user\config\DataLoader.class
 com\farmer\user\controller\ProfileController.class
 com\farmer\user\security\CustomAccessDeniedHandler.class
 com\farmer\user\dto\ProfileDashboardResponse$RecentChange$RecentChangeBuilder.class

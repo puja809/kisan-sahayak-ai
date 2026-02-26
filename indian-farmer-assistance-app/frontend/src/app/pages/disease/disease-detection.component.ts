@@ -491,7 +491,7 @@ export class DiseaseDetectionComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private toastr: ToastrService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDetectionHistory();

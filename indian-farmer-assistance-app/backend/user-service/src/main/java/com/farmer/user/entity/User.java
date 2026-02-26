@@ -29,6 +29,9 @@ public class User {
     @Column(name = "aadhaar_hash", unique = true, nullable = false, length = 64)
     private String aadhaarHash;
 
+    @Column(name = "password", length = 255)
+    private String password;
+
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 

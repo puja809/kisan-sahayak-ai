@@ -67,6 +67,23 @@ public class AuthController {
     }
 
     /**
+     * Admin login with phone and password.
+     * Requirements: 11.1, 22.3
+     */
+    @PostMapping("/admin-login")
+    public ResponseEntity<AuthResponse> adminLogin(@Valid @RequestBody AdminLoginRequest request) {
+        log.info("Admin login request received for phone: {}", request.getPhone());
+
+        try {
+            AuthResponse response = userService.adminLogin(request);
+            return ResponseEntity.ok(response);
+        } catch (UserService.AuthenticationException e) {
+            log.warn("Admin login failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    /**
      * Authenticate using AgriStack UFSI.
      * Requirements: 11.1, 11.2
      */
@@ -115,6 +132,29 @@ public class AuthController {
             userService.logout(farmerId);
         }
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Change admin password.
+     * Requirements: 22.3
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        String token = extractToken(authHeader);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String farmerId = userService.getJwtService().extractFarmerId(token);
+        try {
+            userService.changePassword(farmerId, request);
+            return ResponseEntity.ok().build();
+        } catch (UserService.AuthenticationException e) {
+            log.warn("Password change failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**

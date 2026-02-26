@@ -1,3 +1,4 @@
+com\farmer\weather\config\SecurityConfig.class
 com\farmer\weather\dto\AwsArgDataDto$AwsArgDataDtoBuilder.class
 com\farmer\weather\dto\AlertDto.class
 com\farmer\weather\exception\RateLimitExceededException.class

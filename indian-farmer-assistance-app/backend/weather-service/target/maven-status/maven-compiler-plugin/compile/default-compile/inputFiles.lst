@@ -1,5 +1,6 @@
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\AgrometAdvisoryDto.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\NowcastAlertDto.java
+D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\config\SecurityConfig.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\dto\AwsArgDataDto.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\service\WeatherService.java
 D:\Project\AI for Bharat\indian-farmer-assistance-app\backend\weather-service\src\main\java\com\farmer\weather\WeatherServiceApplication.java

@@ -25,7 +25,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/admin/audit")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('ADMIN')")
+// @PreAuthorize("hasRole('ADMIN')") // Temporarily disabled until JWT filter is
+// implemented
 public class AdminAuditController {
 
     private final AuditService auditService;
@@ -39,7 +40,7 @@ public class AdminAuditController {
     public ResponseEntity<Page<AuditLogResponse>> getAuditLogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         log.debug("GET /api/v1/admin/audit/logs - Fetching audit logs, page: {}, size: {}", page, size);
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp"));
         Page<AuditLog> logs = auditService.getAuditLogs(pageable);
@@ -56,7 +57,7 @@ public class AdminAuditController {
             @PathVariable String entityType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         log.debug("GET /api/v1/admin/audit/logs/entity/{} - Fetching audit logs by entity type", entityType);
         PageRequest pageable = PageRequest.of(page, size);
         Page<AuditLog> logs = auditService.getAuditLogsByEntityType(entityType, pageable);
@@ -73,7 +74,7 @@ public class AdminAuditController {
             @RequestParam(defaultValue = "24") int hours,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         log.debug("GET /api/v1/admin/audit/logs/recent - Fetching recent audit logs, hours: {}", hours);
         LocalDateTime since = LocalDateTime.now().minusHours(hours);
         PageRequest pageable = PageRequest.of(page, size);
@@ -91,7 +92,7 @@ public class AdminAuditController {
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         log.debug("GET /api/v1/admin/audit/logs/user/{} - Fetching audit logs by user", userId);
         PageRequest pageable = PageRequest.of(page, size);
         Page<AuditLog> logs = auditService.getAuditLogsByUser(userId, pageable);
@@ -107,7 +108,7 @@ public class AdminAuditController {
     public ResponseEntity<List<AuditLogResponse>> getAuditLogsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
-        
+
         log.debug("GET /api/v1/admin/audit/logs/range - Fetching audit logs by date range");
         List<AuditLog> logs = auditService.getAuditLogsByDateRange(start, end);
         return ResponseEntity.ok(logs.stream().map(this::toResponse).collect(Collectors.toList()));

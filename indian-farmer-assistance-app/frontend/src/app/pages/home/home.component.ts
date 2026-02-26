@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
   template: `
     <div class="home-container">
       <section class="hero">
-        <h1>Welcome to Indian Farmer Assistance</h1>
+        <h1>Welcome to Kisan Sahayak AI</h1>
         <p>Your comprehensive platform for agricultural success</p>
       </section>
       
@@ -36,6 +36,30 @@ import { RouterLink } from '@angular/router';
           <div class="feature-icon">💰</div>
           <h3>Mandi Prices</h3>
           <p>Real-time commodity prices from agricultural markets near you</p>
+        </div>
+
+        <div class="feature-card" routerLink="/voice">
+          <div class="feature-icon">🎤</div>
+          <h3>Voice Assistant</h3>
+          <p>Talk to our AI assistant in your preferred language for instant help</p>
+        </div>
+
+        <div class="feature-card" routerLink="/disease">
+          <div class="feature-icon">🦠</div>
+          <h3>Disease Detection</h3>
+          <p>Upload crop photos to identify diseases and get treatment suggestions</p>
+        </div>
+
+        <div class="feature-card" routerLink="/iot">
+          <div class="feature-icon">📡</div>
+          <h3>IoT Dashboard</h3>
+          <p>Monitor your smart farm sensors — soil moisture, temperature, and more</p>
+        </div>
+
+        <div class="feature-card" routerLink="/location">
+          <div class="feature-icon">📍</div>
+          <h3>Location Services</h3>
+          <p>Set your location to get localized weather, mandi, and scheme info</p>
         </div>
       </section>
     </div>
@@ -101,4 +125,4 @@ import { RouterLink } from '@angular/router';
     }
   `]
 })
-export class HomeComponent {}
+export class HomeComponent { }

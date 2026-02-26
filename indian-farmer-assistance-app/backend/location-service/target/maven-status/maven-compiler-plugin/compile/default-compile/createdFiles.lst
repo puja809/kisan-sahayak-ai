@@ -12,6 +12,7 @@ com\farmer\location\dto\GovernmentBodySearchResponseDto.class
 com\farmer\location\dto\GovernmentBodySearchRequestDto$GovernmentBodySearchRequestDtoBuilder.class
 com\farmer\location\dto\LocationResponseDto$LocationResponseDtoBuilder.class
 com\farmer\location\repository\GovernmentBodyRepository.class
+com\farmer\location\config\SecurityConfig.class
 com\farmer\location\dto\LocationRequestDto.class
 com\farmer\location\entity\LocationCache$LocationCacheBuilder.class
 com\farmer\location\repository\LocationCacheRepository.class

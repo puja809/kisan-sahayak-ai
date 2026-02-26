@@ -39,9 +39,18 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
             "/health",
             "/actuator",
             "/swagger-ui",
+            "/swagger-ui.html",
             "/v3/api-docs",
+            "/v3/api-docs/swagger-config",
             "/swagger-resources",
-            "/webjars"
+            "/swagger-resources/configuration/ui",
+            "/swagger-resources/configuration/security",
+            "/webjars",
+            "/favicon.ico",
+            "/swagger-ui/",
+            "/v3/",
+            "/swagger-resources/",
+            "/webjars/"
     );
 
     @Value("${jwt.secret:your-secret-key-change-in-production}")

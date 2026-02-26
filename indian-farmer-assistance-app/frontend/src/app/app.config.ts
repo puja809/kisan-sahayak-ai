@@ -8,6 +8,7 @@ import { provideToastr } from 'ngx-toastr';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { AuthInterceptor } from './services/auth.interceptor';
+import { ApiRoutingInterceptor } from './services/api-routing.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -24,6 +25,11 @@ export const appConfig: ApplicationConfig = {
       positionClass: 'toast-top-right',
       preventDuplicates: true,
     }),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ApiRoutingInterceptor,
+      multi: true,
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

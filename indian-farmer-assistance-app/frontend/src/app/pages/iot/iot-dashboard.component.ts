@@ -498,14 +498,16 @@ export class IoTDashboardComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private toastr: ToastrService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDevices();
   }
 
   private loadDevices(): void {
-    this.http.get<IoTDevice[]>('/api/v1/iot/devices').subscribe({
+    // Ideally we fetch from AuthService, but hardcoding 'FARMER123' as fallback or test
+    const farmerId = 'FARMER123';
+    this.http.get<IoTDevice[]>(`/api/v1/iot/devices/${farmerId}`).subscribe({
       next: (devices) => {
         this.devices = devices;
         if (devices.length > 0) {

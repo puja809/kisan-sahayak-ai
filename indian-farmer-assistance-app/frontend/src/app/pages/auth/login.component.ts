@@ -13,20 +13,20 @@ import { ToastrService } from 'ngx-toastr';
     <div class="login-container">
       <div class="login-card">
         <h1>Indian Farmer Assistance</h1>
-        <h2>Login</h2>
+        <h2>{{ isAdminLogin ? 'Admin Login' : 'Farmer Login' }}</h2>
         
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
           <div class="form-group">
-            <label for="farmerId">Farmer ID</label>
+            <label for="farmerId">{{ isAdminLogin ? 'Phone Number' : 'Farmer ID' }}</label>
             <input
               id="farmerId"
               type="text"
               formControlName="farmerId"
-              placeholder="Enter your Farmer ID"
+              [placeholder]="isAdminLogin ? 'Enter your Phone Number' : 'Enter your Farmer ID'"
               class="form-control"
             />
             <div *ngIf="loginForm.get('farmerId')?.invalid && loginForm.get('farmerId')?.touched" class="error">
-              Farmer ID is required
+              {{ isAdminLogin ? 'Phone Number' : 'Farmer ID' }} is required
             </div>
           </div>
 
@@ -50,6 +50,12 @@ import { ToastrService } from 'ngx-toastr';
         </form>
 
         <p class="register-link">
+          <a (click)="toggleAdminLogin()">
+            {{ isAdminLogin ? 'Switch to Farmer Login' : 'Login as Admin' }}
+          </a>
+        </p>
+
+        <p class="register-link" *ngIf="!isAdminLogin">
           Don't have an account? <a (click)="goToRegister()">Register here</a>
         </p>
 
@@ -185,6 +191,7 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   isOnline = navigator.onLine;
+  isAdminLogin = false; // Toggle state
 
   constructor(
     private fb: FormBuilder,
@@ -193,7 +200,7 @@ export class LoginComponent implements OnInit {
     private toastr: ToastrService
   ) {
     this.loginForm = this.fb.group({
-      farmerId: ['', Validators.required],
+      farmerId: ['', Validators.required], // We reuse this for "phone" when admin login
       password: ['', Validators.required]
     });
   }
@@ -203,22 +210,40 @@ export class LoginComponent implements OnInit {
     window.addEventListener('offline', () => this.isOnline = false);
   }
 
+  toggleAdminLogin(): void {
+    this.isAdminLogin = !this.isAdminLogin;
+    this.loginForm.reset();
+  }
+
   onSubmit(): void {
     if (this.loginForm.invalid) return;
 
     this.isLoading = true;
     const { farmerId, password } = this.loginForm.value;
 
-    this.authService.login({ farmerId, password }).subscribe({
-      next: () => {
-        this.toastr.success('Login successful!');
-        this.router.navigate(['/']);
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.toastr.error('Login failed. Please check your credentials.');
-      }
-    });
+    if (this.isAdminLogin) {
+      this.authService.adminLogin({ phone: farmerId, password }).subscribe({
+        next: () => {
+          this.toastr.success('Admin Login successful!');
+          this.router.navigate(['/admin']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.toastr.error('Admin Login failed. Please check your credentials.');
+        }
+      });
+    } else {
+      this.authService.login({ farmerId, password }).subscribe({
+        next: () => {
+          this.toastr.success('Farmer Login successful!');
+          this.router.navigate(['/']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.toastr.error('Login failed. Please check your credentials.');
+        }
+      });
+    }
   }
 
   loginOffline(): void {
@@ -235,3 +260,4 @@ export class LoginComponent implements OnInit {
     this.router.navigate(['/register']);
   }
 }
+

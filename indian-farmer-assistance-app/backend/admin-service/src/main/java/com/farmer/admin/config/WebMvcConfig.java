@@ -21,4 +21,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(auditLoggingInterceptor)
                 .addPathPatterns("/api/v1/admin/**");
     }
+
+    @Override
+    public void addCorsMappings(org.springframework.web.servlet.config.annotation.CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:4200", "http://localhost:3000")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
 }

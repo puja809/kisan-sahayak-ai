@@ -41,6 +41,61 @@ spring:
       httpserver:
         wiretap: true
       routes:
+        # Swagger/OpenAPI routes - no authentication required
+        - id: swagger-ui
+          uri: http://localhost:8080
+          predicates:
+            - Path=/swagger-ui.html,/swagger-ui/**,/v3/api-docs,/v3/api-docs/**,/swagger-resources,/swagger-resources/**,/webjars/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - id: user-service-swagger
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service/swagger-ui.html,/user-service/swagger-ui/**,/user-service/v3/api-docs,/user-service/v3/api-docs/**
+          filters:
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+        - id: weather-service-swagger
+          uri: lb://weather-service
+          predicates:
+            - Path=/weather-service/swagger-ui.html,/weather-service/swagger-ui/**,/weather-service/v3/api-docs,/weather-service/v3/api-docs/**
+          filters:
+            - RewritePath=/weather-service/(?<segment>.*), /$\{segment}
+        - id: crop-service-swagger
+          uri: lb://crop-service
+          predicates:
+            - Path=/crop-service/swagger-ui.html,/crop-service/swagger-ui/**,/crop-service/v3/api-docs,/crop-service/v3/api-docs/**
+          filters:
+            - RewritePath=/crop-service/(?<segment>.*), /$\{segment}
+        - id: scheme-service-swagger
+          uri: lb://scheme-service
+          predicates:
+            - Path=/scheme-service/swagger-ui.html,/scheme-service/swagger-ui/**,/scheme-service/v3/api-docs,/scheme-service/v3/api-docs/**
+          filters:
+            - RewritePath=/scheme-service/(?<segment>.*), /$\{segment}
+        - id: mandi-service-swagger
+          uri: lb://mandi-service
+          predicates:
+            - Path=/mandi-service/swagger-ui.html,/mandi-service/swagger-ui/**,/mandi-service/v3/api-docs,/mandi-service/v3/api-docs/**
+          filters:
+            - RewritePath=/mandi-service/(?<segment>.*), /$\{segment}
+        - id: location-service-swagger
+          uri: lb://location-service
+          predicates:
+            - Path=/location-service/swagger-ui.html,/location-service/swagger-ui/**,/location-service/v3/api-docs,/location-service/v3/api-docs/**
+          filters:
+            - RewritePath=/location-service/(?<segment>.*), /$\{segment}
+        - id: admin-service-swagger
+          uri: lb://admin-service
+          predicates:
+            - Path=/admin-service/swagger-ui.html,/admin-service/swagger-ui/**,/admin-service/v3/api-docs,/admin-service/v3/api-docs/**
+          filters:
+            - RewritePath=/admin-service/(?<segment>.*), /$\{segment}
+        - id: iot-service-swagger
+          uri: lb://iot-service
+          predicates:
+            - Path=/iot-service/swagger-ui.html,/iot-service/swagger-ui/**,/iot-service/v3/api-docs,/iot-service/v3/api-docs/**
+          filters:
+            - RewritePath=/iot-service/(?<segment>.*), /$\{segment}
         - id: user-service
           uri: lb://user-service
           predicates:
@@ -55,7 +110,9 @@ spring:
               args:
                 name: usersCircuitBreaker
                 fallbackUri: forward:/fallback/users
-            - Retry=3
+            - name: Retry
+              args:
+                retries: 3
         - id: weather-service
           uri: lb://weather-service
           predicates:
@@ -70,7 +127,9 @@ spring:
               args:
                 name: weatherCircuitBreaker
                 fallbackUri: forward:/fallback/weather
-            - Retry=3
+            - name: Retry
+              args:
+                retries: 3
         - id: crop-service
           uri: lb://crop-service
           predicates:
@@ -85,7 +144,9 @@ spring:
               args:
                 name: cropCircuitBreaker
                 fallbackUri: forward:/fallback/crops
-            - Retry=3
+            - name: Retry
+              args:
+                retries: 3
         - id: scheme-service
           uri: lb://scheme-service
           predicates:
@@ -100,7 +161,9 @@ spring:
               args:
                 name: schemeCircuitBreaker
                 fallbackUri: forward:/fallback/schemes
-            - Retry=3
+            - name: Retry
+              args:
+                retries: 3
         - id: mandi-service
           uri: lb://mandi-service
           predicates:
@@ -115,7 +178,9 @@ spring:
               args:
                 name: mandiCircuitBreaker
                 fallbackUri: forward:/fallback/mandi
-            - Retry=3
+            - name: Retry
+              args:
+                retries: 3
         - id: iot-service
           uri: lb://iot-service
           predicates:
@@ -130,7 +195,9 @@ spring:
               args:
                 name: iotCircuitBreaker
                 fallbackUri: forward:/fallback/iot
-            - Retry=3
+            - name: Retry
+              args:
+                retries: 3
         - id: admin-service
           uri: lb://admin-service
           predicates:
@@ -145,7 +212,9 @@ spring:
               args:
                 name: adminCircuitBreaker
                 fallbackUri: forward:/fallback/admin
-            - Retry=3
+            - name: Retry
+              args:
+                retries: 3
         - id: ai-service
           uri: lb://ai-service
           predicates:
@@ -160,7 +229,9 @@ spring:
               args:
                 name: aiCircuitBreaker
                 fallbackUri: forward:/fallback/ai
-            - Retry=3
+            - name: Retry
+              args:
+                retries: 3
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
         - AddRequestHeader=X-Forwarded-Proto, ${scheme:http}

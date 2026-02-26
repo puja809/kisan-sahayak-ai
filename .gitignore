@@ -18,6 +18,8 @@
 *.pyc
 *.lst
 *.ps1
+**/target/
+
 
 # Build directories
 target/
@@ -104,6 +106,7 @@ gradle-app.setting
 .env.production.local
 .env.development.local
 .env.test.local
+.env.example
 
 # Logs
 logs/
