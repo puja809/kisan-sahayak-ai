@@ -1,8 +1,6 @@
 package com.farmer.crop.service;
 
 import com.farmer.crop.dto.*;
-import com.farmer.crop.entity.FertilizerApplication;
-import com.farmer.crop.exception.FertilizerException;
 import com.farmer.crop.repository.FertilizerApplicationRepository;
 import com.farmer.crop.repository.SoilHealthCardRepository;
 import org.slf4j.Logger;

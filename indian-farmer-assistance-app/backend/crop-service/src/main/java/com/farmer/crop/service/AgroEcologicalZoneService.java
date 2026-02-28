@@ -2,7 +2,6 @@ package com.farmer.crop.service;
 
 import com.farmer.crop.dto.*;
 import com.farmer.crop.entity.AgroEcologicalZone;
-import com.farmer.crop.entity.DistrictZoneMapping;
 import com.farmer.crop.exception.LocationNotFoundException;
 import com.farmer.crop.exception.ZoneMappingException;
 import com.farmer.crop.repository.AgroEcologicalZoneRepository;

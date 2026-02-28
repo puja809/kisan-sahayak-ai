@@ -1,7 +1,6 @@
 package com.farmer.crop.service;
 
 import com.farmer.crop.dto.DiseaseDetectionStorageDto;
-import com.farmer.crop.entity.DiseaseDetection;
 import com.farmer.crop.repository.DiseaseDetectionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

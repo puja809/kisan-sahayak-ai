@@ -1,6 +1,5 @@
 package com.farmer.crop.service;
 
-import com.farmer.crop.entity.GaezCropData;
 import com.farmer.crop.repository.GaezCropDataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +11,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Service for importing GAEZ v4 data into the application.

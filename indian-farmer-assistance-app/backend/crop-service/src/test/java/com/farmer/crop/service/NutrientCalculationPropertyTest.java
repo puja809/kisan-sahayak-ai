@@ -1,7 +1,6 @@
 package com.farmer.crop.service;
 
 import com.farmer.crop.dto.FertilizerTrackingResponseDto;
-import com.farmer.crop.entity.FertilizerApplication;
 import com.farmer.crop.repository.FertilizerApplicationRepository;
 import com.farmer.crop.repository.SoilHealthCardRepository;
 import net.jqwik.api.ForAll;

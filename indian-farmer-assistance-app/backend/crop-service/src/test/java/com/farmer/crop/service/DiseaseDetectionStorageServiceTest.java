@@ -1,7 +1,6 @@
 package com.farmer.crop.service;
 
 import com.farmer.crop.dto.DiseaseDetectionStorageDto;
-import com.farmer.crop.entity.DiseaseDetection;
 import com.farmer.crop.repository.DiseaseDetectionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -2,7 +2,6 @@ package com.farmer.crop.controller;
 
 import com.farmer.crop.dto.DiseaseDetectionResultDto;
 import com.farmer.crop.dto.DiseaseDetectionStorageDto;
-import com.farmer.crop.entity.DiseaseDetection;
 import com.farmer.crop.service.DiseaseDetectionService;
 import com.farmer.crop.service.DiseaseDetectionStorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,7 +1,6 @@
 package com.farmer.crop.controller;
 
 import com.farmer.crop.dto.*;
-import com.farmer.crop.entity.FertilizerApplication;
 import com.farmer.crop.service.FertilizerRecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

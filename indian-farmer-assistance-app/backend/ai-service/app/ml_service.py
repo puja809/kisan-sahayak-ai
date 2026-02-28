@@ -1,0 +1,134 @@
+"""
+FastAPI service for ML model predictions
+Serves crop recommendation and rotation models
+"""
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import os
+import logging
+from crop_recommendation_model import CropRecommendationModel
+from crop_rotation_model import CropRotationModel
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="ML Crop Prediction Service", version="1.0.0")
+
+# Global model instances
+crop_reco_model = None
+crop_rotation_model = None
+
+class CropRecommendationRequest(BaseModel):
+    latitude: float
+    longitude: float
+    temperature: float
+    humidity: float
+    rainfall: float
+    soilPH: float
+    nitrogen: float
+    phosphorus: float
+    potassium: float
+
+class CropRotationRequest(BaseModel):
+    previousCrop: str
+    soilPH: float
+    soilType: str
+    temperature: float
+    humidity: float
+    rainfall: float
+    season: str
+
+class PredictionResponse(BaseModel):
+    prediction: str
+    confidence: float
+    probabilities: dict
+    modelVersion: str = "1.0.0"
+
+@app.on_event("startup")
+async def startup_event():
+    """Load models on startup"""
+    global crop_reco_model, crop_rotation_model
+    
+    try:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        models_dir = os.path.join(base_path, 'models')
+        
+        logger.info("Loading crop recommendation model...")
+        crop_reco_model = CropRecommendationModel()
+        crop_reco_model.load(os.path.join(models_dir, 'crop_recommendation_model.pkl'))
+        logger.info("✓ Crop recommendation model loaded")
+        
+        logger.info("Loading crop rotation model...")
+        crop_rotation_model = CropRotationModel()
+        crop_rotation_model.load(os.path.join(models_dir, 'crop_rotation_model.pkl'))
+        logger.info("✓ Crop rotation model loaded")
+        
+    except Exception as e:
+        logger.error(f"Error loading models: {e}")
+        raise
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "crop_reco_model": crop_reco_model is not None,
+        "crop_rotation_model": crop_rotation_model is not None
+    }
+
+@app.post("/api/ml/predict-crop", response_model=PredictionResponse)
+async def predict_crop(request: CropRecommendationRequest):
+    """Predict crop based on soil and weather parameters"""
+    try:
+        if crop_reco_model is None:
+            raise HTTPException(status_code=503, detail="Crop recommendation model not loaded")
+        
+        result = crop_reco_model.predict(
+            N=request.nitrogen,
+            P=request.phosphorus,
+            K=request.potassium,
+            temperature=request.temperature,
+            humidity=request.humidity,
+            pH=request.soilPH,
+            rainfall=request.rainfall
+        )
+        
+        return PredictionResponse(
+            prediction=result['crop'],
+            confidence=result['confidence'],
+            probabilities=result['probabilities']
+        )
+    except Exception as e:
+        logger.error(f"Error in crop prediction: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ml/predict-rotation", response_model=PredictionResponse)
+async def predict_rotation(request: CropRotationRequest):
+    """Predict next crop for rotation"""
+    try:
+        if crop_rotation_model is None:
+            raise HTTPException(status_code=503, detail="Crop rotation model not loaded")
+        
+        result = crop_rotation_model.predict(
+            previous_crop=request.previousCrop,
+            soil_pH=request.soilPH,
+            soil_type=request.soilType,
+            temperature=request.temperature,
+            humidity=request.humidity,
+            rainfall=request.rainfall,
+            season=request.season
+        )
+        
+        return PredictionResponse(
+            prediction=result['recommended_next_crop'],
+            confidence=result['confidence'],
+            probabilities=result['probabilities']
+        )
+    except Exception as e:
+        logger.error(f"Error in crop rotation prediction: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)

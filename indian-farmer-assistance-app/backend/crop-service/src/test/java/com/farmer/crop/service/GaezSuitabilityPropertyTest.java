@@ -1,7 +1,6 @@
 package com.farmer.crop.service;
 
 import com.farmer.crop.dto.*;
-import com.farmer.crop.entity.GaezCropData;
 import com.farmer.crop.repository.GaezCropDataRepository;
 import com.farmer.crop.repository.SoilHealthCardRepository;
 import net.jqwik.api.*;

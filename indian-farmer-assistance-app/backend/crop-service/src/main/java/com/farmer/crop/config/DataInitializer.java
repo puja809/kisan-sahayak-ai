@@ -1,7 +1,6 @@
 package com.farmer.crop.config;
 
 import com.farmer.crop.entity.AgroEcologicalZone;
-import com.farmer.crop.entity.DistrictZoneMapping;
 import com.farmer.crop.repository.AgroEcologicalZoneRepository;
 import com.farmer.crop.repository.DistrictZoneMappingRepository;
 import org.slf4j.Logger;
