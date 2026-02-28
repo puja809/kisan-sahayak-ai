@@ -27,12 +27,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-  
-  data:
-    redis:
-      url: ${MANDI_REDIS_URL:redis://localhost:6379}
-      database: 4
-      timeout: 60000ms
 
 eureka:
   client:
@@ -73,12 +67,6 @@ ml-service:
 weather-api:
   key: ${WEATHER_API_KEY:}
   url: https://api.weatherapi.com/v1
-
-# Redis Cache Configuration
-redis:
-  cache:
-    mandi-price-ttl-hours: 1
-    fertilizer-supplier-ttl-hours: 24
 
 # Logging Configuration
 logging:

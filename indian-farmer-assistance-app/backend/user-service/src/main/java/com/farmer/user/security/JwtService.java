@@ -71,14 +71,19 @@ public class JwtService {
      */
     private String createToken(Map<String, Object> claims, String subject, long expiration) {
         Instant now = Instant.now();
-        return Jwts.builder()
-                .claims(claims)
-                .subject(subject)
-                .issuer(issuer)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(expiration, ChronoUnit.MILLIS)))
-                .signWith(getSigningKey())
-                .compact();
+        JwtBuilder builder = Jwts.builder()
+                .setSubject(subject)
+                .setIssuer(issuer)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plus(expiration, ChronoUnit.MILLIS)))
+                .signWith(getSigningKey());
+        
+        // Add custom claims
+        for (Map.Entry<String, Object> entry : claims.entrySet()) {
+            builder.claim(entry.getKey(), entry.getValue());
+        }
+        
+        return builder.compact();
     }
 
     /**
@@ -121,11 +126,12 @@ public class JwtService {
      * Extract all claims from token.
      */
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
+        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     /**
@@ -159,10 +165,11 @@ public class JwtService {
      */
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(getSigningKey())
+            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
                     .build()
-                    .parseSignedClaims(token);
+                    .parseClaimsJws(token);
             return true;
         } catch (MalformedJwtException e) {
             log.warn("Invalid JWT token: {}", e.getMessage());

@@ -24,15 +24,6 @@ interface TreatmentRecommendation {
   safetyPrecautions: string;
 }
 
-interface DetectionHistory {
-  id: number;
-  cropName: string;
-  diseaseName: string;
-  confidenceScore: number;
-  detectionDate: string;
-  imageUrl: string;
-}
-
 @Component({
   selector: 'app-disease-detection',
   standalone: true,
@@ -129,23 +120,6 @@ interface DetectionHistory {
           <button class="btn-secondary" (click)="findNearbyKVK()">
             Find Nearby KVK
           </button>
-        </div>
-
-        <!-- Detection History -->
-        <div class="card history-card">
-          <h2>Detection History</h2>
-          <div *ngIf="detectionHistory.length > 0" class="history-list">
-            <div *ngFor="let detection of detectionHistory" class="history-item">
-              <img [src]="detection.imageUrl" alt="Detection" class="history-thumbnail" />
-              <div class="history-details">
-                <p><strong>{{ detection.diseaseName }}</strong></p>
-                <p>{{ detection.cropName }}</p>
-                <p class="date">{{ detection.detectionDate | date: 'short' }}</p>
-                <p class="confidence">Confidence: {{ (detection.confidenceScore * 100).toFixed(1) }}%</p>
-              </div>
-            </div>
-          </div>
-          <p *ngIf="detectionHistory.length === 0" class="no-data">No detection history yet</p>
         </div>
       </div>
     </div>
@@ -414,68 +388,9 @@ interface DetectionHistory {
       background: #5a6268;
     }
 
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .history-item {
-      display: flex;
-      gap: 1rem;
-      padding: 1rem;
-      background: #f8f9fa;
-      border-radius: 4px;
-    }
-
-    .history-thumbnail {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-
-    .history-details {
-      flex: 1;
-    }
-
-    .history-details p {
-      margin: 0.25rem 0;
-      color: #666;
-    }
-
-    .history-details strong {
-      color: #333;
-    }
-
-    .date {
-      font-size: 0.85rem;
-      color: #999;
-    }
-
-    .confidence {
-      font-size: 0.85rem;
-      color: #667eea;
-      font-weight: 600;
-    }
-
-    .no-data {
-      color: #999;
-      font-style: italic;
-    }
-
     @media (max-width: 768px) {
       .detection-grid {
         grid-template-columns: 1fr;
-      }
-
-      .history-item {
-        flex-direction: column;
-      }
-
-      .history-thumbnail {
-        width: 100%;
-        height: 200px;
       }
     }
   `]
@@ -486,7 +401,6 @@ export class DiseaseDetectionComponent implements OnInit {
   isUploading = false;
   isAnalyzing = false;
   detectionResult: DiseaseDetectionResult | null = null;
-  detectionHistory: DetectionHistory[] = [];
 
   constructor(
     private http: HttpClient,
@@ -494,7 +408,6 @@ export class DiseaseDetectionComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.loadDetectionHistory();
   }
 
   onFileSelected(event: Event): void {
@@ -541,7 +454,6 @@ export class DiseaseDetectionComponent implements OnInit {
         this.detectionResult = result;
         this.toastr.success('Disease detection completed');
         this.selectedFile = null;
-        this.loadDetectionHistory();
       },
       error: (error) => {
         this.isUploading = false;
@@ -560,12 +472,5 @@ export class DiseaseDetectionComponent implements OnInit {
   findNearbyKVK(): void {
     // Navigate to KVK locator
     console.log('Finding nearby KVK');
-  }
-
-  private loadDetectionHistory(): void {
-    this.http.get<DetectionHistory[]>('/api/v1/ai/disease/history').subscribe({
-      next: (history) => this.detectionHistory = history,
-      error: (error) => console.error('Failed to load detection history:', error)
-    });
   }
 }

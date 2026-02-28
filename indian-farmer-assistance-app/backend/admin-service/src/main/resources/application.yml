@@ -31,15 +31,6 @@ spring:
     mongodb:
       uri: ${ADMIN_MONGODB_URI:mongodb://localhost:27017/farmer_assistance}
       database: farmer_assistance
-    redis:
-      host: ${ADMIN_REDIS_HOST:localhost}
-      port: ${ADMIN_REDIS_PORT:6379}
-      timeout: 60000
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
   servlet:
     multipart:
       enabled: true

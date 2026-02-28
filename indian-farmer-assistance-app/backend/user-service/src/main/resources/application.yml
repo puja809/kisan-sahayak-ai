@@ -26,10 +26,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-  data:
-    redis:
-      url: ${USER_REDIS_URL:redis://localhost:6379}
-      database: 6
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -49,13 +45,11 @@ eureka:
 # Custom application properties
 app:
   table-prefix: ${database.table_prefix:sess_c05a946fe_}
-  redis:
-    key-prefix: ${redis.key_prefix:sess:c05a946fe:}
   jwt:
-    secret: ${USER_JWT_SECRET:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long}
-    expiration: ${jwt.expiration:86400000}
-    refresh-expiration: ${jwt.refresh_expiration:604800000}
-    issuer: ${jwt.issuer:indian-farmer-assistance}
+    secret: ${JWT_SECRET:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm}
+    expiration: ${JWT_EXPIRATION:86400000}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+    issuer: ${JWT_ISSUER:indian-farmer-assistance}
   super-admin-token: ${SUPER_ADMIN_TOKEN:super-admin-secret-token-change-in-production}
   agristack:
     base-url: ${agristack.base_url:https://api.agristack.gov.in}

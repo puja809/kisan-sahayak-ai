@@ -1,0 +1,146 @@
+<div class="schemes-container">
+  <div class="schemes-header">
+    <h1>Government Schemes & Bodies</h1>
+    <p>Find relevant schemes and authorized government bodies for your location</p>
+  </div>
+
+  <!-- Location Selection -->
+  <div class="location-section">
+    <div class="location-controls">
+      <div class="form-group">
+        <label for="state-select">State</label>
+        <select 
+          id="state-select" 
+          [(ngModel)]="selectedState" 
+          (change)="onStateChange()"
+          [disabled]="loadingStates"
+          class="form-control">
+          <option value="">Select State</option>
+          <option *ngFor="let state of states" [value]="state.stateName">
+            {{ state.stateName }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="district-select">District</label>
+        <select 
+          id="district-select" 
+          [(ngModel)]="selectedDistrict" 
+          (change)="onDistrictChange()"
+          [disabled]="!selectedState || loadingDistricts"
+          class="form-control">
+          <option value="">All Districts</option>
+          <option *ngFor="let district of districts" [value]="district.districtName">
+            {{ district.districtName }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-section">
+    <div class="tabs-header">
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'schemes'"
+        (click)="switchTab('schemes')">
+        Government Schemes
+      </button>
+      <button 
+        class="tab-button" 
+        [class.active]="activeTab === 'government-bodies'"
+        (click)="switchTab('government-bodies')">
+        Authorized Government Bodies
+      </button>
+    </div>
+
+    <!-- Schemes Tab -->
+    <div *ngIf="activeTab === 'schemes'" class="tab-content">
+      <div *ngIf="loadingSchemes" class="loading">
+        <p>Loading schemes...</p>
+      </div>
+
+      <div *ngIf="!loadingSchemes && filteredSchemes.length === 0" class="no-data">
+        <p>No schemes found for the selected location.</p>
+      </div>
+
+      <div *ngIf="!loadingSchemes && filteredSchemes.length > 0" class="schemes-list">
+        <div *ngFor="let scheme of filteredSchemes" class="scheme-card">
+          <div class="scheme-header">
+            <h3>{{ scheme.name }}</h3>
+            <span *ngIf="scheme.state" class="location-badge">{{ scheme.state }}</span>
+          </div>
+          <p class="scheme-description">{{ scheme.description }}</p>
+          
+          <div class="scheme-details">
+            <div class="detail-item">
+              <strong>Eligibility:</strong>
+              <p>{{ scheme.eligibility || 'N/A' }}</p>
+            </div>
+            <div class="detail-item">
+              <strong>Benefits:</strong>
+              <p>{{ scheme.benefits || 'N/A' }}</p>
+            </div>
+            <div class="detail-item">
+              <strong>Application Deadline:</strong>
+              <p>{{ scheme.applicationDeadline || 'N/A' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Government Bodies Tab -->
+    <div *ngIf="activeTab === 'government-bodies'" class="tab-content">
+      <div *ngIf="loadingBodies" class="loading">
+        <p>Loading government bodies...</p>
+      </div>
+
+      <div *ngIf="!loadingBodies && filteredBodies.length === 0" class="no-data">
+        <p>No government bodies found for the selected location.</p>
+      </div>
+
+      <div *ngIf="!loadingBodies && filteredBodies.length > 0" class="bodies-list">
+        <div *ngFor="let body of filteredBodies" class="body-card">
+          <div class="body-header">
+            <h3>{{ body.officeName }}</h3>
+            <span class="location-badge">{{ body.state }}, {{ body.district }}</span>
+          </div>
+
+          <div class="body-details">
+            <div class="detail-row">
+              <strong>Officer:</strong>
+              <span>{{ body.officerName }}</span>
+            </div>
+            <div class="detail-row">
+              <strong>Designation:</strong>
+              <span>{{ body.designation }}</span>
+            </div>
+            <div class="detail-row">
+              <strong>Phone:</strong>
+              <span>
+                <a [href]="'tel:' + body.phone">{{ body.phone }}</a>
+              </span>
+            </div>
+            <div class="detail-row">
+              <strong>Email:</strong>
+              <span>
+                <a [href]="'mailto:' + body.email">{{ body.email }}</a>
+              </span>
+            </div>
+            <div class="detail-row">
+              <strong>Address:</strong>
+              <span>{{ body.address }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

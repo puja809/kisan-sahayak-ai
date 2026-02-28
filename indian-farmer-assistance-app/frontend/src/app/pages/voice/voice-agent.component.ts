@@ -3,13 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
-import { environment } from '../../../environments/environment';
+import { VoiceAssistantService } from '../../services/voice-assistant.service';
 
 interface ConversationMessage {
   timestamp: Date;
   userText: string;
   systemResponse: string;
-  sections?: string[];
   userAudioPath?: string;
   systemAudioPath?: string;
 }
@@ -50,12 +49,6 @@ interface ConversationMessage {
               </div>
               <div class="system-message">
                 <p><strong>Assistant:</strong> {{ message.systemResponse }}</p>
-                <div *ngIf="message.sections && message.sections.length > 0" class="reference-sections">
-                  <small><strong>References:</strong></small>
-                  <ul>
-                    <li *ngFor="let section of message.sections"><small>{{ section }}</small></li>
-                  </ul>
-                </div>
               </div>
             </div>
           </div>
@@ -447,11 +440,11 @@ export class VoiceAgentComponent implements OnInit {
   isProcessing = false;
   textInput = '';
   lastAudioPath: string | null = null;
-  private ragApiUrl = environment.services.ai + '/ask';
 
   constructor(
     private http: HttpClient,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private voiceAssistantService: VoiceAssistantService
   ) { }
 
   ngOnInit(): void {
@@ -496,40 +489,39 @@ export class VoiceAgentComponent implements OnInit {
     const userText = this.textInput;
     this.textInput = '';
 
-    const payload = {
-      question: userText
-    };
+    console.log('Sending query to Voice Assistant:', userText);
 
-    console.log('Sending query to Krishi RAG:', payload);
-
-    this.http.post<any>(this.ragApiUrl, payload).subscribe({
+    this.voiceAssistantService.askQuestion(userText).subscribe({
       next: (response) => {
         this.isProcessing = false;
+        console.log('Voice Assistant Response:', response);
 
-        if (response.success) {
+        if (response && response.success && response.answer) {
           const message: ConversationMessage = {
             timestamp: new Date(),
             userText,
-            systemResponse: response.answer,
-            sections: response.sections
+            systemResponse: response.answer
           };
           this.conversationHistory.push(message);
           this.saveConversationHistory();
           this.toastr.success('Answer generated successfully');
         } else {
-          this.toastr.error(response.error || 'Failed to get an answer', 'RAG Error');
+          console.warn('Invalid response structure:', response);
+          this.toastr.error('No answer received', 'Assistant Error');
         }
       },
       error: (error) => {
         this.isProcessing = false;
-        console.error('Error querying Krishi RAG:', error);
-        this.toastr.error('Failed to connect to Krishi RAG service', 'Connection Error');
+        console.error('Error querying Voice Assistant:', error);
+        console.error('Error status:', error.status);
+        console.error('Error response:', error.error);
+        this.toastr.error('Failed to connect to Voice Assistant service', 'Connection Error');
 
         // Push error message to chat for visibility
         this.conversationHistory.push({
           timestamp: new Date(),
           userText,
-          systemResponse: 'Sorry, I am unable to connect to the backend AIF RAG service right now. Please make sure the krishi_rag service is running on port 8000.'
+          systemResponse: 'Sorry, I am unable to connect to the Voice Assistant service right now. Please try again later.'
         });
         this.saveConversationHistory();
       }
@@ -567,7 +559,7 @@ export class VoiceAgentComponent implements OnInit {
       this.conversationHistory.push({
         timestamp: new Date(),
         userText: 'Hello',
-        systemResponse: 'Namaste! I am the Krishi RAG Assistant. Ask me any questions about the Agriculture Infrastructure Fund (AIF) scheme.'
+        systemResponse: 'Namaste! I am your Voice Assistant. Ask me any questions about agriculture, farming, schemes, or any other topic. I am here to help!'
       });
     }
   }

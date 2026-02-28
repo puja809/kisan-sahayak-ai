@@ -5,27 +5,16 @@ spring:
   application:
     name: location-service
   datasource:
-    url: ${LOCATION_DB_URL:jdbc:postgresql://localhost:5432/farmer_assistance}
+    url: ${LOCATION_DB_URL:jdbc:postgresql://localhost:5432/location_service}
     username: ${LOCATION_DB_USERNAME:postgres}
-    password: ${LOCATION_DB_PASSWORD:password}
+    password: ${LOCATION_DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 2
-      minimum-idle: 1
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  data:
-    mongodb:
-      uri: ${LOCATION_MONGODB_URI:mongodb://localhost:27017/farmer_assistance}
-      database: farmer_assistance
-    redis:
-      url: ${LOCATION_REDIS_URL:redis://localhost:6379}
-      database: 8
 
 eureka:
   client:
@@ -37,11 +26,15 @@ eureka:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
 
+jwt:
+  secret: ${JWT_SECRET:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm}
+  expiration: ${JWT_EXPIRATION:86400000}
+
 logging:
   level:
-    com.farmer.location: INFO
+    com.farmer.location: DEBUG
+    org.springframework.web: INFO
 
-# Swagger/OpenAPI Configuration
 springdoc:
   api-docs:
     path: /v3/api-docs

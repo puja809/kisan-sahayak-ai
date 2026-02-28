@@ -1,0 +1,34 @@
+state,district,district_officer,district_phone,email,kvk_phone,sample_village
+Chhattisgarh,Raipur,R.K. Kashyap,0771-2439497,rao-raipur-cg@nic.in,0771-2444029,Rampur
+Chhattisgarh,Raipur,R.K. Kashyap,0771-2439497,rao-raipur-cg@nic.in,0771-2444029,Mowa
+Chhattisgarh,Raipur,R.K. Kashyap,0771-2439497,rao-raipur-cg@nic.in,0771-2444029,Abhanpur
+Chhattisgarh,Bilaspur,Shashank Shinde,07752-414000,rao-bilaspur-cg@nic.in,07752-225777,Bilaspur City
+Chhattisgarh,Bilaspur,Shashank Shinde,07752-414000,rao-bilaspur-cg@nic.in,07752-225777,Kota
+Chhattisgarh,Bilaspur,Shashank Shinde,07752-414000,rao-bilaspur-cg@nic.in,07752-225777,Takhatpur
+Chhattisgarh,Durg,A.S. Chandrakar,0788-2323456,rao-durg-cg@nic.in,0788-2244221,Village Coverage
+Chhattisgarh,Bastar,P.K. Ramteke,07796-234567,rao-bastar-cg@nic.in,07796-234100,Village Coverage
+Bihar,Araria,Gaurav Pratap Singh,9031647135,dao-ara-bih@gov.in,06454-242345,Araria
+Bihar,Araria,Gaurav Pratap Singh,9031647135,dao-ara-bih@gov.in,06454-242345,Palasi
+Bihar,Araria,Gaurav Pratap Singh,9031647135,dao-ara-bih@gov.in,06454-242345,Sikti
+Bihar,Patna,S.K. Singh,0612-2201234,dao-pat-bih@gov.in,0612-2356778,Village Coverage
+Bihar,Muzaffarpur,R.N. Yadav,0621-2281234,dao-muz-bih@gov.in,0621-2278901,Village Coverage
+Maharashtra,Nashik,DSAO Nashik,0253-2504042,dsaonashik@gmail.com,0253-2588111,Nashik City
+Maharashtra,Nashik,DSAO Nashik,0253-2504042,dsaonashik@gmail.com,0253-2588111,Malegaon
+Maharashtra,Nashik,DSAO Nashik,0253-2504042,dsaonashik@gmail.com,0253-2588111,Manmad
+Maharashtra,Pune,J.D. Patil,020-26122346,daopune@maharashtra.gov.in,020-26956001,Village Coverage
+Maharashtra,Aurangabad,S.R. Deshmukh,0240-2331234,daoaurangabad@mah.gov.in,0240-2558234,Village Coverage
+Tamil Nadu,Chennai,V.Malarkodi,9524081222,coa.general@gmail.com,044-28520261,Chennai Urban
+Tamil Nadu,Chennai,V.Malarkodi,9524081222,coa.general@gmail.com,044-28520261,Tambaram
+Tamil Nadu,Chennai,V.Malarkodi,9524081222,coa.general@gmail.com,044-28520261,Ambattur
+Tamil Nadu,Coimbatore,R. Ravi,0422-2411234,daocbe@tn.gov.in,0422-2611456,Village Coverage
+Tamil Nadu,Madurai,S. Kumar,0452-2531234,daomdu@tn.gov.in,0452-2445678,Village Coverage
+Karnataka,Bengaluru Urban,Joint Director,080-22259594,jdabmr@gmail.com,080-28466240,Yelahanka
+Karnataka,Bengaluru Urban,Joint Director,080-22259594,jdabmr@gmail.com,080-28466240,Devanahalli
+Karnataka,Bengaluru Urban,Joint Director,080-22259594,jdabmr@gmail.com,080-28466240,Hosakote
+Karnataka,Mysuru,ADA Mysuru,0821-2423456,adamys@kar.gov.in,0821-2510432,Village Coverage
+Karnataka,Belagavi,JDA Belagavi,0831-2401234,jdabel@kar.gov.in,0831-2405678,Village Coverage
+Gujarat,Ahmedabad,Director Agri,079-23256789,doaamd@gujarat.gov.in,079-27662461,Village Coverage
+Gujarat,Surat,DAO Surat,0261-2423456,daosurat@guj.gov.in,0261-2781234,Village Coverage
+Tripura,West Tripura,Director Agri,0381-2323456,directoragri-tripura@nic.in,0381-2912345,Village Coverage
+Uttar Pradesh,Lucknow,DAO Lucknow,0522-2234567,daolko@up.gov.in,0522-2789012,Village Coverage
+Telangana,Hyderabad,Commissioner Agri,040-23212345,agrihyd@telangana.gov.in,040-24016734,Village Coverage

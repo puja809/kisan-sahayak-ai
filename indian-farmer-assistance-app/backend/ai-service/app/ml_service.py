@@ -3,6 +3,7 @@ FastAPI service for ML model predictions
 Serves crop recommendation and rotation models
 """
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 import logging
@@ -10,12 +11,22 @@ from crop_recommendation_model import CropRecommendationModel
 from crop_rotation_model import CropRotationModel
 from fertilizer_recommendation_model import FertilizerRecommendationModel
 from crop_name_mapper import map_crop_name
+from aws_voice_assistant_client import ask_question
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="ML Crop Prediction Service", version="1.0.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for development
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Global model instances
 crop_reco_model = None
@@ -50,6 +61,9 @@ class FertilizerRecommendationRequest(BaseModel):
     humidity: float
     rainfall: float
     season: str
+
+class VoiceAssistantRequest(BaseModel):
+    question: str
 
 class PredictionResponse(BaseModel):
     prediction: str
@@ -177,6 +191,40 @@ async def predict_fertilizer(request: FertilizerRecommendationRequest):
         }
     except Exception as e:
         logger.error(f"Error in fertilizer prediction: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ml/ask-question")
+async def ask_voice_question(request: VoiceAssistantRequest):
+    """
+    Ask a question to the AWS Voice Assistant API
+    Proxies requests to the AWS Lambda-based question answering service
+    """
+    try:
+        if not request.question or not request.question.strip():
+            raise HTTPException(status_code=400, detail="Question cannot be empty")
+        
+        logger.info(f"Forwarding question to AWS Voice Assistant: {request.question[:50]}...")
+        
+        # Call AWS Voice Assistant API
+        result = ask_question(request.question)
+        
+        if result.get('success'):
+            return {
+                "success": True,
+                "answer": result.get('answer'),
+                "status_code": result.get('status_code')
+            }
+        else:
+            logger.error(f"AWS API error: {result.get('error')}")
+            raise HTTPException(
+                status_code=result.get('status_code', 500),
+                detail=result.get('error', 'Failed to get answer from AWS API')
+            )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in voice question endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
