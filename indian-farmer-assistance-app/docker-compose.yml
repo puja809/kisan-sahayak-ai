@@ -1,0 +1,244 @@
+version: '3.8'
+
+services:
+  # ==================== BACKEND SERVICES ====================
+  
+  # API Gateway (Entry point)
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: api-gateway/Dockerfile
+    container_name: farmer-api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://localhost:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    ports:
+      - "8080:8080"
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # User Service
+  user-service:
+    build:
+      context: ./backend
+      dockerfile: user-service/Dockerfile
+    container_name: farmer-user-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://localhost:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+    ports:
+      - "8099:8099"
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8099/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Crop Service
+  crop-service:
+    build:
+      context: ./backend
+      dockerfile: crop-service/Dockerfile
+    container_name: farmer-crop-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://localhost:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      ML_SERVICE_URL: http://ml-service:8001
+    ports:
+      - "8093:8093"
+    depends_on:
+      - ml-service
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8093/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Location Service
+  location-service:
+    build:
+      context: ./backend
+      dockerfile: location-service/Dockerfile
+    container_name: farmer-location-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://localhost:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+    ports:
+      - "8095:8095"
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8095/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Mandi Service
+  mandi-service:
+    build:
+      context: ./backend
+      dockerfile: mandi-service/Dockerfile
+    container_name: farmer-mandi-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://localhost:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+    ports:
+      - "8096:8096"
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8096/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Scheme Service
+  scheme-service:
+    build:
+      context: ./backend
+      dockerfile: scheme-service/Dockerfile
+    container_name: farmer-scheme-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://localhost:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+    ports:
+      - "8097:8097"
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8097/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Admin Service
+  admin-service:
+    build:
+      context: ./backend
+      dockerfile: admin-service/Dockerfile
+    container_name: farmer-admin-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://localhost:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+    ports:
+      - "8091:8091"
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # IoT Service
+  iot-service:
+    build:
+      context: ./backend
+      dockerfile: iot-service/Dockerfile
+    container_name: farmer-iot-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://localhost:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+    ports:
+      - "8094:8094"
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8094/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ==================== ML SERVICE ====================
+  ml-service:
+    build:
+      context: ./backend/ai-service
+      dockerfile: Dockerfile.ml
+    container_name: farmer-ml-service
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./backend/ai-service/app/models:/app/app/models
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ==================== FRONTEND ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: farmer-frontend
+    environment:
+      API_URL: http://api-gateway:8080
+    ports:
+      - "4200:4200"
+    depends_on:
+      - api-gateway
+    networks:
+      - farmer-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4200/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  farmer-network:
+    driver: bridge
