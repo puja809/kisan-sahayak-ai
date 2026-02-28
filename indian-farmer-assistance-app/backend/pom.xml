@@ -38,10 +38,9 @@
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2023.0.4</spring-cloud.version>
-        <snakeyaml.version>2.2.1</snakeyaml.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdoc.version>2.7.0</springdoc.version>
-        <jqwik.version>1.10.1</jqwik.version>
+        <springdoc.version>2.0.4</springdoc.version>
+        <jqwik.version>1.7.4</jqwik.version>
         <jjwt.version>0.13.0</jjwt.version>
     </properties>
 
@@ -58,11 +57,6 @@
                 <groupId>com.farmer</groupId>
                 <artifactId>common</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>${snakeyaml.version}</version>
             </dependency>
             <!-- JJWT Management -->
             <dependency>

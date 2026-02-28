@@ -15,7 +15,7 @@ export const environment = {
     yield: 'http://localhost:8101',
     sync: 'http://localhost:8098',
     bandwidth: 'http://localhost:8092',
-    ai: 'http://localhost:8000',
+    ai: 'http://localhost:8001',
   },
   supportedLanguages: [
     { code: 'en', name: 'English' },
