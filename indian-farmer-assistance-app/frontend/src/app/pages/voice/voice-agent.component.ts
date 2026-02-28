@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { VoiceAssistantService } from '../../services/voice-assistant.service';
 
@@ -20,7 +19,10 @@ interface ConversationMessage {
   template: `
     <div class="voice-agent-container">
       <div class="voice-header">
-        <h1>Voice Assistant (Krishi RAG)</h1>
+        <div class="header-content">
+          <h1>🌾 Krishi Assistant</h1>
+          <p>Ask questions about farming, schemes, and agriculture</p>
+        </div>
         <div class="language-selector">
           <label for="language">Language:</label>
           <select id="language" [(ngModel)]="selectedLanguage" (change)="onLanguageChange()">
@@ -38,78 +40,86 @@ interface ConversationMessage {
         </div>
       </div>
 
+      <!-- Mode Toggle -->
+      <div class="mode-toggle">
+        <button 
+          class="toggle-btn" 
+          [class.active]="inputMode === 'text'"
+          (click)="switchMode('text')"
+        >
+          💬 Text Chat
+        </button>
+        <button 
+          class="toggle-btn" 
+          [class.active]="inputMode === 'voice'"
+          (click)="switchMode('voice')"
+          disabled
+          title="Voice input coming soon"
+        >
+          🎤 Voice (Coming Soon)
+        </button>
+      </div>
+
       <div class="voice-content">
         <!-- Conversation History -->
         <div class="conversation-history">
-          <h2>Conversation History</h2>
+          <div class="history-header">
+            <h2>Chat History</h2>
+            <button 
+              class="btn-clear" 
+              (click)="clearHistory()"
+              [disabled]="conversationHistory.length === 0"
+              title="Clear all messages"
+            >
+              ✕
+            </button>
+          </div>
           <div class="messages-container">
+            <div *ngIf="conversationHistory.length === 0" class="welcome-message">
+              <p>👋 Welcome! Ask me anything about agriculture, farming schemes, or government support.</p>
+            </div>
             <div *ngFor="let message of conversationHistory" class="message-group">
               <div class="user-message">
-                <p><strong>You:</strong> {{ message.userText }}</p>
+                <p>{{ message.userText }}</p>
               </div>
               <div class="system-message">
-                <p><strong>Assistant:</strong> {{ message.systemResponse }}</p>
+                <p>{{ message.systemResponse }}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Voice Input Section -->
-        <div class="voice-input-section">
-          <h2>Voice Input</h2>
-          <div class="voice-controls">
-            <button 
-              class="btn-voice" 
-              [class.recording]="isRecording"
-              (click)="toggleRecording()"
-            >
-              <span class="icon">🎤</span>
-              {{ isRecording ? 'Stop Recording' : 'Start Recording' }}
-            </button>
-            <button 
-              class="btn-secondary" 
-              (click)="clearHistory()"
-              [disabled]="conversationHistory.length === 0"
-            >
-              Clear History
-            </button>
-          </div>
-
-          <div *ngIf="isRecording" class="recording-indicator">
-            <div class="pulse"></div>
-            <p>Recording...</p>
-          </div>
-
-          <div *ngIf="isProcessing" class="processing-indicator">
-            <p>Generating response from AIF AGI...</p>
-          </div>
-        </div>
-
-        <!-- Text Input Fallback -->
-        <div class="text-input-section">
-          <h2>Text Input (Fallback)</h2>
+        <!-- Text Input Section -->
+        <div class="input-section" *ngIf="inputMode === 'text'">
           <div class="text-input-group">
             <input
               type="text"
               [(ngModel)]="textInput"
-              placeholder="Ask a question about AIF Scheme..."
+              placeholder="Type your question here..."
               (keyup.enter)="sendTextQuery()"
               class="text-input"
               [disabled]="isProcessing"
+              autocomplete="off"
             />
-            <button class="btn-send" (click)="sendTextQuery()" [disabled]="!textInput.trim() || isProcessing">
-              Send
+            <button 
+              class="btn-send" 
+              (click)="sendTextQuery()" 
+              [disabled]="!textInput.trim() || isProcessing"
+            >
+              {{ isProcessing ? '⏳' : '➤' }}
             </button>
+          </div>
+          <div *ngIf="isProcessing" class="processing-indicator">
+            <div class="spinner"></div>
+            <p>Getting answer...</p>
           </div>
         </div>
 
-        <!-- Audio Playback -->
-        <div class="audio-playback-section" *ngIf="lastAudioPath">
-          <h2>Audio Response</h2>
-          <audio controls class="audio-player">
-            <source [src]="lastAudioPath" type="audio/mpeg" />
-            Your browser does not support the audio element.
-          </audio>
+        <!-- Voice Input Section (Placeholder) -->
+        <div class="input-section" *ngIf="inputMode === 'voice'">
+          <div class="voice-placeholder">
+            <p>🎤 Voice input will be available soon</p>
+          </div>
         </div>
       </div>
     </div>
@@ -119,69 +129,192 @@ interface ConversationMessage {
       padding: 1.5rem;
       max-width: 900px;
       margin: 0 auto;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #2d5016 0%, #3d6b1f 100%);
     }
 
     .voice-header {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2rem;
-      background: white;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      gap: 2rem;
     }
 
-    .voice-header h1 {
+    .header-content h1 {
       font-size: 1.75rem;
-      color: #333;
+      color: #2d5016;
+      margin: 0 0 0.25rem 0;
+    }
+
+    .header-content p {
+      color: #666;
       margin: 0;
+      font-size: 0.9rem;
     }
 
     .language-selector {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      white-space: nowrap;
     }
 
     .language-selector label {
       font-weight: 600;
       color: #333;
+      font-size: 0.9rem;
     }
 
     .language-selector select {
-      padding: 0.5rem;
+      padding: 0.5rem 0.75rem;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: white;
+      cursor: pointer;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      background: white;
+      padding: 0.75rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 0.75rem 1.5rem;
+      border: 2px solid #ddd;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
       font-size: 1rem;
+      transition: all 0.3s;
+      color: #666;
+    }
+
+    .toggle-btn:hover:not(:disabled) {
+      border-color: #3d6b1f;
+      color: #3d6b1f;
+    }
+
+    .toggle-btn.active {
+      background: #3d6b1f;
+      color: white;
+      border-color: #3d6b1f;
+    }
+
+    .toggle-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .voice-content {
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 1.5rem;
+      flex: 1;
+      overflow: hidden;
     }
 
     .conversation-history {
       background: white;
       padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
     }
 
-    .conversation-history h2 {
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #3d6b1f;
+      padding-bottom: 0.75rem;
+    }
+
+    .history-header h2 {
       font-size: 1.25rem;
       color: #333;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #667eea;
-      padding-bottom: 0.5rem;
+      margin: 0;
+    }
+
+    .btn-clear {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .btn-clear:hover:not(:disabled) {
+      background: #c0392b;
+      transform: scale(1.1);
+    }
+
+    .btn-clear:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .messages-container {
-      max-height: 500px;
+      flex: 1;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      padding-right: 0.5rem;
+    }
+
+    .messages-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .messages-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb {
+      background: #3d6b1f;
+      border-radius: 3px;
+    }
+
+    .welcome-message {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+    }
+
+    .welcome-message p {
+      color: #999;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      max-width: 400px;
     }
 
     .message-group {
@@ -191,163 +324,41 @@ interface ConversationMessage {
     }
 
     .user-message {
-      background: #e3f2fd;
+      background: #d4edda;
       padding: 1rem;
-      border-radius: 4px;
-      margin-left: 2rem;
+      border-radius: 8px;
+      margin-left: auto;
+      max-width: 80%;
+      border-bottom-right-radius: 2px;
     }
 
     .user-message p {
       margin: 0;
-      color: #333;
+      color: #155724;
     }
 
     .system-message {
-      background: #f0f4ff;
+      background: #e8f5e9;
       padding: 1rem;
-      border-radius: 4px;
-      margin-right: 2rem;
-      border-left: 4px solid #667eea;
+      border-radius: 8px;
+      margin-right: auto;
+      max-width: 80%;
+      border-left: 4px solid #3d6b1f;
+      border-bottom-left-radius: 2px;
     }
 
     .system-message p {
       margin: 0;
-      color: #333;
+      color: #1b5e20;
       white-space: pre-wrap;
+      line-height: 1.5;
     }
 
-    .reference-sections {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed #ccc;
-    }
-
-    .reference-sections ul {
-      margin: 5px 0 0;
-      padding-left: 20px;
-      color: #666;
-    }
-
-    .voice-input-section {
+    .input-section {
       background: white;
       padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .voice-input-section h2 {
-      font-size: 1.25rem;
-      color: #333;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #667eea;
-      padding-bottom: 0.5rem;
-    }
-
-    .voice-controls {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .btn-voice {
-      flex: 1;
-      padding: 1rem;
-      background: #667eea;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: all 0.3s;
-    }
-
-    .btn-voice:hover {
-      background: #5568d3;
-    }
-
-    .btn-voice.recording {
-      background: #e74c3c;
-      animation: pulse 1s infinite;
-    }
-
-    .btn-voice .icon {
-      font-size: 1.5rem;
-    }
-
-    .btn-secondary {
-      padding: 1rem 1.5rem;
-      background: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background: #5a6268;
-    }
-
-    .btn-secondary:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .recording-indicator {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      border-radius: 4px;
-      color: #856404;
-    }
-
-    .pulse {
-      width: 12px;
-      height: 12px;
-      background: #e74c3c;
-      border-radius: 50%;
-      animation: pulse 1s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.5;
-      }
-    }
-
-    .processing-indicator {
-      padding: 1rem;
-      background: #e3f2fd;
-      border: 1px solid #2196f3;
-      border-radius: 4px;
-      color: #1976d2;
-      text-align: center;
-    }
-
-    .text-input-section {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .text-input-section h2 {
-      font-size: 1.25rem;
-      color: #333;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #667eea;
-      padding-bottom: 0.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .text-input-group {
@@ -357,34 +368,41 @@ interface ConversationMessage {
 
     .text-input {
       flex: 1;
-      padding: 0.75rem;
+      padding: 0.75rem 1rem;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: 8px;
       font-size: 1rem;
+      transition: all 0.3s;
     }
 
     .text-input:focus {
       outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      border-color: #3d6b1f;
+      box-shadow: 0 0 0 3px rgba(61, 107, 31, 0.1);
     }
-    
+
     .text-input:disabled {
       background-color: #f5f5f5;
+      cursor: not-allowed;
     }
 
     .btn-send {
       padding: 0.75rem 1.5rem;
-      background: #667eea;
+      background: #3d6b1f;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+      min-width: 50px;
     }
 
     .btn-send:hover:not(:disabled) {
-      background: #5568d3;
+      background: #2d5016;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(61, 107, 31, 0.3);
     }
 
     .btn-send:disabled {
@@ -392,57 +410,78 @@ interface ConversationMessage {
       cursor: not-allowed;
     }
 
-    .audio-playback-section {
-      background: white;
-      padding: 1.5rem;
+    .processing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: #e8f5e9;
+      border: 1px solid #3d6b1f;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .audio-playback-section h2 {
-      font-size: 1.25rem;
-      color: #333;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #667eea;
-      padding-bottom: 0.5rem;
-    }
-
-    .audio-player {
-      width: 100%;
+      color: #1b5e20;
       margin-top: 1rem;
     }
 
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid #e8f5e9;
+      border-top-color: #3d6b1f;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .voice-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 150px;
+      color: #999;
+      font-size: 1.1rem;
+    }
+
     @media (max-width: 768px) {
+      .voice-agent-container {
+        padding: 1rem;
+        height: auto;
+      }
+
       .voice-header {
         flex-direction: column;
         gap: 1rem;
-        text-align: center;
       }
 
-      .user-message {
-        margin-left: 0;
-      }
-
-      .system-message {
-        margin-right: 0;
-      }
-
-      .voice-controls {
+      .mode-toggle {
         flex-direction: column;
+      }
+
+      .toggle-btn {
+        width: 100%;
+      }
+
+      .user-message,
+      .system-message {
+        max-width: 100%;
+      }
+
+      .messages-container {
+        max-height: 300px;
       }
     }
   `]
 })
 export class VoiceAgentComponent implements OnInit {
   selectedLanguage = 'en';
+  inputMode: 'text' | 'voice' = 'text';
   conversationHistory: ConversationMessage[] = [];
-  isRecording = false;
   isProcessing = false;
   textInput = '';
-  lastAudioPath: string | null = null;
 
   constructor(
-    private http: HttpClient,
     private toastr: ToastrService,
     private voiceAssistantService: VoiceAssistantService
   ) { }
@@ -453,33 +492,11 @@ export class VoiceAgentComponent implements OnInit {
 
   onLanguageChange(): void {
     console.log('Language changed to:', this.selectedLanguage);
-    // Future: handle translation before/after RAG queries
   }
 
-  toggleRecording(): void {
-    this.isRecording = !this.isRecording;
-    if (this.isRecording) {
-      this.startRecording();
-    } else {
-      this.stopRecording();
-    }
-  }
-
-  private startRecording(): void {
-    console.log('Starting voice recording...');
-    // Implement WebRTC audio capture
-  }
-
-  private stopRecording(): void {
-    console.log('Stopping voice recording...');
-    this.isProcessing = true;
-
-    // Once audio is transcribed to text, send as normal query.
-    // For now we'll simulate a failure since we're using Text input primarily with the RAG
-    setTimeout(() => {
-      this.isProcessing = false;
-      this.toastr.warning('Voice recording is currently mocked. Please use text input.', 'Demo Mode');
-    }, 1500);
+  switchMode(mode: 'text' | 'voice'): void {
+    this.inputMode = mode;
+    this.textInput = '';
   }
 
   sendTextQuery(): void {
@@ -517,7 +534,6 @@ export class VoiceAgentComponent implements OnInit {
         console.error('Error response:', error.error);
         this.toastr.error('Failed to connect to Voice Assistant service', 'Connection Error');
 
-        // Push error message to chat for visibility
         this.conversationHistory.push({
           timestamp: new Date(),
           userText,
@@ -530,13 +546,12 @@ export class VoiceAgentComponent implements OnInit {
 
   clearHistory(): void {
     this.conversationHistory = [];
-    this.lastAudioPath = null;
     this.saveConversationHistory();
+    this.toastr.info('Chat history cleared');
   }
 
   private saveConversationHistory(): void {
-    // Save history to local storage, omitting the welcome message if it's the only one
-    if (this.conversationHistory.length <= 1) {
+    if (this.conversationHistory.length === 0) {
       localStorage.removeItem('krishi_rag_history');
     } else {
       localStorage.setItem('krishi_rag_history', JSON.stringify(this.conversationHistory));
@@ -544,7 +559,6 @@ export class VoiceAgentComponent implements OnInit {
   }
 
   private loadConversationHistory(): void {
-    // Optionally load from local storage
     const saved = localStorage.getItem('krishi_rag_history');
     if (saved) {
       try {
@@ -552,15 +566,6 @@ export class VoiceAgentComponent implements OnInit {
       } catch (e) {
         console.error('Failed to parse history', e);
       }
-    }
-
-    // If empty, add a welcome message
-    if (this.conversationHistory.length === 0) {
-      this.conversationHistory.push({
-        timestamp: new Date(),
-        userText: 'Hello',
-        systemResponse: 'Namaste! I am your Voice Assistant. Ask me any questions about agriculture, farming, schemes, or any other topic. I am here to help!'
-      });
     }
   }
 }
