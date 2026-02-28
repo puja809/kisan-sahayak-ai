@@ -1,4 +1,4 @@
-# admin-service Dockerfile
+# eureka-server Dockerfile
 FROM eclipse-temurin:17-jdk-alpine as builder
 WORKDIR /app
 
@@ -22,7 +22,7 @@ COPY eureka-server ./eureka-server
 # Support BuildKit caching for .m2
 RUN \
     --mount=type=cache,target=/root/.m2 \
-    mvn -f pom.xml clean package -DskipTests -pl admin-service -am
+    mvn -f pom.xml clean package -DskipTests -pl eureka-server -am
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
@@ -34,7 +34,7 @@ RUN apk add --no-cache curl
 RUN addgroup app && adduser -u 1000 -G app -s /bin/sh -D app
 
 # Copy the built artifact
-COPY --from=builder /app/admin-service/target/*.jar app.jar
+COPY --from=builder /app/eureka-server/target/*.jar app.jar
 
 # Create logs directory
 RUN mkdir -p /var/log/farmer-app && chown -R app:app /var/log/farmer-app
@@ -43,11 +43,11 @@ RUN mkdir -p /var/log/farmer-app && chown -R app:app /var/log/farmer-app
 USER app
 
 # Expose port
-EXPOSE 8091
+EXPOSE 8761
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8091/actuator/health || exit 1
+    CMD curl -f http://localhost:8761/actuator/health || exit 1
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

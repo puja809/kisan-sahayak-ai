@@ -28,6 +28,57 @@ import { CropRecommendationService, DashboardResponse } from '../../services/cro
         </div>
       </div>
       
+      <!-- Soil Data Section (Moved to Top) -->
+      <div *ngIf="dashboardData?.soilData" class="soil-data-card">
+        <h3>🌍 Soil Analysis</h3>
+        <div class="soil-grid">
+          <div class="soil-item">
+            <label>Texture Class</label>
+            <p>{{ dashboardData?.soilData?.soil_type?.texture_class || 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>FAO Classification</label>
+            <p>{{ dashboardData?.soilData?.soil_type?.fao_class || 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>pH (H₂O)</label>
+            <p>{{ dashboardData?.soilData?.chemical_properties?.ph_h2o ? (dashboardData?.soilData?.chemical_properties?.ph_h2o | number:'1.2-2') + ' (' + getPhRating(dashboardData?.soilData?.chemical_properties?.ph_h2o) + ')' : 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>Organic Matter</label>
+            <p>{{ dashboardData?.soilData?.chemical_properties?.organic_matter_pct ? (dashboardData?.soilData?.chemical_properties?.organic_matter_pct | number:'1.2-2') + '%' : 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>Nitrogen</label>
+            <p>{{ dashboardData?.soilData?.chemical_properties?.nitrogen_g_kg ? (dashboardData?.soilData?.chemical_properties?.nitrogen_g_kg | number:'1.2-2') + ' g/kg' : 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>Water Capacity (Field)</label>
+            <p>{{ dashboardData?.soilData?.water_metrics?.capacity_field_vol_pct ? (dashboardData?.soilData?.water_metrics?.capacity_field_vol_pct | number:'1.2-2') + '%' : 'N/A' }}</p>
+          </div>
+        </div>
+        <div class="soil-texture" *ngIf="dashboardData?.soilData?.physical_properties">
+          <h4>Soil Texture Composition</h4>
+          <div class="texture-bars">
+            <div class="texture-bar">
+              <div class="bar sand" [style.width.%]="dashboardData?.soilData?.physical_properties?.sand_pct || 0"></div>
+              <span>Sand: {{ dashboardData?.soilData?.physical_properties?.sand_pct | number:'1.1-1' }}%</span>
+            </div>
+            <div class="texture-bar">
+              <div class="bar silt" [style.width.%]="dashboardData?.soilData?.physical_properties?.silt_pct || 0"></div>
+              <span>Silt: {{ dashboardData?.soilData?.physical_properties?.silt_pct | number:'1.1-1' }}%</span>
+            </div>
+            <div class="texture-bar">
+              <div class="bar clay" [style.width.%]="dashboardData?.soilData?.physical_properties?.clay_pct || 0"></div>
+              <span>Clay: {{ dashboardData?.soilData?.physical_properties?.clay_pct | number:'1.1-1' }}%</span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!dashboardData?.soilData?.physical_properties" class="no-texture-data">
+          <p>Detailed soil texture composition not available.</p>
+        </div>
+      </div>
+      
       <!-- Crop Recommendation Section -->
       <div *ngIf="dashboardData?.cropRecommendation" class="prediction-card crop-card">
         <div class="card-header">
@@ -136,57 +187,6 @@ import { CropRecommendationService, DashboardResponse } from '../../services/cro
         </div>
         <div class="card-content">
           <p class="no-data-message">No fertilizer recommendation available. Crop recommendation is required first.</p>
-        </div>
-      </div>
-      
-      <!-- Soil Data Section -->
-      <div *ngIf="dashboardData?.soilData" class="soil-data-card">
-        <h3>🌍 Soil Analysis</h3>
-        <div class="soil-grid">
-          <div class="soil-item">
-            <label>Texture Class</label>
-            <p>{{ dashboardData?.soilData?.soil_type?.texture_class || 'N/A' }}</p>
-          </div>
-          <div class="soil-item">
-            <label>FAO Classification</label>
-            <p>{{ dashboardData?.soilData?.soil_type?.fao_class || 'N/A' }}</p>
-          </div>
-          <div class="soil-item">
-            <label>pH (H₂O)</label>
-            <p>{{ dashboardData?.soilData?.chemical_properties?.ph_h2o ? (dashboardData?.soilData?.chemical_properties?.ph_h2o | number:'1.2-2') + ' (' + getPhRating(dashboardData?.soilData?.chemical_properties?.ph_h2o) + ')' : 'N/A' }}</p>
-          </div>
-          <div class="soil-item">
-            <label>Organic Matter</label>
-            <p>{{ dashboardData?.soilData?.chemical_properties?.organic_matter_pct ? (dashboardData?.soilData?.chemical_properties?.organic_matter_pct | number:'1.2-2') + '%' : 'N/A' }}</p>
-          </div>
-          <div class="soil-item">
-            <label>Nitrogen</label>
-            <p>{{ dashboardData?.soilData?.chemical_properties?.nitrogen_g_kg ? (dashboardData?.soilData?.chemical_properties?.nitrogen_g_kg | number:'1.2-2') + ' g/kg' : 'N/A' }}</p>
-          </div>
-          <div class="soil-item">
-            <label>Water Capacity (Field)</label>
-            <p>{{ dashboardData?.soilData?.water_metrics?.capacity_field_vol_pct ? (dashboardData?.soilData?.water_metrics?.capacity_field_vol_pct | number:'1.2-2') + '%' : 'N/A' }}</p>
-          </div>
-        </div>
-        <div class="soil-texture" *ngIf="dashboardData?.soilData?.physical_properties">
-          <h4>Soil Texture Composition</h4>
-          <div class="texture-bars">
-            <div class="texture-bar">
-              <div class="bar sand" [style.width.%]="dashboardData?.soilData?.physical_properties?.sand_pct || 0"></div>
-              <span>Sand: {{ dashboardData?.soilData?.physical_properties?.sand_pct | number:'1.1-1' }}%</span>
-            </div>
-            <div class="texture-bar">
-              <div class="bar silt" [style.width.%]="dashboardData?.soilData?.physical_properties?.silt_pct || 0"></div>
-              <span>Silt: {{ dashboardData?.soilData?.physical_properties?.silt_pct | number:'1.1-1' }}%</span>
-            </div>
-            <div class="texture-bar">
-              <div class="bar clay" [style.width.%]="dashboardData?.soilData?.physical_properties?.clay_pct || 0"></div>
-              <span>Clay: {{ dashboardData?.soilData?.physical_properties?.clay_pct | number:'1.1-1' }}%</span>
-            </div>
-          </div>
-        </div>
-        <div *ngIf="!dashboardData?.soilData?.physical_properties" class="no-texture-data">
-          <p>Detailed soil texture composition not available.</p>
         </div>
       </div>
 

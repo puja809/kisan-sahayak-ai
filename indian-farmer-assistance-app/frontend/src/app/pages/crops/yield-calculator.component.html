@@ -1,0 +1,175 @@
+<div class="yield-calculator-container">
+  <div class="calculator-card">
+    <h1>📈 Yield Calculator</h1>
+    <p class="subtitle">Calculate estimated yield based on commodity, farm size, and investment</p>
+
+    <form [formGroup]="yieldForm" (ngSubmit)="onSubmit()" class="calculator-form">
+      <!-- Commodity Selection -->
+      <div class="form-group">
+        <label for="commodity">Commodity *</label>
+        <select 
+          id="commodity" 
+          formControlName="commodity" 
+          class="form-control"
+          [disabled]="loadingCommodities"
+          [class.is-invalid]="submitted && f['commodity'].errors">
+          <option value="">
+            {{ loadingCommodities ? 'Loading commodities...' : 'Select a commodity' }}
+          </option>
+          <option *ngFor="let commodity of commodities" [value]="commodity">
+            {{ commodity }}
+          </option>
+        </select>
+        <div *ngIf="submitted && f['commodity'].errors" class="error-message">
+          Commodity is required
+        </div>
+      </div>
+
+      <!-- Farm Size -->
+      <div class="form-group">
+        <label for="farmSize">Farm Size (Hectares) *</label>
+        <input 
+          type="number" 
+          id="farmSize" 
+          formControlName="farmSizeHectares" 
+          class="form-control"
+          placeholder="Enter farm size in hectares"
+          min="0.1"
+          max="1000"
+          step="0.1"
+          [class.is-invalid]="submitted && f['farmSizeHectares'].errors">
+        <div *ngIf="submitted && f['farmSizeHectares'].errors" class="error-message">
+          <span *ngIf="f['farmSizeHectares'].errors['required']">Farm size is required</span>
+          <span *ngIf="f['farmSizeHectares'].errors['min']">Farm size must be at least 0.1 hectares</span>
+          <span *ngIf="f['farmSizeHectares'].errors['max']">Farm size cannot exceed 1000 hectares</span>
+        </div>
+      </div>
+
+      <!-- Investment Amount -->
+      <div class="form-group">
+        <label for="investment">Investment Amount (₹) *</label>
+        <input 
+          type="number" 
+          id="investment" 
+          formControlName="investmentAmount" 
+          class="form-control"
+          placeholder="Enter investment amount in rupees"
+          min="1000"
+          max="10000000"
+          step="1000"
+          [class.is-invalid]="submitted && f['investmentAmount'].errors">
+        <div *ngIf="submitted && f['investmentAmount'].errors" class="error-message">
+          <span *ngIf="f['investmentAmount'].errors['required']">Investment amount is required</span>
+          <span *ngIf="f['investmentAmount'].errors['min']">Investment must be at least ₹1000</span>
+          <span *ngIf="f['investmentAmount'].errors['max']">Investment cannot exceed ₹10,000,000</span>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          <span *ngIf="!loading">Calculate Yield</span>
+          <span *ngIf="loading">Calculating...</span>
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="resetForm()">Reset</button>
+      </div>
+    </form>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="alert alert-error">
+      {{ error }}
+    </div>
+
+    <!-- Results -->
+    <div *ngIf="result && result.success" class="results-section">
+      <h2>📊 Calculation Results</h2>
+      
+      <div class="results-grid">
+        <!-- Input Summary -->
+        <div class="result-card">
+          <h3>Input Parameters</h3>
+          <div class="result-item">
+            <span class="label">Commodity:</span>
+            <span class="value">{{ result.commodity }}</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Farm Size:</span>
+            <span class="value">{{ formatNumber(result.farmSizeHectares) }} hectares</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Investment:</span>
+            <span class="value">₹{{ formatNumber(result.investmentAmount) }}</span>
+          </div>
+        </div>
+
+        <!-- Price Information -->
+        <div class="result-card">
+          <h3>Market Prices (per kg)</h3>
+          <div class="result-item">
+            <span class="label">Minimum:</span>
+            <span class="value">₹{{ formatNumber(result.minPricePerKg) }}</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Average:</span>
+            <span class="value">₹{{ formatNumber(result.avgPricePerKg) }}</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Maximum:</span>
+            <span class="value">₹{{ formatNumber(result.maxPricePerKg) }}</span>
+          </div>
+        </div>
+
+        <!-- Yield Estimates -->
+        <div class="result-card">
+          <h3>Estimated Yield (kg)</h3>
+          <div class="result-item">
+            <span class="label">Minimum:</span>
+            <span class="value">{{ formatNumber(result.estimatedMinYield) }}</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Expected:</span>
+            <span class="value highlight">{{ formatNumber(result.estimatedExpectedYield) }}</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Maximum:</span>
+            <span class="value">{{ formatNumber(result.estimatedMaxYield) }}</span>
+          </div>
+        </div>
+
+        <!-- Revenue Estimates -->
+        <div class="result-card">
+          <h3>Estimated Revenue (₹)</h3>
+          <div class="result-item">
+            <span class="label">Minimum:</span>
+            <span class="value">₹{{ formatNumber(result.estimatedMinRevenue) }}</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Expected:</span>
+            <span class="value highlight">₹{{ formatNumber(result.estimatedExpectedRevenue) }}</span>
+          </div>
+          <div class="result-item">
+            <span class="label">Maximum:</span>
+            <span class="value">₹{{ formatNumber(result.estimatedMaxRevenue) }}</span>
+          </div>
+        </div>
+
+        <!-- Profit Analysis -->
+        <div class="result-card profit-card">
+          <h3>Profit Analysis</h3>
+          <div class="result-item">
+            <span class="label">Profit Margin:</span>
+            <span class="value" [ngClass]="getProfitMarginColor(result.profitMarginPercent)">
+              {{ formatNumber(result.profitMarginPercent) }}%
+            </span>
+          </div>
+          <div class="result-item">
+            <span class="label">Expected Profit:</span>
+            <span class="value highlight">
+              ₹{{ formatNumber((result.estimatedExpectedRevenue || 0) - (result.investmentAmount || 0)) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

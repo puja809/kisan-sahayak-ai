@@ -24,6 +24,7 @@ import { AuthService } from './services/auth.service';
             <!-- Show only when NOT logged in -->
             <a routerLink="/weather" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">🌤️ Weather</a>
             <a routerLink="/crops" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">🌾 Crops</a>
+            <a routerLink="/yield-calculator" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">📈 Yield</a>
             <a routerLink="/schemes" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">📋 Schemes</a>
             <a routerLink="/mandi" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">💰 Mandi</a>
             <a routerLink="/voice" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">🎤 Voice</a>

@@ -9,3 +9,107 @@ spring:
     name: api-gateway
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # User Service - Authentication and User Management
+        # Endpoints: /api/v1/auth/**, /api/v1/users/**, /api/v1/admin/roles/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/auth/**, /api/v1/users/**, /api/v1/admin/roles/**
+          filters:
+            - StripPrefix=2
+
+        # Crop Service - Crop Recommendations and Rotation
+        # Endpoints: /api/v1/crops/dashboard/**, /api/v1/crops/yield/**
+        - id: crop-service
+          uri: lb://crop-service
+          predicates:
+            - Path=/api/v1/crops/**
+          filters:
+            - StripPrefix=2
+
+        # Location Service - Government Bodies and Locations
+        # Endpoints: /api/v1/government-bodies/**
+        - id: location-service
+          uri: lb://location-service
+          predicates:
+            - Path=/api/v1/government-bodies/**
+          filters:
+            - StripPrefix=2
+
+        # Mandi Service - Market Prices and Fertilizer Suppliers
+        # Endpoints: /api/v1/mandi/**, /api/mandi/**, /api/v1/fertilizer/**
+        - id: mandi-service
+          uri: lb://mandi-service
+          predicates:
+            - Path=/api/v1/mandi/**, /api/mandi/**, /api/v1/fertilizer/**
+          filters:
+            - StripPrefix=2
+
+        # Scheme Service - Government Schemes and Applications
+        # Endpoints: /api/v1/schemes/**, /api/v1/admin/schemes/**, /api/v1/scheme-applications/**
+        - id: scheme-service
+          uri: lb://scheme-service
+          predicates:
+            - Path=/api/v1/schemes/**, /api/v1/admin/schemes/**, /api/v1/scheme-applications/**
+          filters:
+            - StripPrefix=2
+
+        # Admin Service - Admin Operations, Documents, and Audit Logs
+        # Endpoints: /api/v1/admin/documents/**, /api/v1/admin/audit/**
+        - id: admin-service
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/admin/documents/**, /api/v1/admin/audit/**
+          filters:
+            - StripPrefix=2
+
+        # IoT Service - IoT Device Management and Sensor Data
+        # Endpoints: /api/v1/iot/**
+        - id: iot-service
+          uri: lb://iot-service
+          predicates:
+            - Path=/api/v1/iot/**
+          filters:
+            - StripPrefix=2
+
+        # Weather Service - Weather Data and Forecasts
+        # Endpoints: /api/v1/weather/**
+        - id: weather-service
+          uri: lb://weather-service
+          predicates:
+            - Path=/api/v1/weather/**
+          filters:
+            - StripPrefix=2
+
+        # Yield Service - Crop Yield Predictions and Analytics
+        # Endpoints: /api/v1/crops/yield/**, /api/v1/ai/yield/**
+        - id: yield-service
+          uri: lb://yield-service
+          predicates:
+            - Path=/api/v1/crops/yield/**, /api/v1/ai/yield/**
+          filters:
+            - StripPrefix=2
+
+        # Eureka Server - Service Discovery
+        - id: eureka-server
+          uri: http://eureka-server:8761
+          predicates:
+            - Path=/eureka/**
+          filters:
+            - StripPrefix=1
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    preferIpAddress: true

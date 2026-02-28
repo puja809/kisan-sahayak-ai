@@ -1,10 +1,28 @@
-# IoT Service Dockerfile
+# iot-service Dockerfile
 FROM eclipse-temurin:17-jdk-alpine as builder
 WORKDIR /app
+
+# Install Maven
+RUN apk add --no-cache maven
+
 COPY pom.xml .
 COPY common ./common
+COPY api-gateway ./api-gateway
+COPY user-service ./user-service
+COPY crop-service ./crop-service
+COPY location-service ./location-service
+COPY mandi-service ./mandi-service
+COPY scheme-service ./scheme-service
+COPY admin-service ./admin-service
 COPY iot-service ./iot-service
-RUN mvn -f pom.xml clean package -DskipTests
+COPY weather-service ./weather-service
+COPY yield-service ./yield-service
+COPY eureka-server ./eureka-server
+
+# Support BuildKit caching for .m2
+RUN \
+    --mount=type=cache,target=/root/.m2 \
+    mvn -f pom.xml clean package -DskipTests -pl iot-service -am
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
@@ -13,7 +31,7 @@ WORKDIR /app
 RUN apk add --no-cache curl
 
 # Create non-root user for security
-RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
+RUN addgroup app && adduser -u 1000 -G app -s /bin/sh -D app
 
 # Copy the built artifact
 COPY --from=builder /app/iot-service/target/*.jar app.jar
@@ -28,7 +46,7 @@ USER app
 EXPOSE 8094
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8094/actuator/health || exit 1
 
 # Run the application

@@ -35,6 +35,11 @@ export const routes: Routes = [
     title: 'Crop Recommendations',
   },
   {
+    path: 'yield-calculator',
+    loadComponent: () => import('./pages/crops/yield-calculator.component').then(m => m.YieldCalculatorComponent),
+    title: 'Yield Calculator',
+  },
+  {
     path: 'schemes',
     loadComponent: () => import('./pages/schemes/schemes.component').then(m => m.SchemesComponent),
     title: 'Government Schemes',
