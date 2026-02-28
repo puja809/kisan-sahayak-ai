@@ -7,11 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 import logging
+import asyncio
 from crop_recommendation_model import CropRecommendationModel
 from crop_rotation_model import CropRotationModel
 from fertilizer_recommendation_model import FertilizerRecommendationModel
 from crop_name_mapper import map_crop_name
 from aws_voice_assistant_client import ask_question
+import py_eureka_client.eureka_client as eureka_client
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -73,9 +75,24 @@ class PredictionResponse(BaseModel):
 
 @app.on_event("startup")
 async def startup_event():
-    """Load models on startup"""
+    """Load models and register with Eureka on startup"""
     global crop_reco_model, crop_rotation_model, fertilizer_model
     
+    # Register with Eureka
+    try:
+        eureka_server_url = os.environ.get("EUREKA_SERVER_URL", "http://localhost:8761/eureka/")
+        instance_host = os.environ.get("INSTANCE_HOST", "localhost")
+        logger.info(f"Registering with Eureka at {eureka_server_url}...")
+        await eureka_client.init_async(
+            eureka_server=eureka_server_url,
+            app_name="ai-ml-service",
+            instance_port=8001,
+            instance_host=instance_host,
+        )
+        logger.info("✓ Registered with Eureka")
+    except Exception as e:
+        logger.warning(f"Could not register with Eureka (service will still work): {e}")
+
     try:
         base_path = os.path.dirname(os.path.abspath(__file__))
         models_dir = os.path.join(base_path, 'models')
@@ -98,6 +115,15 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Error loading models: {e}")
         raise
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """De-register from Eureka on shutdown"""
+    try:
+        await eureka_client.stop_async()
+        logger.info("✓ De-registered from Eureka")
+    except Exception as e:
+        logger.warning(f"Error de-registering from Eureka: {e}")
 
 @app.get("/health")
 async def health_check():

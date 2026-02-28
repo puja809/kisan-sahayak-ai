@@ -43,6 +43,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - eureka-server
 
   # User Service
   user-service:
@@ -75,6 +77,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - eureka-server
 
   # Crop Service
   crop-service:
@@ -100,6 +104,7 @@ services:
       - "${CROP_SERVICE_PORT:-8096}:8096"
     depends_on:
       - ml-service
+      - eureka-server
     networks:
       - farmer-network
     healthcheck:
@@ -136,6 +141,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - eureka-server
 
   # Mandi Service
   mandi-service:
@@ -170,6 +177,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - eureka-server
 
   # Scheme Service
   scheme-service:
@@ -194,6 +203,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - eureka-server
 
   # Admin Service
   admin-service:
@@ -218,6 +229,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - eureka-server
 
   # IoT Service
   iot-service:
@@ -242,6 +255,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - eureka-server
 
   # Weather Service
   weather-service:
@@ -266,6 +281,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - eureka-server
 
   # Yield Service
   yield-service:
@@ -290,7 +307,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
+    depends_on:
+      - eureka-server
   # ==================== ML SERVICE ====================
   ml-service:
     build:
@@ -299,6 +317,8 @@ services:
     container_name: farmer-ml-service
     environment:
       PYTHONUNBUFFERED: 1
+      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
+      INSTANCE_HOST: ml-service
     ports:
       - "8001:8001"
     volumes:
@@ -311,6 +331,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - eureka-server
 
   # ==================== FRONTEND ====================
   frontend:
@@ -324,7 +346,6 @@ services:
       - "80:4200"
     depends_on:
       - api-gateway
-      - mandi-service
     networks:
       - farmer-network
     healthcheck:

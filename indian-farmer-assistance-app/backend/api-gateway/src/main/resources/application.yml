@@ -81,6 +81,13 @@ spring:
           predicates:
             - Path=/api/v1/crops/yield/**, /api/v1/ai/yield/**
 
+        # AI/ML Service - Crop Prediction, Rotation, Fertilizer Recommendation
+        # Endpoints: /api/ml/**
+        - id: ai-ml-service
+          uri: lb://ai-ml-service
+          predicates:
+            - Path=/api/ml/**
+
         # Eureka Server - Service Discovery
         - id: eureka-server
           uri: http://eureka-server:8761
