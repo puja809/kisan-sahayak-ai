@@ -32,7 +32,6 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
-      GATEWAY_SERVICE_PORT: ${GATEWAY_SERVICE_PORT:-8080}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
       - "${GATEWAY_SERVICE_PORT:-8080}:8080"
@@ -53,9 +52,9 @@ services:
     container_name: farmer-user-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      SPRING_DATASOURCE_URL: ${USER_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${USER_DB_USERNAME:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD:-farmer_password}
       USER_DB_URL: ${USER_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       USER_DB_USERNAME: ${USER_DB_USERNAME:-farmer}
       USER_DB_PASSWORD: ${USER_DB_PASSWORD:-farmer_password}
@@ -64,7 +63,6 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
       JWT_ISSUER: ${JWT_ISSUER:-indian-farmer-assistance}
-      USER_SERVICE_PORT: ${USER_SERVICE_PORT:-8099}
       USER_AGRISTACK_API_KEY: ${USER_AGRISTACK_API_KEY:-}
       AGRISTACK_BASE_URL: ${AGRISTACK_BASE_URL:-https://api.agristack.gov.in}
     ports:
@@ -86,15 +84,14 @@ services:
     container_name: farmer-crop-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      SPRING_DATASOURCE_URL: ${CROP_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${CROP_DB_USERNAME:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${CROP_DB_PASSWORD:-farmer_password}
       CROP_DB_URL: ${CROP_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       CROP_DB_USERNAME: ${CROP_DB_USERNAME:-farmer}
       CROP_DB_PASSWORD: ${CROP_DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-      CROP_SERVICE_PORT: ${CROP_SERVICE_PORT:-8096}
       ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml-service:8001}
       WEATHER_API_KEY: ${WEATHER_API_KEY:-}
       WEATHER_API_URL: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
@@ -120,16 +117,15 @@ services:
     container_name: farmer-location-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      SPRING_DATASOURCE_URL: ${LOCATION_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${LOCATION_DB_USERNAME:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${LOCATION_DB_PASSWORD:-farmer_password}
       LOCATION_DB_URL: ${LOCATION_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       LOCATION_DB_USERNAME: ${LOCATION_DB_USERNAME:-farmer}
       LOCATION_DB_PASSWORD: ${LOCATION_DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
-      LOCATION_SERVICE_PORT: ${LOCATION_SERVICE_PORT:-8095}
     ports:
       - "${LOCATION_SERVICE_PORT:-8095}:8095"
     networks:
@@ -149,15 +145,14 @@ services:
     container_name: farmer-mandi-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      SPRING_DATASOURCE_URL: ${MANDI_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${MANDI_DB_USERNAME:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${MANDI_DB_PASSWORD:-farmer_password}
       MANDI_DB_URL: ${MANDI_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       MANDI_DB_USERNAME: ${MANDI_DB_USERNAME:-farmer}
       MANDI_DB_PASSWORD: ${MANDI_DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-      MANDI_SERVICE_PORT: ${MANDI_SERVICE_PORT:-8093}
       ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml-service:8001}
       WEATHER_API_KEY: ${WEATHER_API_KEY:-}
       WEATHER_API_URL: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
@@ -184,12 +179,11 @@ services:
     container_name: farmer-scheme-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      SPRING_DATASOURCE_URL: ${SCHEME_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${SCHEME_DB_USERNAME:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${SCHEME_DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-      SCHEME_SERVICE_PORT: ${SCHEME_SERVICE_PORT:-8097}
     ports:
       - "${SCHEME_SERVICE_PORT:-8097}:8097"
     networks:
@@ -209,12 +203,11 @@ services:
     container_name: farmer-admin-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      SPRING_DATASOURCE_URL: ${ADMIN_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${ADMIN_DB_USERNAME:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${ADMIN_DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-      ADMIN_SERVICE_PORT: ${ADMIN_SERVICE_PORT:-8091}
     ports:
       - "${ADMIN_SERVICE_PORT:-8091}:8091"
     networks:
@@ -234,12 +227,11 @@ services:
     container_name: farmer-iot-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      SPRING_DATASOURCE_URL: ${IOT_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${IOT_DB_USERNAME:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${IOT_DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-      IOT_SERVICE_PORT: ${IOT_SERVICE_PORT:-8094}
     ports:
       - "${IOT_SERVICE_PORT:-8094}:8094"
     networks:
@@ -259,12 +251,11 @@ services:
     container_name: farmer-weather-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      SPRING_DATASOURCE_URL: ${WEATHER_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${WEATHER_DB_USERNAME:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${WEATHER_DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-      WEATHER_SERVICE_PORT: ${WEATHER_SERVICE_PORT:-8092}
     ports:
       - "${WEATHER_SERVICE_PORT:-8092}:8092"
     networks:
@@ -284,12 +275,11 @@ services:
     container_name: farmer-yield-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
+      SPRING_DATASOURCE_URL: ${YIELD_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
+      SPRING_DATASOURCE_USERNAME: ${YIELD_DB_USERNAME:-farmer}
+      SPRING_DATASOURCE_PASSWORD: ${YIELD_DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-      YIELD_SERVICE_PORT: ${YIELD_SERVICE_PORT:-8098}
     ports:
       - "${YIELD_SERVICE_PORT:-8098}:8098"
     networks:
@@ -331,9 +321,10 @@ services:
     environment:
       API_URL: ${API_URL:-http://localhost:8080}
     ports:
-      - "4200:4200"
+      - "80:4200"
     depends_on:
       - api-gateway
+      - mandi-service
     networks:
       - farmer-network
     healthcheck:

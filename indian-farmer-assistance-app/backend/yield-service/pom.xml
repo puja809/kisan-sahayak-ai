@@ -90,10 +90,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <useJUnitPlatform>true</useJUnitPlatform>
-                    <includeEngines>jqwik</includeEngines>
-                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -40,6 +40,7 @@ COPY --from=builder /app/scheme-service/target/*.jar app.jar
 RUN mkdir -p /var/log/farmer-app && chown -R app:app /var/log/farmer-app
 
 # Switch to non-root user
+RUN mkdir -p /app/logs && chown -R app:app /app/logs
 USER app
 
 # Expose port
@@ -51,3 +52,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
+

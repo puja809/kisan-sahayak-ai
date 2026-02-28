@@ -6,14 +6,14 @@ WORKDIR /app
 # Copy package files
 COPY package.json ./
 
-# Install dependencies with npm ci and ignore scripts
-RUN npm install --legacy-peer-deps --ignore-scripts || true
+# Install dependencies
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .
 
 # Build the Angular application
-RUN npm run build || echo "Build completed with warnings"
+RUN npm run build
 
 # Production stage
 FROM node:18-alpine
@@ -43,4 +43,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://localhost:4200/ || exit 1
 
 # Run the application
-CMD ["serve", "-s", "dist", "-l", "4200"]
+CMD ["serve", "-s", "dist/indian-farmer-assistance/browser", "-l", "4200"]
