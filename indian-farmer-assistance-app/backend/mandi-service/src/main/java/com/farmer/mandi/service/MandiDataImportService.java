@@ -1,7 +1,7 @@
 package com.farmer.mandi.service;
 
-import com.farmer.mandi.entity.MandiMarketData;
-import com.farmer.mandi.repository.MandiMarketDataRepository;
+import com.farmer.mandi.entity.*;
+import com.farmer.mandi.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,79 +9,171 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.*;
 
 /**
- * Service for importing Mandi market data from CSV
+ * Service for parsing CSV files and importing mandi market data
+ * CSV Format: State, District, Market, Commodity, Variety, Grade
  */
 @Service
 @Slf4j
 public class MandiDataImportService {
     
     @Autowired
-    private MandiMarketDataRepository mandiMarketDataRepository;
-
+    private StateRepository stateRepository;
+    
     @Autowired
-    private StateDistrictPopulationService stateDistrictService;
+    private DistrictRepository districtRepository;
+    
+    @Autowired
+    private MandiLocationRepository mandiLocationRepository;
+    
+    @Autowired
+    private CommodityRepository commodityRepository;
+    
+    @Autowired
+    private VarietyRepository varietyRepository;
+    
+    @Autowired
+    private GradeRepository gradeRepository;
     
     /**
-     * Import market data from CSV file
+     * Parse and validate CSV file, then import data
      */
     @Transactional
-    public ImportResult importFromCsv(MultipartFile file) {
+    public ImportResult validateCsv(MultipartFile file) {
         ImportResult result = new ImportResult();
         
         try {
-            List<MandiMarketData> records = parseCsvFile(file);
+            List<CsvRecord> records = parseCsvFile(file);
             result.setTotalRecords(records.size());
             
-            // Initialize state and district data from CSV
-            List<Map<String, String>> csvDataMaps = new ArrayList<>();
-            for (MandiMarketData record : records) {
-                Map<String, String> map = new HashMap<>();
-                map.put("State", record.getState());
-                map.put("District", record.getDistrict());
-                csvDataMaps.add(map);
-            }
-            stateDistrictService.initializeStateDistrictData(csvDataMaps);
-            
-            // Remove duplicates
-            Set<String> uniqueKeys = new HashSet<>();
-            List<MandiMarketData> uniqueRecords = new ArrayList<>();
-            
-            for (MandiMarketData record : records) {
-                String key = generateKey(record);
-                if (uniqueKeys.add(key)) {
-                    uniqueRecords.add(record);
+            int successCount = 0;
+            for (CsvRecord record : records) {
+                try {
+                    importRecord(record);
+                    successCount++;
+                } catch (Exception e) {
+                    log.warn("Error importing record: {}", record, e);
                 }
             }
             
-            result.setDuplicatesRemoved(records.size() - uniqueRecords.size());
-            
-            // Save to database
-            List<MandiMarketData> savedRecords = mandiMarketDataRepository.saveAll(uniqueRecords);
-            result.setSuccessfulImports(savedRecords.size());
+            result.setSuccessfulImports(successCount);
             result.setStatus("SUCCESS");
-            result.setMessage("Successfully imported " + savedRecords.size() + " records");
+            result.setMessage("CSV imported successfully with " + successCount + " records");
             
-            log.info("Imported {} market data records", savedRecords.size());
+            log.info("Imported {} records from CSV", successCount);
             
         } catch (Exception e) {
             result.setStatus("ERROR");
-            result.setMessage("Error importing data: " + e.getMessage());
+            result.setMessage("Error importing CSV: " + e.getMessage());
             result.setErrorDetails(e.toString());
-            log.error("Error importing market data", e);
+            log.error("Error importing CSV", e);
         }
         
         return result;
     }
+    /**
+     * Import data from a File (used during startup initialization)
+     */
+    public void importFromFile(File file) throws Exception {
+        log.info("Starting import from file: {}", file.getAbsolutePath());
+
+        List<CsvRecord> records = parseCsvFile(file);
+        log.info("Parsed {} records from file", records.size());
+
+        int successCount = 0;
+        for (CsvRecord record : records) {
+            try {
+                importRecord(record);
+                successCount++;
+            } catch (Exception e) {
+                log.warn("Error importing record: {}", record, e);
+            }
+        }
+
+        log.info("Successfully imported {} records from file", successCount);
+    }
     
     /**
-     * Parse CSV file and return list of MandiMarketData
+     * Import a single CSV record into the database
      */
-    private List<MandiMarketData> parseCsvFile(MultipartFile file) throws Exception {
-        List<MandiMarketData> records = new ArrayList<>();
+    @Transactional
+    private void importRecord(CsvRecord record) {
+        // Get or create State
+        State state = stateRepository.findByStateName(record.getState())
+            .orElseGet(() -> {
+                State newState = State.builder()
+                    .stateName(record.getState())
+                    .isActive(true)
+                    .build();
+                return stateRepository.save(newState);
+            });
+        
+        // Get or create District
+        District district = districtRepository.findByDistrictName(record.getDistrict())
+            .orElseGet(() -> {
+                District newDistrict = District.builder()
+                    .districtName(record.getDistrict())
+                    .state(state)
+                    .isActive(true)
+                    .build();
+                return districtRepository.save(newDistrict);
+            });
+        
+        // Get or create MandiLocation (Market)
+        mandiLocationRepository.findByMandiNameAndIsActiveTrue(record.getMarket())
+            .orElseGet(() -> {
+                MandiLocation newMarket = MandiLocation.builder()
+                    .mandiName(record.getMarket())
+                    .state(state)
+                    .district(district)
+                    .isActive(true)
+                    .build();
+                return mandiLocationRepository.save(newMarket);
+            });
+        
+        // Get or create Commodity
+        Commodity commodity = commodityRepository.findByCommodityName(record.getCommodity())
+            .orElseGet(() -> {
+                Commodity newCommodity = Commodity.builder()
+                    .commodityName(record.getCommodity())
+                    .isActive(true)
+                    .build();
+                return commodityRepository.save(newCommodity);
+            });
+        
+        // Get or create Variety
+        Variety variety = varietyRepository.findByCommodityAndVarietyName(commodity, record.getVariety())
+            .orElseGet(() -> {
+                Variety newVariety = Variety.builder()
+                    .varietyName(record.getVariety())
+                    .commodity(commodity)
+                    .isActive(true)
+                    .build();
+                return varietyRepository.save(newVariety);
+            });
+        
+        // Get or create Grade
+        Grade grade = gradeRepository.findByVarietyAndGradeName(variety, record.getGrade());
+        if (grade == null) {
+            grade = Grade.builder()
+                .gradeName(record.getGrade())
+                .variety(variety)
+                .isActive(true)
+                .build();
+            gradeRepository.save(grade);
+        }
+    }
+    
+    /**
+     * Parse CSV file from MultipartFile into records
+     */
+    private List<CsvRecord> parseCsvFile(MultipartFile file) throws Exception {
+        List<CsvRecord> records = new ArrayList<>();
         
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             String line;
@@ -91,14 +183,46 @@ public class MandiDataImportService {
             while ((line = reader.readLine()) != null) {
                 lineNumber++;
                 
-                // Skip header
                 if (isHeader) {
                     isHeader = false;
                     continue;
                 }
                 
                 try {
-                    MandiMarketData record = parseCsvLine(line);
+                    CsvRecord record = parseCsvLine(line);
+                    if (record != null) {
+                        records.add(record);
+                    }
+                } catch (Exception e) {
+                    log.warn("Error parsing line {}: {}", lineNumber, e.getMessage());
+                }
+            }
+        }
+        
+        return records;
+    }
+
+    /**
+     * Parse CSV file from File object into records
+     */
+    private List<CsvRecord> parseCsvFile(File file) throws Exception {
+        List<CsvRecord> records = new ArrayList<>();
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isHeader = true;
+            int lineNumber = 0;
+            
+            while ((line = reader.readLine()) != null) {
+                lineNumber++;
+                
+                if (isHeader) {
+                    isHeader = false;
+                    continue;
+                }
+                
+                try {
+                    CsvRecord record = parseCsvLine(line);
                     if (record != null) {
                         records.add(record);
                     }
@@ -114,15 +238,15 @@ public class MandiDataImportService {
     /**
      * Parse a single CSV line
      */
-    private MandiMarketData parseCsvLine(String line) {
-        String[] parts = parseCSVLine(line);
+    private CsvRecord parseCsvLine(String line) {
+        String[] parts = line.split(",");
         
         if (parts.length < 6) {
             return null;
         }
         
         try {
-            return MandiMarketData.builder()
+            return CsvRecord.builder()
                 .state(parts[0].trim())
                 .district(parts[1].trim())
                 .market(parts[2].trim())
@@ -131,94 +255,35 @@ public class MandiDataImportService {
                 .grade(parts[5].trim())
                 .build();
         } catch (Exception e) {
-            log.warn("Error creating MandiMarketData from line: {}", e.getMessage());
+            log.warn("Error creating CsvRecord from line: {}", e.getMessage());
             return null;
         }
     }
     
     /**
-     * Parse CSV line handling quoted values
+     * CSV Record DTO
      */
-    private String[] parseCSVLine(String line) {
-        List<String> result = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        boolean inQuotes = false;
-        
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-            
-            if (c == '"') {
-                inQuotes = !inQuotes;
-            } else if (c == ',' && !inQuotes) {
-                result.add(current.toString());
-                current = new StringBuilder();
-            } else {
-                current.append(c);
-            }
-        }
-        
-        result.add(current.toString());
-        return result.toArray(new String[0]);
+    @lombok.Data
+    @lombok.Builder
+    public static class CsvRecord {
+        private String state;
+        private String district;
+        private String market;
+        private String commodity;
+        private String variety;
+        private String grade;
     }
     
     /**
-     * Generate unique key for deduplication
-     */
-    private String generateKey(MandiMarketData record) {
-        return String.format("%s|%s|%s|%s|%s|%s",
-            record.getState(),
-            record.getDistrict(),
-            record.getMarket(),
-            record.getCommodity(),
-            record.getVariety(),
-            record.getGrade()
-        );
-    }
-    
-    /**
-     * Clear all market data
-     */
-    @Transactional
-    public void clearAllData() {
-        mandiMarketDataRepository.deleteAll();
-        log.info("Cleared all market data");
-    }
-    
-    /**
-     * Get import statistics
-     */
-    public ImportStatistics getStatistics() {
-        long totalRecords = mandiMarketDataRepository.count();
-        List<String> states = mandiMarketDataRepository.findAllStates();
-        List<String> commodities = mandiMarketDataRepository.findAllCommodities();
-        List<String> varieties = mandiMarketDataRepository.findAllVarieties();
-        List<String> grades = mandiMarketDataRepository.findAllGrades();
-        
-        return ImportStatistics.builder()
-            .totalRecords(totalRecords)
-            .uniqueStates(states.size())
-            .uniqueCommodities(commodities.size())
-            .uniqueVarieties(varieties.size())
-            .uniqueGrades(grades.size())
-            .states(states)
-            .commodities(commodities)
-            .varieties(varieties)
-            .grades(grades)
-            .build();
-    }
-    
-    /**
-     * Result class for import operation
+     * Import Result DTO
      */
     public static class ImportResult {
         private String status;
         private String message;
         private int totalRecords;
         private int successfulImports;
-        private int duplicatesRemoved;
         private String errorDetails;
         
-        // Getters and Setters
         public String getStatus() { return status; }
         public void setStatus(String status) { this.status = status; }
         
@@ -231,27 +296,7 @@ public class MandiDataImportService {
         public int getSuccessfulImports() { return successfulImports; }
         public void setSuccessfulImports(int successfulImports) { this.successfulImports = successfulImports; }
         
-        public int getDuplicatesRemoved() { return duplicatesRemoved; }
-        public void setDuplicatesRemoved(int duplicatesRemoved) { this.duplicatesRemoved = duplicatesRemoved; }
-        
         public String getErrorDetails() { return errorDetails; }
         public void setErrorDetails(String errorDetails) { this.errorDetails = errorDetails; }
-    }
-    
-    /**
-     * Statistics class
-     */
-    @lombok.Data
-    @lombok.Builder
-    public static class ImportStatistics {
-        private long totalRecords;
-        private int uniqueStates;
-        private int uniqueCommodities;
-        private int uniqueVarieties;
-        private int uniqueGrades;
-        private List<String> states;
-        private List<String> commodities;
-        private List<String> varieties;
-        private List<String> grades;
     }
 }

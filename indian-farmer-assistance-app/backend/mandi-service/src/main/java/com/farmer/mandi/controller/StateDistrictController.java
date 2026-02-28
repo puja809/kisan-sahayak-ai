@@ -66,40 +66,10 @@ public class StateDistrictController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Update state population data
-     */
-    @PutMapping("/states/{stateName}/population")
-    public ResponseEntity<StateDto> updateStatePopulation(
-            @PathVariable String stateName,
-            @RequestParam Long population,
-            @RequestParam(required = false) Double areaSqKm,
-            @RequestParam(required = false) Double literacyRate) {
-        State updatedState = stateDistrictService.updateStatePopulation(stateName, population, areaSqKm, literacyRate);
-        return ResponseEntity.ok(convertToStateDto(updatedState));
-    }
-
-    /**
-     * Update district population data
-     */
-    @PutMapping("/districts/{districtName}/population")
-    public ResponseEntity<DistrictDto> updateDistrictPopulation(
-            @PathVariable String districtName,
-            @RequestParam Long population,
-            @RequestParam(required = false) Double areaSqKm,
-            @RequestParam(required = false) Double literacyRate) {
-        District updatedDistrict = stateDistrictService.updateDistrictPopulation(districtName, population, areaSqKm, literacyRate);
-        return ResponseEntity.ok(convertToDistrictDto(updatedDistrict));
-    }
-
     private StateDto convertToStateDto(State state) {
         return StateDto.builder()
                 .id(state.getId())
-                .stateCode(state.getStateCode())
                 .stateName(state.getStateName())
-                .population(state.getPopulation())
-                .areaSqKm(state.getAreaSqKm())
-                .literacyRate(state.getLiteracyRate())
                 .isActive(state.getIsActive())
                 .build();
     }
@@ -107,13 +77,9 @@ public class StateDistrictController {
     private DistrictDto convertToDistrictDto(District district) {
         return DistrictDto.builder()
                 .id(district.getId())
-                .districtCode(district.getDistrictCode())
                 .districtName(district.getDistrictName())
                 .stateId(district.getState().getId())
                 .stateName(district.getState().getStateName())
-                .population(district.getPopulation())
-                .areaSqKm(district.getAreaSqKm())
-                .literacyRate(district.getLiteracyRate())
                 .isActive(district.getIsActive())
                 .build();
     }

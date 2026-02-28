@@ -67,12 +67,37 @@ public class AuthController {
     }
 
     /**
-     * Admin login with phone and password.
+     * User login with email or phone and password.
+     * Requirements: 11.1, 11.2
+     */
+    @PostMapping("/user-login")
+    public ResponseEntity<AuthResponse> userLogin(@RequestBody UserLoginRequest request) {
+        log.info("User login request received with email: {}, phone: {}", request.getEmail(), request.getPhone());
+
+        if (!request.isValid()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        try {
+            AuthResponse response = userService.userLogin(request);
+            return ResponseEntity.ok(response);
+        } catch (UserService.AuthenticationException e) {
+            log.warn("User login failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    /**
+     * Admin login with email or phone and password.
      * Requirements: 11.1, 22.3
      */
     @PostMapping("/admin-login")
-    public ResponseEntity<AuthResponse> adminLogin(@Valid @RequestBody AdminLoginRequest request) {
-        log.info("Admin login request received for phone: {}", request.getPhone());
+    public ResponseEntity<AuthResponse> adminLogin(@RequestBody AdminLoginRequest request) {
+        log.info("Admin login request received with email: {}, phone: {}", request.getEmail(), request.getPhone());
+
+        if (!request.isValid()) {
+            return ResponseEntity.badRequest().body(null);
+        }
 
         try {
             AuthResponse response = userService.adminLogin(request);

@@ -5,7 +5,7 @@ import { AuthService } from '../services/auth.service';
 @Injectable({
   providedIn: 'root'
 })
-export class AdminGuard implements CanActivate {
+export class AuthGuard implements CanActivate {
   constructor(
     private authService: AuthService,
     private router: Router
@@ -15,20 +15,12 @@ export class AdminGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): boolean {
-    const user = this.authService.getCurrentUser();
-
-    if (user && user.role === 'ADMIN') {
+    if (this.authService.isAuthenticated()) {
       return true;
     }
 
-    if (!user) {
-      // Not logged in, redirect to login
-      this.router.navigate(['/login']);
-    } else {
-      // Logged in but not admin, redirect to dashboard
-      this.router.navigate(['/']);
-    }
-
+    // Not logged in, redirect to login page
+    this.router.navigate(['/login']);
     return false;
   }
 }

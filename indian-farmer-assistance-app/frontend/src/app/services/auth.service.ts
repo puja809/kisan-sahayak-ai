@@ -9,9 +9,16 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface UserLoginRequest {
+  email?: string;
+  phone?: string;
+  password: string;
+}
+
 export interface AdminLoginRequest {
-  phone: string;
-  password?: string;
+  email?: string;
+  phone?: string;
+  password: string;
 }
 
 export interface UserResponse {
@@ -56,6 +63,60 @@ export class AuthService {
     this.checkTokenValidity();
   }
 
+  /**
+   * User login with email or phone and password
+   */
+  userLogin(request: UserLoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/user-login`, request).pipe(
+      tap(response => {
+        localStorage.setItem(this.tokenKey, response.accessToken);
+        const user: User = {
+          farmerId: response.user.farmerId,
+          name: response.user.name,
+          phone: response.user.phone || '',
+          email: response.user.email || '',
+          preferredLanguage: response.user.preferredLanguage || 'en',
+          state: response.user.state || '',
+          district: response.user.district || '',
+          role: response.user.role || 'FARMER'
+        };
+        localStorage.setItem(this.userKey, JSON.stringify(user));
+        this.currentUserSubject.next(user);
+      }),
+      catchError(error => {
+        console.error('User login failed:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Admin login with email or phone and password
+   */
+  adminLogin(request: AdminLoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/admin-login`, request).pipe(
+      tap(response => {
+        localStorage.setItem(this.tokenKey, response.accessToken);
+        const user: User = {
+          farmerId: response.user.farmerId,
+          name: response.user.name,
+          phone: response.user.phone || '',
+          email: response.user.email || '',
+          preferredLanguage: response.user.preferredLanguage || 'en',
+          state: response.user.state || '',
+          district: response.user.district || '',
+          role: response.user.role || 'ADMIN'
+        };
+        localStorage.setItem(this.userKey, JSON.stringify(user));
+        this.currentUserSubject.next(user);
+      }),
+      catchError(error => {
+        console.error('Admin login failed:', error);
+        throw error;
+      })
+    );
+  }
+
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
       tap(response => {
@@ -74,29 +135,6 @@ export class AuthService {
       }),
       catchError(error => {
         console.error('Login failed:', error);
-        throw error;
-      })
-    );
-  }
-
-  adminLogin(request: AdminLoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/admin-login`, request).pipe(
-      tap(response => {
-        localStorage.setItem(this.tokenKey, response.accessToken);
-        const user: User = {
-          farmerId: response.user.farmerId,
-          name: response.user.name,
-          phone: response.user.phone || '',
-          preferredLanguage: response.user.preferredLanguage || 'en',
-          state: response.user.state || '',
-          district: response.user.district || '',
-          role: response.user.role || 'ADMIN' // Ensure role is ADMIN
-        };
-        localStorage.setItem(this.userKey, JSON.stringify(user));
-        this.currentUserSubject.next(user);
-      }),
-      catchError(error => {
-        console.error('Admin Login failed:', error);
         throw error;
       })
     );

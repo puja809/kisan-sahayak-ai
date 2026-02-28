@@ -59,7 +59,7 @@ api:
       url: https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070
       api-key: ${MANDI_DATAGOV_PRICE_API_KEY:your_api_key_here}
     fertilizer-supplier:
-      url: https://api.data.gov.in/resource/56f40818-fd03-4010-9a43-f34ca74b3f7c
+      url: https://api.data.gov.in/resource/56f40018-fd03-4010-94a3-f34ca7b43f7c
       api-key: ${MANDI_DATAGOV_FERTILIZER_API_KEY:your_api_key_here}
     timeout: 10000
     retry:

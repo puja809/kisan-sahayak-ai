@@ -17,16 +17,50 @@ import { ToastrService } from 'ngx-toastr';
         
         <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
           <div class="form-group">
-            <label for="farmerId">{{ isAdminLogin ? 'Phone Number' : 'Farmer ID' }}</label>
+            <label>Login with:</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" formControlName="loginType" value="email" />
+                Email
+              </label>
+              <label class="radio-label">
+                <input type="radio" formControlName="loginType" value="phone" />
+                Phone
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="loginForm.get('loginType')?.value === 'email'">
+            <label for="email">Email Address</label>
             <input
-              id="farmerId"
-              type="text"
-              formControlName="farmerId"
-              [placeholder]="isAdminLogin ? 'Enter your Phone Number' : 'Enter your Farmer ID'"
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="Enter your email"
               class="form-control"
             />
-            <div *ngIf="loginForm.get('farmerId')?.invalid && loginForm.get('farmerId')?.touched" class="error">
-              {{ isAdminLogin ? 'Phone Number' : 'Farmer ID' }} is required
+            <div *ngIf="loginForm.hasError('emailRequired')" class="error">
+              Email is required
+            </div>
+            <div *ngIf="loginForm.hasError('invalidEmail')" class="error">
+              Please enter a valid email
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="loginForm.get('loginType')?.value === 'phone'">
+            <label for="phone">Phone Number</label>
+            <input
+              id="phone"
+              type="tel"
+              formControlName="phone"
+              placeholder="Enter your phone number"
+              class="form-control"
+            />
+            <div *ngIf="loginForm.hasError('phoneRequired')" class="error">
+              Phone number is required
+            </div>
+            <div *ngIf="loginForm.hasError('invalidPhone')" class="error">
+              Please enter a valid 10-digit phone number
             </div>
           </div>
 
@@ -74,7 +108,7 @@ import { ToastrService } from 'ngx-toastr';
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%);
     }
 
     .login-card {
@@ -87,7 +121,7 @@ import { ToastrService } from 'ngx-toastr';
     }
 
     h1 {
-      color: #667eea;
+      color: #1B5E20;
       text-align: center;
       margin-bottom: 0.5rem;
       font-size: 1.5rem;
@@ -110,6 +144,24 @@ import { ToastrService } from 'ngx-toastr';
       font-weight: 500;
     }
 
+    .radio-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    .radio-label input[type="radio"] {
+      cursor: pointer;
+    }
+
     .form-control {
       width: 100%;
       padding: 0.75rem;
@@ -120,8 +172,8 @@ import { ToastrService } from 'ngx-toastr';
 
     .form-control:focus {
       outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      border-color: #2E7D32;
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
     }
 
     .error {
@@ -133,7 +185,7 @@ import { ToastrService } from 'ngx-toastr';
     .btn-primary {
       width: 100%;
       padding: 0.75rem;
-      background: #667eea;
+      background: #2E7D32;
       color: white;
       border: none;
       border-radius: 4px;
@@ -144,7 +196,7 @@ import { ToastrService } from 'ngx-toastr';
     }
 
     .btn-primary:hover:not(:disabled) {
-      background: #5568d3;
+      background: #1B5E20;
     }
 
     .btn-primary:disabled {
@@ -159,7 +211,7 @@ import { ToastrService } from 'ngx-toastr';
     }
 
     .register-link a {
-      color: #667eea;
+      color: #2E7D32;
       cursor: pointer;
       text-decoration: none;
       font-weight: 600;
@@ -191,7 +243,7 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   isOnline = navigator.onLine;
-  isAdminLogin = false; // Toggle state
+  isAdminLogin = false;
 
   constructor(
     private fb: FormBuilder,
@@ -200,9 +252,42 @@ export class LoginComponent implements OnInit {
     private toastr: ToastrService
   ) {
     this.loginForm = this.fb.group({
-      farmerId: ['', Validators.required], // We reuse this for "phone" when admin login
+      loginType: ['email', Validators.required],
+      email: [''],
+      phone: [''],
       password: ['', Validators.required]
-    });
+    }, { validators: this.identifierValidator });
+  }
+
+  /**
+   * Custom validator to ensure either email or phone is provided based on loginType
+   */
+  identifierValidator(group: FormGroup): { [key: string]: any } | null {
+    const loginType = group.get('loginType')?.value;
+    const email = group.get('email')?.value;
+    const phone = group.get('phone')?.value;
+
+    if (loginType === 'email') {
+      if (!email || email.trim() === '') {
+        return { 'emailRequired': true };
+      }
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return { 'invalidEmail': true };
+      }
+    } else if (loginType === 'phone') {
+      if (!phone || phone.trim() === '') {
+        return { 'phoneRequired': true };
+      }
+      // Validate phone format
+      const phoneRegex = /^[6-9]\d{9}$/;
+      if (!phoneRegex.test(phone)) {
+        return { 'invalidPhone': true };
+      }
+    }
+
+    return null;
   }
 
   ngOnInit(): void {
@@ -212,43 +297,55 @@ export class LoginComponent implements OnInit {
 
   toggleAdminLogin(): void {
     this.isAdminLogin = !this.isAdminLogin;
-    this.loginForm.reset();
+    this.loginForm.reset({ loginType: 'email' });
   }
 
   onSubmit(): void {
-    if (this.loginForm.invalid) return;
+    if (this.loginForm.invalid) {
+      this.toastr.error('Please fill in all required fields correctly');
+      return;
+    }
 
     this.isLoading = true;
-    const { farmerId, password } = this.loginForm.value;
+    const { loginType, email, phone, password } = this.loginForm.value;
+
+    const credentials = {
+      email: loginType === 'email' ? email : undefined,
+      phone: loginType === 'phone' ? phone : undefined,
+      password
+    };
 
     if (this.isAdminLogin) {
-      this.authService.adminLogin({ phone: farmerId, password }).subscribe({
+      this.authService.adminLogin(credentials).subscribe({
         next: () => {
           this.toastr.success('Admin Login successful!');
           this.router.navigate(['/admin']);
         },
         error: (error) => {
           this.isLoading = false;
-          this.toastr.error('Admin Login failed. Please check your credentials.');
+          const errorMsg = error?.error?.message || 'Admin Login failed. Please check your credentials.';
+          this.toastr.error(errorMsg);
         }
       });
     } else {
-      this.authService.login({ farmerId, password }).subscribe({
+      this.authService.userLogin(credentials).subscribe({
         next: () => {
           this.toastr.success('Farmer Login successful!');
           this.router.navigate(['/']);
         },
         error: (error) => {
           this.isLoading = false;
-          this.toastr.error('Login failed. Please check your credentials.');
+          const errorMsg = error?.error?.message || 'Login failed. Please check your credentials.';
+          this.toastr.error(errorMsg);
         }
       });
     }
   }
 
   loginOffline(): void {
-    const { farmerId, password } = this.loginForm.value;
-    if (this.authService.loginOffline(farmerId, password)) {
+    const { email, phone, password } = this.loginForm.value;
+    const identifier = email || phone;
+    if (this.authService.loginOffline(identifier, password)) {
       this.toastr.success('Offline login successful!');
       this.router.navigate(['/']);
     } else {

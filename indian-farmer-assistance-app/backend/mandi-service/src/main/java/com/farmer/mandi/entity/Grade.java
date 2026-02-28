@@ -5,29 +5,34 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing commodity grades.
+ * Stores grade information for commodities and varieties.
+ */
 @Entity
-@Table(name = "districts", 
+@Table(name = "grade",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"variety_id", "grade_name"}),
        indexes = {
-           @Index(name = "idx_district_name", columnList = "district_name"),
-           @Index(name = "idx_state_id", columnList = "state_id")
+           @Index(name = "idx_variety_id", columnList = "variety_id"),
+           @Index(name = "idx_grade_name", columnList = "grade_name")
        })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class District {
+public class Grade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "district_name", nullable = false, length = 100)
-    private String districtName;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "state_id", nullable = false)
-    private State state;
+    @JoinColumn(name = "variety_id", nullable = false)
+    private Variety variety;
+
+    @Column(name = "grade_name", nullable = false, length = 50)
+    private String gradeName;
 
     @Column(name = "is_active")
     @Builder.Default

@@ -57,6 +57,11 @@ public class CropRecommendationRequestDto {
     private String soilType;
     
     /**
+     * Soil data from Kaegro API (optional)
+     */
+    private SoilDataDto soilData;
+    
+    /**
      * Irrigation type
      * (RAINFED, DRIP, SPRINKLER, CANAL, BOREWELL, MIXED)
      */

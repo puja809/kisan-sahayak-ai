@@ -7,15 +7,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO for admin password-based login request.
+ * DTO for user password-based login request.
  * Supports login via phone number or email.
- * Requirements: 11.1, 22.3
+ * Requirements: 11.1, 11.2
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdminLoginRequest {
+public class UserLoginRequest {
 
     @Email(message = "Invalid email format")
     private String email;

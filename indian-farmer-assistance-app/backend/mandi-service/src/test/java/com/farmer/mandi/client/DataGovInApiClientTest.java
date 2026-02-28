@@ -170,12 +170,12 @@ class DataGovInApiClientTest {
                             try {
                                 return objectMapper.readTree(response).get("records");
                             } catch (Exception e) {
-                                return null;
+                                throw new RuntimeException("Failed to parse response", e);
                             }
                         })
         )
-        .assertNext(result -> assertNull(result))
-        .verifyComplete();
+        .expectError()
+        .verify();
     }
 
     @Test

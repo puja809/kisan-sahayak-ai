@@ -34,7 +34,7 @@ public class DataGovInApiClient {
     @Value("${api.datagov.mandi-price.api-key}")
     private String mandiPriceApiKey;
 
-    @Value("${api.datagov.fertilizer-supplier.url:https://api.data.gov.in/resource/56f40818-fd03-4010-9a43-f34ca74b3f7c}")
+    @Value("${api.datagov.fertilizer-supplier.url:https://api.data.gov.in/resource/56f40018-fd03-4010-94a3-f34ca7b43f7c}")
     private String fertilizerSupplierUrl;
 
     @Value("${api.datagov.fertilizer-supplier.api-key}")
@@ -181,6 +181,7 @@ public class DataGovInApiClient {
                             .maxPrice(getDoubleValue(record, "max_price"))
                             .modalPrice(getDoubleValue(record, "modal_price"))
                             .arrivalQuantity(getDoubleValue(record, "arrival_quantity"))
+                            .unit(getStringValue(record, "unit"))
                             .build();
                     records.add(priceRecord);
                 });
@@ -303,6 +304,7 @@ public class DataGovInApiClient {
         private Double maxPrice;
         private Double modalPrice;
         private Double arrivalQuantity;
+        private String unit;
     }
 
     /**

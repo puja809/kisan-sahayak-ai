@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
+import { GeolocationService } from '../../services/geolocation.service';
 
 @Component({
   selector: 'app-home',
@@ -11,6 +12,26 @@ import { RouterLink } from '@angular/router';
       <section class="hero">
         <h1>Welcome to Kisan Sahayak AI</h1>
         <p>Your comprehensive platform for agricultural success</p>
+      </section>
+      
+      <!-- Weather Advisory Section -->
+      <section class="weather-advisory" *ngIf="weatherData" (click)="goToWeather()">
+        <div class="weather-header">
+          <span class="weather-icon">🌤️</span>
+          <h2>Weather Advisory</h2>
+        </div>
+        <div class="weather-location">
+          <span class="location-icon">📍</span>
+          {{ weatherData.location }}
+        </div>
+        <div class="weather-description">
+          {{ weatherData.description }}
+        </div>
+        <div class="weather-forecast" *ngIf="weatherData.forecast">
+          <p><strong>{{ weatherData.forecast.day }}:</strong> {{ weatherData.forecast.condition }}</p>
+          <p class="temperature">{{ weatherData.forecast.temp }}</p>
+        </div>
+        <a href="javascript:void(0)" class="read-more">Read More...</a>
       </section>
       
       <section class="features">
@@ -87,6 +108,102 @@ import { RouterLink } from '@angular/router';
         opacity: 0.9;
       }
     }
+
+    .weather-advisory {
+      background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .weather-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+
+        .weather-icon {
+          font-size: 2rem;
+          margin-right: 1rem;
+        }
+
+        h2 {
+          flex: 1;
+          margin: 0;
+          font-size: 1.5rem;
+        }
+
+        .change-location-btn {
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          color: white;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 0.85rem;
+          transition: background 0.2s;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.3);
+          }
+        }
+      }
+
+      .weather-location {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+        opacity: 0.9;
+
+        .location-icon {
+          margin-right: 0.5rem;
+        }
+      }
+
+      .weather-description {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+
+      .weather-forecast {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+
+        p {
+          margin: 0.5rem 0;
+          font-size: 0.9rem;
+
+          &.temperature {
+            font-size: 1.1rem;
+            font-weight: 600;
+          }
+        }
+      }
+
+      .read-more {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+
+        &:hover {
+          color: white;
+          text-decoration: underline;
+        }
+      }
+    }
     
     .features {
       display: grid;
@@ -125,4 +242,32 @@ import { RouterLink } from '@angular/router';
     }
   `]
 })
-export class HomeComponent { }
+export class HomeComponent implements OnInit {
+  weatherData: any = null;
+
+  constructor(
+    private geolocationService: GeolocationService,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    this.loadWeatherData();
+  }
+
+  loadWeatherData() {
+    // Mock weather data - in production, fetch from weather service
+    this.weatherData = {
+      location: '12.9034, 77.8256 (Bangalore, India)',
+      description: "Here's a 7-day farming weather forecast for your coordinates (12.9034, 77.8256) in Bangalore, India, along with advice for irrigation and spraying.",
+      forecast: {
+        day: 'Saturday, February 28, 2026',
+        condition: 'Partly sunny during the day and partly cloudy at night. The chance of rain is around 10%. Temperatures will range from approximately 18°C (66°F) to 31°C (87°F).',
+        temp: '18°C - 31°C'
+      }
+    };
+  }
+
+  goToWeather() {
+    this.router.navigate(['/weather']);
+  }
+}

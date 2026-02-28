@@ -45,6 +45,7 @@ public class CropRecommendationService {
     private final MarketDataService marketDataService;
     private final ClimateRiskService climateRiskService;
     private final SeedVarietyService seedVarietyService;
+    private final SoilDataService soilDataService;
 
     public CropRecommendationService(
             AgroEcologicalZoneService agroEcologicalZoneService,
@@ -54,7 +55,8 @@ public class CropRecommendationService {
             GaezCropDataRepository gaezCropDataRepository,
             MarketDataService marketDataService,
             ClimateRiskService climateRiskService,
-            SeedVarietyService seedVarietyService) {
+            SeedVarietyService seedVarietyService,
+            SoilDataService soilDataService) {
         this.agroEcologicalZoneService = agroEcologicalZoneService;
         this.gaezSuitabilityService = gaezSuitabilityService;
         this.gaezDataImportService = gaezDataImportService;
@@ -63,6 +65,7 @@ public class CropRecommendationService {
         this.marketDataService = marketDataService;
         this.climateRiskService = climateRiskService;
         this.seedVarietyService = seedVarietyService;
+        this.soilDataService = soilDataService;
     }
 
     /**
@@ -89,7 +92,21 @@ public class CropRecommendationService {
             Optional<AgroEcologicalZone> zoneOpt = zoneRepository.findByZoneCode(zoneCode);
             String zoneName = zoneOpt.map(AgroEcologicalZone::getZoneName).orElse("Unknown");
 
-            // Step 3: Calculate suitability scores
+            // Step 3: Fetch soil data if coordinates are provided
+            SoilDataDto soilData = null;
+            if (request.getLatitude() != null && request.getLongitude() != null) {
+                soilData = soilDataService.getSoilData(request.getLatitude(), request.getLongitude());
+                if (soilData != null) {
+                    logger.info("Successfully fetched soil data for coordinates: {}, {}", 
+                            request.getLatitude(), request.getLongitude());
+                    request.setSoilData(soilData);
+                } else {
+                    logger.warn("Could not fetch soil data for coordinates: {}, {}", 
+                            request.getLatitude(), request.getLongitude());
+                }
+            }
+
+            // Step 4: Calculate suitability scores
             List<GaezCropSuitabilityDto> suitabilityList = 
                     gaezSuitabilityService.calculateSuitabilityScores(request);
 
@@ -97,10 +114,10 @@ public class CropRecommendationService {
                 return buildErrorResponse("No suitable crops found for the location");
             }
 
-            // Step 4: Apply filters and preferences
+            // Step 5: Apply filters and preferences
             List<GaezCropSuitabilityDto> filteredList = applyFilters(suitabilityList, request);
 
-            // Step 5: Fetch market data if requested
+            // Step 6: Fetch market data if requested
             Map<String, MarketDataDto> marketDataMap = new HashMap<>();
             if (Boolean.TRUE.equals(request.getIncludeMarketData())) {
                 List<String> cropCodes = filteredList.stream()
@@ -109,7 +126,7 @@ public class CropRecommendationService {
                 marketDataMap = marketDataService.getMarketDataForCrops(cropCodes, request.getState());
             }
 
-            // Step 6: Analyze climate risk if requested
+            // Step 7: Analyze climate risk if requested
             Map<String, ClimateRiskDto> climateRiskMap = new HashMap<>();
             if (Boolean.TRUE.equals(request.getIncludeClimateRiskAssessment())) {
                 List<String> cropCodes = filteredList.stream()
@@ -120,19 +137,19 @@ public class CropRecommendationService {
                 climateRiskMap = climateRiskService.analyzeClimateRiskForCrops(cropCodes, projectedDeviation);
             }
 
-            // Step 7: Build ranked recommendations
+            // Step 8: Build ranked recommendations
             List<CropRecommendationResponseDto.RecommendedCropDto> recommendations = 
                     buildRecommendations(filteredList, request, marketDataMap, climateRiskMap);
 
-            // Step 8: Build climate risk summary
+            // Step 9: Build climate risk summary
             CropRecommendationResponseDto.ClimateRiskSummary climateRiskSummary = 
                     buildClimateRiskSummary(filteredList, climateRiskMap);
 
-            // Step 9: Build market data status
+            // Step 10: Build market data status
             CropRecommendationResponseDto.MarketDataStatus marketDataStatus = 
                     buildMarketDataStatus(request, marketDataMap);
 
-            // Step 10: Build response
+            // Step 11: Build response
             return CropRecommendationResponseDto.builder()
                     .success(true)
                     .generatedAt(LocalDateTime.now())
@@ -146,6 +163,7 @@ public class CropRecommendationService {
                     .soilHealthCardUsed(request.hasSoilHealthData())
                     .climateRiskSummary(climateRiskSummary)
                     .marketDataStatus(marketDataStatus)
+                    .soilData(soilData)
                     .build();
 
         } catch (LocationNotFoundException e) {

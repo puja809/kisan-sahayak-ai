@@ -83,6 +83,11 @@ public class CropRecommendationResponseDto {
     private MarketDataStatus marketDataStatus;
     
     /**
+     * Soil data from Kaegro API (if coordinates were provided)
+     */
+    private SoilDataDto soilData;
+    
+    /**
      * DTO for individual recommended crop
      */
     @Data

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { MandiService, MandiPriceDto, FertilizerSupplierDto } from '../../services/mandi.service';
 
 @Component({
@@ -24,17 +24,55 @@ import { MandiService, MandiPriceDto, FertilizerSupplierDto } from '../../servic
 
       <!-- TAB 1: Mandi Prices -->
       <div *ngIf="activeTab === 'prices'" class="tab-content">
-        <div class="controls-section">
+        <div class="controls-section filters-grid">
           <div class="form-group">
-            <label for="commoditySelect">Select Commodity:</label>
-            <select id="commoditySelect" [(ngModel)]="selectedCommodity" (change)="fetchPrices()">
-              <option value="">-- Choose Commodity --</option>
-              <option *ngFor="let comm of commodities" [value]="comm">{{ comm }}</option>
+            <label>State</label>
+            <select [(ngModel)]="searchFilters.state" (change)="onStateChange()" class="input-field">
+              <option value="">-- All States --</option>
+              <option *ngFor="let state of filterOptions.states" [value]="state">{{ state }}</option>
             </select>
           </div>
-          <button class="btn-primary" (click)="fetchPrices()" [disabled]="!selectedCommodity || isLoadingPrices">
-            {{ isLoadingPrices ? 'Loading...' : 'Check Prices' }}
-          </button>
+          <div class="form-group">
+            <label>District</label>
+            <select [(ngModel)]="searchFilters.district" (change)="onDistrictChange()" class="input-field" [disabled]="!searchFilters.state">
+              <option value="">-- All Districts --</option>
+              <option *ngFor="let district of filterOptions.districts" [value]="district">{{ district }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Market</label>
+            <select [(ngModel)]="searchFilters.market" (change)="fetchFilterCommodities()" class="input-field" [disabled]="!searchFilters.district">
+              <option value="">-- All Markets --</option>
+              <option *ngFor="let market of filterOptions.markets" [value]="market">{{ market }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Commodity</label>
+            <select [(ngModel)]="searchFilters.commodity" (change)="fetchFilterVarieties()" class="input-field">
+              <option value="">-- All Commodities --</option>
+              <option *ngFor="let comm of filterOptions.commodities" [value]="comm">{{ comm }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Variety</label>
+            <select [(ngModel)]="searchFilters.variety" (change)="fetchFilterGrades()" class="input-field" [disabled]="!searchFilters.commodity">
+              <option value="">-- All Varieties --</option>
+              <option *ngFor="let varietyItem of filterOptions.varieties" [value]="varietyItem">{{ varietyItem }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Grade</label>
+            <select [(ngModel)]="searchFilters.grade" class="input-field" [disabled]="!searchFilters.commodity">
+              <option value="">-- All Grades --</option>
+              <option *ngFor="let grade of filterOptions.grades" [value]="grade">{{ grade }}</option>
+            </select>
+          </div>
+          
+          <div class="form-group" style="display: flex; align-items: flex-end;">
+            <button class="btn-primary w-100" (click)="searchMarketData()" [disabled]="isLoadingPrices">
+              {{ isLoadingPrices ? 'Searching...' : 'Search Market Data' }}
+            </button>
+          </div>
         </div>
 
         <div class="loader" *ngIf="isLoadingPrices">
@@ -44,37 +82,28 @@ import { MandiService, MandiPriceDto, FertilizerSupplierDto } from '../../servic
 
         <div class="error-message" *ngIf="errorMessagePrices">{{ errorMessagePrices }}</div>
 
-        <div class="prices-grid" *ngIf="!isLoadingPrices && prices.length > 0">
-          <div class="price-card" *ngFor="let price of prices">
-            <div class="card-header">
-              <h3>{{ price.mandiName }}</h3>
-              <span class="badge">{{ price.commodityName }}</span>
-            </div>
+        <div class="prices-grid" *ngIf="searchResults.length > 0">
+          <div class="price-card" *ngFor="let result of searchResults">
             <div class="card-body">
-              <p><strong>Variety:</strong> {{ price.variety || 'N/A' }}</p>
-              <p><strong>Location:</strong> {{ price.district }}, {{ price.state }}</p>
-              <p><strong>Arrival:</strong> {{ price.arrivalQuantityQuintals || 0 }} {{ price.unit || 'Quintals' }}</p>
+              <h4 class="commodity-heading">{{ result.commodityName }} <span class="variety-badge" *ngIf="result.variety">{{ result.variety }}</span></h4>
+              <p class="location-info">📍 {{ result.mandiName }}, {{ result.district }}, {{ result.state }}</p>
               <div class="price-details">
-                <div class="price-item">
-                  <span class="label">Min Price</span><span class="value">₹{{ price.minPrice || 0 }}</span>
-                </div>
-                <div class="price-item highlight">
-                  <span class="label">Modal Price</span><span class="value">₹{{ price.modalPrice || 0 }}</span>
-                </div>
-                <div class="price-item">
-                  <span class="label">Max Price</span><span class="value">₹{{ price.maxPrice || 0 }}</span>
-                </div>
+                <p><strong>Modal Price:</strong> ₹{{ result.modalPrice }} / {{ result.unit || 'Quintal' }}</p>
+                <p class="price-range" *ngIf="result.minPrice && result.maxPrice"><strong>Range:</strong> ₹{{ result.minPrice }} - ₹{{ result.maxPrice }}</p>
               </div>
-            </div>
-            <div class="card-footer">
-              <small>Updated: {{ price.priceDate | date:'mediumDate' }}</small>
-              <small *ngIf="price.distanceKm" class="distance">📍 {{ price.distanceKm | number:'1.0-1' }} km away</small>
+              <p class="date"><small>Reported: {{ result.priceDate }}</small></p>
             </div>
           </div>
         </div>
         
-        <div class="empty-state" *ngIf="!isLoadingPrices && prices.length === 0 && selectedCommodity && !errorMessagePrices">
-          <p>No prices found for {{ selectedCommodity }}. Try another commodity or check back later.</p>
+        <div class="text-center mt-3 mb-4" *ngIf="hasMorePrices && searchResults.length > 0">
+          <button class="btn-secondary" (click)="loadMorePrices()" [disabled]="isLoadingPrices">
+            {{ isLoadingPrices ? 'Loading more...' : 'Load More' }}
+          </button>
+        </div>
+        
+        <div class="empty-state" *ngIf="!isLoadingPrices && searchResults.length === 0 && hasSearchedPrices && !errorMessagePrices">
+          <p>No market data found for the selected filters. Try adjusting your search criteria.</p>
         </div>
       </div>
 
@@ -84,11 +113,17 @@ import { MandiService, MandiPriceDto, FertilizerSupplierDto } from '../../servic
           <div class="form-group flex-row">
              <div class="flex-1">
                <label for="stateSelect">State</label>
-               <input id="stateSelect" type="text" [(ngModel)]="filterState" placeholder="e.g. Maharashtra" class="input-field" (keyup.enter)="fetchFertilizers()">
+               <select id="stateSelect" [(ngModel)]="filterState" (change)="onFertilizerStateChange()" class="input-field">
+                 <option value="">-- All States --</option>
+                 <option *ngFor="let state of filterOptions.states" [value]="state">{{ state }}</option>
+               </select>
              </div>
              <div class="flex-1">
                <label for="districtSelect">District</label>
-               <input id="districtSelect" type="text" [(ngModel)]="filterDistrict" placeholder="e.g. Pune" class="input-field" (keyup.enter)="fetchFertilizers()">
+               <select id="districtSelect" [(ngModel)]="filterDistrict" class="input-field" [disabled]="!filterState">
+                 <option value="">-- All Districts --</option>
+                 <option *ngFor="let district of filterOptions.districts" [value]="district">{{ district }}</option>
+               </select>
              </div>
           </div>
           <button class="btn-primary" (click)="fetchFertilizers()" [disabled]="!filterState || !filterDistrict || isLoadingFertilizers">
@@ -139,15 +174,19 @@ import { MandiService, MandiPriceDto, FertilizerSupplierDto } from '../../servic
     .tab-btn:hover { background: #f5f5f5; color: #2E7D32; }
     .tab-btn.active { background: #E8F5E9; color: #2E7D32; }
 
-    .controls-section { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; }
-    .form-group { flex: 1; min-width: 250px; }
-    .flex-row { display: flex; gap: 1rem; }
+    .controls-section { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+    .filters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+    
+    .form-group { display: flex; flex-direction: column; }
+    .flex-row { display: flex; gap: 1rem; width: 100%; margin-bottom: 1rem; }
     .flex-1 { flex: 1; min-width: 120px; }
-    label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #424242; }
-    select, .input-field { width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 1rem; outline: none; box-sizing: border-box; }
+    label { margin-bottom: 0.5rem; font-weight: 500; color: #424242; font-size: 0.9rem; }
+    select, .input-field { width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; outline: none; box-sizing: border-box; background: white; }
     select:focus, .input-field:focus { border-color: #2E7D32; }
+    select:disabled { background: #f5f5f5; cursor: not-allowed; }
     
     .btn-primary { padding: 0.75rem 1.5rem; background: #2E7D32; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.3s; white-space: nowrap; }
+    .btn-primary.w-100 { width: 100%; }
     .btn-primary:hover:not(:disabled) { background: #1B5E20; }
     .btn-primary:disabled { background: #A5D6A7; cursor: not-allowed; }
     
@@ -155,24 +194,28 @@ import { MandiService, MandiPriceDto, FertilizerSupplierDto } from '../../servic
     .pill { padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid #e0e0e0; background: white; color: #616161; cursor: pointer; font-size: 0.85rem; font-weight: 500; }
     .pill.active { background: #2196F3; color: white; border-color: #2196F3; }
     
-    .prices-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
-    .price-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; transition: transform 0.2s; }
-    .price-card:hover { transform: translateY(-4px); }
-    .card-header { background: #E8F5E9; padding: 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #C8E6C9; }
-    .card-header h3 { margin: 0; color: #2E7D32; font-size: 1.25rem; }
-    .badge { background: #2E7D32; color: white; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.875rem; font-weight: 500; }
-    .card-body { padding: 1rem; flex: 1; }
-    .card-body p { margin: 0 0 0.5rem 0; color: #616161; font-size: 0.95rem; }
-    .price-details { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e0e0e0; }
-    .price-item { text-align: center; }
-    .price-item .label { display: block; font-size: 0.75rem; color: #757575; text-transform: uppercase; margin-bottom: 0.25rem; }
-    .price-item .value { display: block; font-weight: 600; color: #424242; }
-    .price-item.highlight .value { color: #2E7D32; font-size: 1.1rem; }
-    .card-footer { padding: 0.75rem 1rem; background: #fafafa; border-top: 1px solid #eee; display: flex; justify-content: space-between; color: #9e9e9e; }
-    .distance { color: #1976D2; font-weight: 500; }
-
+    .prices-grid, .suppliers-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
     .suppliers-list { display: flex; flex-direction: column; gap: 1rem; }
-    .supplier-card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #FF9800; }
+    
+    .price-card, .supplier-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; transition: transform 0.2s; }
+    .price-card:hover { transform: translateY(-4px); }
+    .price-card .card-body { padding: 1.5rem; border-left: 4px solid #2E7D32; border-radius: 12px; }
+    .commodity-heading { margin: 0 0 0.5rem 0; color: #2E7D32; font-size: 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+    .variety-badge { background: #E8F5E9; color: #1B5E20; font-size: 0.8rem; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 500; }
+    .location-info { margin: 0 0 1rem 0; color: #616161; font-size: 0.95rem; }
+    .price-details { background: #f9f9f9; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.75rem; }
+    .price-details p { margin: 0 0 0.25rem 0; font-size: 0.95rem; color: #424242; }
+    .price-details p:last-child { margin-bottom: 0; }
+    .date { margin: 0; color: #9e9e9e; text-align: right; }
+    .text-center { text-align: center; }
+    .mt-3 { margin-top: 1rem; }
+    .mb-4 { margin-bottom: 1.5rem; }
+    .btn-secondary { padding: 0.5rem 1.5rem; background: #fff; color: #2E7D32; border: 1px solid #2E7D32; border-radius: 8px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+    .btn-secondary:hover:not(:disabled) { background: #E8F5E9; }
+    .btn-secondary:disabled { border-color: #A5D6A7; color: #A5D6A7; cursor: not-allowed; }
+    
+    .supplier-card { padding: 1.5rem; flex-direction: row; justify-content: space-between; align-items: center; border-left: 4px solid #FF9800; border-radius: 12px; }
+    .supplier-card:hover { transform: translateY(-2px); }
     .supplier-info h4 { margin: 0 0 0.5rem 0; color: #333; font-size: 1.2rem; }
     .type-badge { display: inline-block; background: #FFF3E0; color: #E65100; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin: 0 0 0.5rem 0; }
     .location { margin: 0; color: #666; font-size: 0.9rem; }
@@ -186,17 +229,42 @@ import { MandiService, MandiPriceDto, FertilizerSupplierDto } from '../../servic
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .error-message { background: #FFEBEE; color: #C62828; padding: 1rem; border-radius: 8px; text-align: center; margin-bottom: 1rem; }
     .empty-state { text-align: center; padding: 3rem; color: #757575; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+    @media (max-width: 768px) {
+      .filters-grid { grid-template-columns: 1fr; }
+      .supplier-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
   `]
 })
 export class MandiComponent implements OnInit {
   activeTab: 'prices' | 'fertilizers' = 'prices';
 
-  // --- Mandi Prices State ---
-  commodities: string[] = [];
-  selectedCommodity: string = 'WHEAT'; // Default
-  prices: MandiPriceDto[] = [];
+  // --- Mandi Prices State (Hierarchical Filters) ---
+  filterOptions = {
+    states: [] as string[],
+    districts: [] as string[],
+    markets: [] as string[],
+    commodities: [] as string[],
+    varieties: [] as string[],
+    grades: [] as string[]
+  };
+
+  searchFilters = {
+    state: '',
+    district: '',
+    market: '',
+    commodity: '',
+    variety: '',
+    grade: ''
+  };
+
+  searchResults: MandiPriceDto[] = [];
   isLoadingPrices = false;
+  hasSearchedPrices = false;
   errorMessagePrices = '';
+  searchOffset = 0;
+  searchLimit = 20;
+  hasMorePrices = false;
 
   // --- Fertilizer State ---
   filterState: string = '';
@@ -210,100 +278,191 @@ export class MandiComponent implements OnInit {
   constructor(private mandiService: MandiService, private http: HttpClient) { }
 
   ngOnInit() {
-    this.loadCommodities();
-
-    // Auto-fetch defaults
-    setTimeout(() => this.fetchPrices(), 500);
-    this.detectLocationForFertilizers();
+    this.detectUserLocationAndInit();
   }
 
   switchTab(tab: 'prices' | 'fertilizers') {
     this.activeTab = tab;
   }
 
-  // ============== PRICES LOGIC ==============
+  // ============== GEOLOCATION ==============
 
-  loadCommodities() {
-    this.mandiService.getCommodities().subscribe({
-      next: (data) => {
-        this.commodities = data;
-        if (!this.commodities.includes(this.selectedCommodity) && this.commodities.length > 0) {
-          this.selectedCommodity = this.commodities[0];
-        }
-      },
-      error: (err) => {
-        console.error('Failed to load commodities', err);
-        // Fallback hardcoded lists just in case API is empty during testing
-        this.commodities = ['WHEAT', 'RICE', 'COTTON', 'SUGARCANE', 'ONION', 'POTATO'];
-      }
-    });
-  }
-
-  fetchPrices() {
-    if (!this.selectedCommodity) return;
-
-    this.isLoadingPrices = true;
-    this.errorMessagePrices = '';
-    this.prices = [];
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          this.mandiService.getNearbyPrices(
-            this.selectedCommodity,
-            position.coords.latitude,
-            position.coords.longitude,
-            100 // 100km radius
-          ).subscribe({
-            next: (data: any) => {
-              this.prices = Array.isArray(data) ? data : [data];
-              this.isLoadingPrices = false;
-            },
-            error: () => this.fallbackToGeneralPrices()
-          });
-        },
-        () => this.fallbackToGeneralPrices()
-      );
-    } else {
-      this.fallbackToGeneralPrices();
-    }
-  }
-
-  private fallbackToGeneralPrices() {
-    this.mandiService.getPrices(this.selectedCommodity).subscribe({
-      next: (data: any) => {
-        this.prices = Array.isArray(data) ? data : [data];
-        this.isLoadingPrices = false;
-      },
-      error: (err) => {
-        this.errorMessagePrices = 'Failed to load mandi prices. Please ensure the backend is running.';
-        this.isLoadingPrices = false;
-      }
-    });
-  }
-
-  // ============== FERTILIZER LOGIC ==============
-
-  detectLocationForFertilizers() {
+  detectUserLocationAndInit() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         try {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          const response: any = await firstValueFrom(
-            this.http.get(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
-          );
+          const url = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=en';
+
+          const response: any = await firstValueFrom(this.http.get(url));
+
           if (response) {
-            this.filterState = response.principalSubdivision || 'Maharashtra';
-            this.filterDistrict = response.city || response.locality || 'Pune';
-            this.fetchFertilizers(); // Auto-fetch if reverse geocode succeeds
+            const detectedState = response.principalSubdivision || 'Maharashtra';
+            const detectedDistrict = response.city || response.locality || 'Pune';
+
+            // Setup fertilizer location
+            this.filterState = detectedState;
+            this.filterDistrict = detectedDistrict;
+            this.fetchFertilizers();
+
+            // Setup mandi filter location
+            this.searchFilters.state = detectedState;
+            this.searchFilters.district = detectedDistrict;
+
+            await this.initMandiFilters(detectedState, detectedDistrict);
+          } else {
+            this.initMandiFilters();
           }
         } catch (e) {
-          console.warn('Reverse geocode for fertilizers failed', e);
+          console.warn('Reverse geocode failed', e);
+          this.initMandiFilters();
         }
+      }, () => {
+        this.initMandiFilters();
+      });
+    } else {
+      this.initMandiFilters();
+    }
+  }
+
+  // ============== MANDI FILTER LOGIC ==============
+
+  async initMandiFilters(detectedState?: string, detectedDistrict?: string) {
+    try {
+      this.filterOptions.states = await lastValueFrom(this.mandiService.getFilterStates());
+      this.filterOptions.commodities = await lastValueFrom(this.mandiService.getFilterCommodities());
+
+      if (detectedState && this.filterOptions.states.includes(detectedState)) {
+        this.onStateChange();
+      } else {
+        this.searchFilters.state = '';
+        this.searchFilters.district = '';
+      }
+    } catch (err) {
+      console.error('Failed to init filters', err);
+    }
+  }
+
+  onStateChange() {
+    this.searchFilters.district = '';
+    this.searchFilters.market = '';
+    this.filterOptions.districts = [];
+    this.filterOptions.markets = [];
+
+    if (this.searchFilters.state) {
+      this.mandiService.getFilterDistricts(this.searchFilters.state).subscribe({
+        next: (data) => {
+          this.filterOptions.districts = data;
+          // If we had a detected district and it exists in the new list, select it
+          if (this.searchFilters.district && data.includes(this.searchFilters.district)) {
+            this.onDistrictChange();
+          }
+        },
+        error: (err) => console.error('Failed to load districts', err)
       });
     }
   }
+
+  onDistrictChange() {
+    this.searchFilters.market = '';
+    this.filterOptions.markets = [];
+
+    if (this.searchFilters.state && this.searchFilters.district) {
+      this.mandiService.getFilterMarkets(this.searchFilters.state, this.searchFilters.district).subscribe({
+        next: (data) => this.filterOptions.markets = data,
+        error: (err) => console.error('Failed to load markets', err)
+      });
+    }
+  }
+
+  onFertilizerStateChange() {
+    this.filterDistrict = '';
+    this.filterOptions.districts = [];
+
+    if (this.filterState) {
+      this.mandiService.getFilterDistricts(this.filterState).subscribe({
+        next: (data) => {
+          this.filterOptions.districts = data;
+        },
+        error: (err) => console.error('Failed to load districts', err)
+      });
+    }
+  }
+
+  fetchFilterCommodities() {
+    this.searchFilters.variety = '';
+    this.searchFilters.grade = '';
+    this.filterOptions.varieties = [];
+    this.filterOptions.grades = [];
+
+    this.mandiService.getFilterCommodities(this.searchFilters.market).subscribe({
+      next: (data) => this.filterOptions.commodities = data,
+      error: (err) => console.error('Failed to load commodities', err)
+    });
+  }
+
+  fetchFilterVarieties() {
+    this.searchFilters.variety = '';
+    this.searchFilters.grade = '';
+    this.filterOptions.varieties = [];
+    this.filterOptions.grades = [];
+
+    if (this.searchFilters.commodity) {
+      this.mandiService.getFilterVarieties(this.searchFilters.commodity).subscribe({
+        next: (data) => this.filterOptions.varieties = data,
+        error: (err) => console.error('Failed to load varieties', err)
+      });
+      this.fetchFilterGrades();
+    }
+  }
+
+  fetchFilterGrades() {
+    this.searchFilters.grade = '';
+    this.filterOptions.grades = [];
+
+    if (this.searchFilters.commodity) {
+      this.mandiService.getFilterGrades(this.searchFilters.commodity, this.searchFilters.variety).subscribe({
+        next: (data) => this.filterOptions.grades = data,
+        error: (err) => console.error('Failed to load grades', err)
+      });
+    }
+  }
+
+  searchMarketData(isLoadMore = false) {
+    if (!isLoadMore) {
+      this.searchOffset = 0;
+      this.searchResults = [];
+    }
+
+    this.isLoadingPrices = true;
+    this.errorMessagePrices = '';
+    this.hasSearchedPrices = true;
+
+    this.mandiService.searchMarketData(this.searchFilters, this.searchOffset, this.searchLimit).subscribe({
+      next: (data) => {
+        if (isLoadMore) {
+          this.searchResults = [...this.searchResults, ...data];
+        } else {
+          this.searchResults = data;
+        }
+        this.isLoadingPrices = false;
+        this.hasMorePrices = data.length === this.searchLimit;
+      },
+      error: (err) => {
+        this.errorMessagePrices = 'Failed to fetch market data based on selected filters.';
+        this.isLoadingPrices = false;
+        console.error(err);
+      }
+    });
+  }
+
+  loadMorePrices() {
+    this.searchOffset += this.searchLimit;
+    this.searchMarketData(true);
+  }
+
+  // ============== FERTILIZER LOGIC ==============
 
   fetchFertilizers() {
     if (!this.filterState || !this.filterDistrict) return;
@@ -319,8 +478,7 @@ export class MandiComponent implements OnInit {
         this.isLoadingFertilizers = false;
       },
       error: (err) => {
-        console.error('Fertilizer fetch error:', err);
-        // Fallback to fetch all and filter client side if location endpoint is picky about case
+        console.error('Fertilizer location fetch error:', err);
         this.fallbackFertilizerSearch();
       }
     });

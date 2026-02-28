@@ -4,8 +4,8 @@ import com.farmer.crop.dto.*;
 import com.farmer.crop.service.CropRecommendationService;
 import com.farmer.crop.service.GaezSuitabilityService;
 import com.farmer.crop.service.SeedVarietyService;
+import com.farmer.crop.service.SoilDataService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -39,14 +39,17 @@ public class CropRecommendationController {
     private final CropRecommendationService cropRecommendationService;
     private final GaezSuitabilityService gaezSuitabilityService;
     private final SeedVarietyService seedVarietyService;
+    private final SoilDataService soilDataService;
 
     public CropRecommendationController(
             CropRecommendationService cropRecommendationService,
             GaezSuitabilityService gaezSuitabilityService,
-            SeedVarietyService seedVarietyService) {
+            SeedVarietyService seedVarietyService,
+            SoilDataService soilDataService) {
         this.cropRecommendationService = cropRecommendationService;
         this.gaezSuitabilityService = gaezSuitabilityService;
         this.seedVarietyService = seedVarietyService;
+        this.soilDataService = soilDataService;
     }
 
     /**
@@ -334,4 +337,53 @@ public class CropRecommendationController {
         
         return ResponseEntity.ok(states);
     }
+
+    /**
+     * Get soil data for given coordinates from Kaegro API.
+     *
+     * This endpoint fetches soil data including texture, physical, chemical, and water properties
+     * for the specified GPS coordinates.
+     *
+     * @param latitude GPS latitude
+     * @param longitude GPS longitude
+     * @return Soil data including texture, pH, organic matter, nitrogen, water capacity, etc.
+     *
+     * Validates: Requirement 2.4 (Soil data integration)
+     */
+    @GetMapping("/soil")
+    @Operation(summary = "Get soil data for coordinates", description = "Fetches soil data from Kaegro API for given GPS coordinates")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Soil data retrieved successfully",
+            content = @Content(schema = @Schema(implementation = SoilDataDto.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid coordinates provided"),
+        @ApiResponse(responseCode = "503", description = "Kaegro API unavailable")
+    })
+    public ResponseEntity<?> getSoilData(
+            @RequestParam Double latitude,
+            @RequestParam Double longitude) {
+
+        logger.info("Fetching soil data for coordinates: {}, {}", latitude, longitude);
+
+        // Validate coordinates
+        if (latitude == null || longitude == null ||
+            latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+            logger.warn("Invalid coordinates provided: {}, {}", latitude, longitude);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Invalid coordinates. Latitude must be between -90 and 90, longitude between -180 and 180."
+            ));
+        }
+
+        SoilDataDto soilData = soilDataService.getSoilData(latitude, longitude);
+
+        if (soilData == null) {
+            logger.warn("Failed to fetch soil data from Kaegro API for coordinates: {}, {}", latitude, longitude);
+            return ResponseEntity.status(503).body(Map.of(
+                    "error", "Unable to fetch soil data. Kaegro API may be unavailable."
+            ));
+        }
+
+        logger.info("Successfully fetched soil data for coordinates: {}, {}", latitude, longitude);
+        return ResponseEntity.ok(soilData);
+    }
+
 }

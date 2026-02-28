@@ -5,19 +5,10 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * Entity representing mandi (agricultural market) location data.
- * Stores geo-location information for mandis to enable distance-based sorting.
- * 
- * Requirements:
- * - 6.4: Sort mandis by distance from farmer's location
- */
 @Entity
 @Table(name = "mandi_locations", 
        indexes = {
-           @Index(name = "idx_mandi_code", columnList = "mandi_code"),
-           @Index(name = "idx_state", columnList = "state"),
-           @Index(name = "idx_district", columnList = "district"),
+           @Index(name = "idx_mandi_name", columnList = "mandi_name"),
            @Index(name = "idx_state_id", columnList = "state_id"),
            @Index(name = "idx_district_id", columnList = "district_id")
        })
@@ -32,40 +23,16 @@ public class MandiLocation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "mandi_code", nullable = false, unique = true, length = 50)
-    private String mandiCode;
-
     @Column(name = "mandi_name", nullable = false, length = 100)
     private String mandiName;
 
-    @Column(name = "state", nullable = false, length = 50)
-    private String state;
-
-    @Column(name = "district", nullable = false, length = 50)
-    private String district;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "state_id", nullable = false)
+    private State state;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "state_id")
-    private State stateEntity;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "district_id")
-    private District districtEntity;
-
-    @Column(name = "address", length = 500)
-    private String address;
-
-    @Column(name = "latitude")
-    private Double latitude;
-
-    @Column(name = "longitude")
-    private Double longitude;
-
-    @Column(name = "contact_number", length = 20)
-    private String contactNumber;
-
-    @Column(name = "operating_hours", length = 100)
-    private String operatingHours;
+    @JoinColumn(name = "district_id", nullable = false)
+    private District district;
 
     @Column(name = "is_active")
     @Builder.Default

@@ -20,7 +20,8 @@ import { AuthService } from './services/auth.service';
           </button>
           <nav class="app-nav" [class.open]="menuOpen">
             <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="nav-link" (click)="menuOpen=false">🏠 Home</a>
-            <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">📊 Dashboard</a>
+            
+            <!-- Show only when NOT logged in -->
             <a routerLink="/weather" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">🌤️ Weather</a>
             <a routerLink="/crops" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">🌾 Crops</a>
             <a routerLink="/schemes" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">📋 Schemes</a>
@@ -28,10 +29,13 @@ import { AuthService } from './services/auth.service';
             <a routerLink="/voice" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">🎤 Voice</a>
             <a routerLink="/disease" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">🦠 Disease</a>
             <a routerLink="/iot" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">📡 IoT</a>
+            
+            <!-- Show only when logged in -->
+            <a *ngIf="isLoggedIn" routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">📊 Dashboard</a>
             <button class="nav-link location-btn" (click)="openLocationModal(); menuOpen=false">
               📍 {{ currentLocationName || 'Set Location' }}
             </button>
-            <a routerLink="/admin" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">⚙️ Admin</a>
+            <a *ngIf="isAdmin" routerLink="/admin" routerLinkActive="active" class="nav-link" (click)="menuOpen=false">⚙️ Admin</a>
             
             <!-- Auth Nav -->
             <ng-container *ngIf="!isLoggedIn">

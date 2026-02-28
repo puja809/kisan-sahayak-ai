@@ -5,29 +5,32 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing commodity/crop types.
+ * Stores commodity information for market data.
+ * 
+ * Requirements:
+ * - 6.1: Retrieve current prices from AGMARKNET API
+ * - 6.2: Display modal price, min price, max price, arrival quantity, variety
+ */
 @Entity
-@Table(name = "districts", 
+@Table(name = "commodity",
        indexes = {
-           @Index(name = "idx_district_name", columnList = "district_name"),
-           @Index(name = "idx_state_id", columnList = "state_id")
+           @Index(name = "idx_commodity_name", columnList = "commodity_name")
        })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class District {
+public class Commodity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "district_name", nullable = false, length = 100)
-    private String districtName;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "state_id", nullable = false)
-    private State state;
+    @Column(name = "commodity_name", nullable = false, unique = true, length = 100)
+    private String commodityName;
 
     @Column(name = "is_active")
     @Builder.Default

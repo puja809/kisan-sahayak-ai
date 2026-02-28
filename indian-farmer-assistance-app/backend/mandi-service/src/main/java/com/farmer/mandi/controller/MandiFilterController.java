@@ -1,6 +1,6 @@
 package com.farmer.mandi.controller;
 
-import com.farmer.mandi.entity.MandiMarketData;
+import com.farmer.mandi.dto.MandiPriceDto;
 import com.farmer.mandi.service.MandiFilterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -98,17 +98,19 @@ public class MandiFilterController {
      * Search market data with filters
      */
     @GetMapping("/search")
-    @Operation(summary = "Search market data", description = "Search market data with multiple filters")
-    public ResponseEntity<List<MandiMarketData>> searchMarketData(
+    @Operation(summary = "Search market data", description = "Search market data with multiple filters and return commodity prices from government portal")
+    public ResponseEntity<List<MandiPriceDto>> searchMarketData(
         @Parameter(description = "State name") @RequestParam(required = false) String state,
         @Parameter(description = "District name") @RequestParam(required = false) String district,
         @Parameter(description = "Market name") @RequestParam(required = false) String market,
         @Parameter(description = "Commodity name") @RequestParam(required = false) String commodity,
         @Parameter(description = "Variety name") @RequestParam(required = false) String variety,
-        @Parameter(description = "Grade name") @RequestParam(required = false) String grade) {
+        @Parameter(description = "Grade name") @RequestParam(required = false) String grade,
+        @Parameter(description = "Pagination offset (default: 0)") @RequestParam(required = false, defaultValue = "0") int offset,
+        @Parameter(description = "Results per page (default: 20, max: 100)") @RequestParam(required = false, defaultValue = "20") int limit) {
         
-        List<MandiMarketData> results = mandiFilterService.searchMarketData(
-            state, district, market, commodity, variety, grade);
+        List<MandiPriceDto> results = mandiFilterService.searchMarketData(
+            state, district, market, commodity, variety, grade, offset, limit);
         return ResponseEntity.ok(results);
     }
     

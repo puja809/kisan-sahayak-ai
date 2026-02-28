@@ -28,6 +28,7 @@ export class ApiRoutingInterceptor implements HttpInterceptor {
         { prefix: '/api/v1/location', baseUrl: environment.services.location },
         { prefix: '/api/v1/fertilizer', baseUrl: environment.services.mandi },
         { prefix: '/api/v1/mandi', baseUrl: environment.services.mandi },
+        { prefix: '/api/mandi', baseUrl: environment.services.mandi }, // New filter endpoints
         { prefix: '/api/v1/schemes', baseUrl: environment.services.scheme },
         { prefix: '/api/v1/weather', baseUrl: environment.services.weather },
         { prefix: '/api/v1/sync', baseUrl: environment.services.sync },
@@ -39,8 +40,8 @@ export class ApiRoutingInterceptor implements HttpInterceptor {
         request: HttpRequest<unknown>,
         next: HttpHandler
     ): Observable<HttpEvent<unknown>> {
-        // Only intercept relative /api/v1 paths (skip already-absolute URLs)
-        if (!request.url.startsWith('/api/v1')) {
+        // Only intercept relative /api paths (skip already-absolute URLs)
+        if (!request.url.startsWith('/api')) {
             return next.handle(request);
         }
 

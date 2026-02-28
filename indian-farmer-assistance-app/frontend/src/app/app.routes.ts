@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from './guards/admin.guard';
+import { AuthGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -15,6 +16,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    canActivate: [AuthGuard],
     title: 'Dashboard',
   },
   {
@@ -55,12 +57,13 @@ export const routes: Routes = [
   {
     path: 'iot',
     loadComponent: () => import('./pages/iot/iot-dashboard.component').then(m => m.IoTDashboardComponent),
+    canActivate: [AuthGuard],
     title: 'IoT Devices',
   },
   {
     path: 'admin',
     loadComponent: () => import('./pages/admin/admin-dashboard.component').then(m => m.AdminDashboardComponent),
-    canActivate: [adminGuard],
+    canActivate: [AdminGuard],
     title: 'Admin Dashboard',
   },
   {

@@ -101,4 +101,54 @@ export class MandiService {
         let params = new HttpParams().set('state', state).set('district', district);
         return this.http.get<FertilizerSupplierDto[]>(`${this.fertilizerApiUrl}/suppliers/retailers`, { params });
     }
+
+    // --- Mandi Filter Endpoints ---
+
+    getFilterStates(): Observable<string[]> {
+        return this.http.get<string[]>('/api/mandi/filter/states');
+    }
+
+    getFilterDistricts(state: string): Observable<string[]> {
+        let params = new HttpParams().set('state', state);
+        return this.http.get<string[]>('/api/mandi/filter/districts', { params });
+    }
+
+    getFilterMarkets(state: string, district: string): Observable<string[]> {
+        let params = new HttpParams().set('state', state).set('district', district);
+        return this.http.get<string[]>('/api/mandi/filter/markets', { params });
+    }
+
+    getFilterCommodities(market?: string): Observable<string[]> {
+        let params = new HttpParams();
+        if (market) params = params.set('market', market);
+        return this.http.get<string[]>('/api/mandi/filter/commodities', { params });
+    }
+
+    getFilterVarieties(commodity?: string): Observable<string[]> {
+        let params = new HttpParams();
+        if (commodity) params = params.set('commodity', commodity);
+        return this.http.get<string[]>('/api/mandi/filter/varieties', { params });
+    }
+
+    getFilterGrades(commodity?: string, variety?: string): Observable<string[]> {
+        let params = new HttpParams();
+        if (commodity) params = params.set('commodity', commodity);
+        if (variety) params = params.set('variety', variety);
+        return this.http.get<string[]>('/api/mandi/filter/grades', { params });
+    }
+
+    searchMarketData(filters: any, offset: number = 0, limit: number = 20): Observable<MandiPriceDto[]> {
+        let params = new HttpParams();
+        if (filters.state) params = params.set('state', filters.state);
+        if (filters.district) params = params.set('district', filters.district);
+        if (filters.market) params = params.set('market', filters.market);
+        if (filters.commodity) params = params.set('commodity', filters.commodity);
+        if (filters.variety) params = params.set('variety', filters.variety);
+        if (filters.grade) params = params.set('grade', filters.grade);
+
+        params = params.set('offset', offset.toString());
+        params = params.set('limit', limit.toString());
+
+        return this.http.get<MandiPriceDto[]>('/api/mandi/filter/search', { params });
+    }
 }

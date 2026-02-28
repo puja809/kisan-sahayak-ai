@@ -1,274 +1,64 @@
 package com.farmer.mandi.service;
 
-import com.farmer.mandi.dto.MandiLocationDto;
-import com.farmer.mandi.dto.MandiPriceDto;
 import com.farmer.mandi.entity.MandiLocation;
+import com.farmer.mandi.entity.State;
+import com.farmer.mandi.entity.District;
 import com.farmer.mandi.repository.MandiLocationRepository;
+import com.farmer.mandi.repository.StateRepository;
+import com.farmer.mandi.repository.DistrictRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
 
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-/**
- * Service for managing mandi locations with distance-based sorting.
- * 
- * Requirements:
- * - 6.4: Sort mandis by distance from farmer's location
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MandiLocationService {
 
     private final MandiLocationRepository mandiLocationRepository;
+    private final StateRepository stateRepository;
+    private final DistrictRepository districtRepository;
 
-    // Earth's radius in kilometers
-    private static final double EARTH_RADIUS_KM = 6371.0;
-
-    /**
-     * Gets nearby mandis sorted by distance from farmer's location.
-     * 
-     * Property 11: Distance-Based Ascending Sort
-     * Validates: Requirements 6.4, 7.2
-     * 
-     * For any list of locations (mandis, government bodies, KVKs) sorted by distance 
-     * from a farmer's location, for any two adjacent items in the list, the first 
-     * should have a distance less than or equal to the second.
-     * 
-     * @param latitude Farmer's latitude
-     * @param longitude Farmer's longitude
-     * @param radiusKm Search radius in kilometers
-     * @return List of MandiLocationDto sorted by distance
-     */
-    public List<MandiLocationDto> getNearbyMandis(Double latitude, Double longitude, int radiusKm) {
-        log.info("Finding mandis within {} km of location: {}, {}", radiusKm, latitude, longitude);
+    @Transactional
+    public MandiLocation createMandi(String mandiName, String stateName, String districtName) {
+        State state = stateRepository.findByStateName(stateName)
+            .orElseThrow(() -> new IllegalArgumentException("State not found: " + stateName));
         
-        // Calculate bounding box for initial filtering
-        double[] boundingBox = calculateBoundingBox(latitude.doubleValue(), longitude.doubleValue(), radiusKm);
+        District district = districtRepository.findByDistrictName(districtName)
+            .orElseThrow(() -> new IllegalArgumentException("District not found: " + districtName));
         
-        // Find locations in bounding box
-        List<MandiLocation> locations = mandiLocationRepository.findLocationsInBoundingBox(
-                Double.valueOf(boundingBox[0]),
-                Double.valueOf(boundingBox[1]),
-                Double.valueOf(boundingBox[2]),
-                Double.valueOf(boundingBox[3])
-        );
-        
-        // Calculate distance and filter
-        List<MandiLocationDto> result = locations.stream()
-                .map(location -> {
-                    Double distance = calculateDistance(latitude, longitude, 
-                            location.getLatitude(), location.getLongitude());
-                    return mapToDto(location, distance);
-                })
-                .filter(location -> location.getDistanceKm().compareTo(Double.valueOf(radiusKm)) <= 0)
-                .sorted(Comparator.comparing(MandiLocationDto::getDistanceKm))
-                .collect(Collectors.toList());
-        
-        log.info("Found {} mandis within {} km", result.size(), radiusKm);
-        return result;
-    }
-
-    /**
-     * Sorts mandi prices by distance from farmer's location.
-     * 
-     * @param prices List of mandi prices
-     * @param farmerLatitude Farmer's latitude
-     * @param farmerLongitude Farmer's longitude
-     * @return List of MandiPriceDto sorted by distance
-     */
-    public List<MandiPriceDto> sortPricesByDistance(
-            List<MandiPriceDto> prices, 
-            Double farmerLatitude, 
-            Double farmerLongitude) {
-        
-        if (prices == null || prices.isEmpty()) {
-            return prices;
-        }
-
-        // Sort by distance
-        return prices.stream()
-                .map(price -> {
-                    Double distance = calculateDistanceForMandi(
-                            farmerLatitude, farmerLongitude, price.getMandiName());
-                    return MandiPriceDto.builder()
-                            .id(price.getId())
-                            .commodityName(price.getCommodityName())
-                            .variety(price.getVariety())
-                            .mandiName(price.getMandiName())
-                            .mandiCode(price.getMandiCode())
-                            .state(price.getState())
-                            .district(price.getDistrict())
-                            .priceDate(price.getPriceDate())
-                            .modalPrice(price.getModalPrice())
-                            .minPrice(price.getMinPrice())
-                            .maxPrice(price.getMaxPrice())
-                            .arrivalQuantityQuintals(price.getArrivalQuantityQuintals())
-                            .unit(price.getUnit())
-                            .source(price.getSource())
-                            .fetchedAt(price.getFetchedAt())
-                            .distanceKm(distance)
-                            .isCached(price.getIsCached())
-                            .build();
-                })
-                .sorted(Comparator.comparing(
-                        dto -> dto.getDistanceKm() != null ? dto.getDistanceKm() : Double.valueOf(Double.MAX_VALUE)))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Gets all active mandi locations.
-     * 
-     * @return List of MandiLocationDto
-     */
-    public List<MandiLocationDto> getAllActiveLocations() {
-        return mandiLocationRepository.findByIsActiveTrueOrderByMandiName()
-                .stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Gets locations by state.
-     * 
-     * @param state The state name
-     * @return List of MandiLocationDto
-     */
-    public List<MandiLocationDto> getLocationsByState(String state) {
-        return mandiLocationRepository.findByStateAndIsActiveTrueOrderByMandiName(state)
-                .stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Gets distinct states.
-     * 
-     * @return List of state names
-     */
-    public List<String> getStates() {
-        return mandiLocationRepository.findDistinctStates();
-    }
-
-    /**
-     * Gets distinct districts for a state.
-     * 
-     * @param state The state name
-     * @return List of district names
-     */
-    public List<String> getDistricts(String state) {
-        return mandiLocationRepository.findDistinctDistrictsByState(state);
-    }
-
-    /**
-     * Calculates distance between two points using Haversine formula.
-     * 
-     * @param lat1 Latitude of point 1
-     * @param lon1 Longitude of point 1
-     * @param lat2 Latitude of point 2
-     * @param lon2 Longitude of point 2
-     * @return Distance in kilometers
-     */
-    public Double calculateDistance(
-            Double lat1, Double lon1, 
-            Double lat2, Double lon2) {
-        
-        if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) {
-            return Double.valueOf(Double.MAX_VALUE);
-        }
-
-        double dLat = Math.toRadians(lat2.doubleValue() - lat1.doubleValue());
-        double dLon = Math.toRadians(lon2.doubleValue() - lon1.doubleValue());
-        
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                   Math.cos(Math.toRadians(lat1.doubleValue())) * 
-                   Math.cos(Math.toRadians(lat2.doubleValue())) * 
-                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = EARTH_RADIUS_KM * c;
-        
-        return Double.valueOf(distance);
-    }
-
-    /**
-     * Calculates distance for a mandi by looking up its location.
-     * 
-     * @param farmerLatitude Farmer's latitude
-     * @param farmerLongitude Farmer's longitude
-     * @param mandiName Name of the mandi
-     * @return Distance in kilometers
-     */
-    private Double calculateDistanceForMandi(
-            Double farmerLatitude, 
-            Double farmerLongitude, 
-            String mandiName) {
-        
-        // This would need to be implemented with proper mandi location lookup
-        // For now, return a default value
-        return Double.valueOf(-1);
-    }
-
-    /**
-     * Calculates a bounding box for a given location and radius.
-     * 
-     * @param latitude Center latitude
-     * @param longitude Center longitude
-     * @param radiusKm Radius in kilometers
-     * @return Array of [minLat, maxLat, minLon, maxLon]
-     */
-    private double[] calculateBoundingBox(double latitude, double longitude, double radiusKm) {
-        // Approximate degrees per km at the equator
-        double latDelta = radiusKm / 111.0;
-        double lonDelta = radiusKm / (111.0 * Math.cos(Math.toRadians(latitude)));
-        
-        return new double[] {
-            latitude - latDelta, // minLat
-            latitude + latDelta, // maxLat
-            longitude - lonDelta, // minLon
-            longitude + lonDelta  // maxLon
-        };
-    }
-
-    /**
-     * Maps entity to DTO.
-     */
-    private MandiLocationDto mapToDto(MandiLocation entity) {
-        return MandiLocationDto.builder()
-                .mandiCode(entity.getMandiCode())
-                .mandiName(entity.getMandiName())
-                .state(entity.getState())
-                .district(entity.getDistrict())
-                .address(entity.getAddress())
-                .latitude(entity.getLatitude())
-                .longitude(entity.getLongitude())
-                .contactNumber(entity.getContactNumber())
-                .operatingHours(entity.getOperatingHours())
-                .distanceKm(0.0)
-                .isActive(entity.getIsActive())
+        MandiLocation mandi = MandiLocation.builder()
+                .mandiName(mandiName)
+                .state(state)
+                .district(district)
+                .isActive(true)
                 .build();
+        return mandiLocationRepository.save(mandi);
     }
 
-    /**
-     * Maps entity to DTO with distance.
-     */
-    private MandiLocationDto mapToDto(MandiLocation entity, Double distance) {
-        return MandiLocationDto.builder()
-                .mandiCode(entity.getMandiCode())
-                .mandiName(entity.getMandiName())
-                .state(entity.getState())
-                .district(entity.getDistrict())
-                .address(entity.getAddress())
-                .latitude(entity.getLatitude())
-                .longitude(entity.getLongitude())
-                .contactNumber(entity.getContactNumber())
-                .operatingHours(entity.getOperatingHours())
-                .distanceKm(distance)
-                .isActive(entity.getIsActive())
-                .build();
+    public List<MandiLocation> getMandisByState(String stateName) {
+        State state = stateRepository.findByStateName(stateName)
+            .orElseThrow(() -> new IllegalArgumentException("State not found: " + stateName));
+        return mandiLocationRepository.findByStateAndIsActiveTrue(state);
+    }
+
+    public List<MandiLocation> getMandisByDistrict(String stateName, String districtName) {
+        State state = stateRepository.findByStateName(stateName)
+            .orElseThrow(() -> new IllegalArgumentException("State not found: " + stateName));
+        District district = districtRepository.findByDistrictName(districtName)
+            .orElseThrow(() -> new IllegalArgumentException("District not found: " + districtName));
+        return mandiLocationRepository.findByStateAndDistrictAndIsActiveTrue(state, district);
+    }
+
+    public Optional<MandiLocation> getMandiByName(String mandiName) {
+        return mandiLocationRepository.findByMandiNameAndIsActiveTrue(mandiName);
+    }
+
+    public List<MandiLocation> getAllMandis() {
+        return mandiLocationRepository.findByIsActiveTrue();
     }
 }

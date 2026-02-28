@@ -15,8 +15,15 @@ import java.time.LocalDateTime;
  * climate, soil, and terrain characteristics. These zones are used
  * for crop planning and recommendations.
  * 
+ * DEPRECATED: This entity is maintained for backward compatibility only.
+ * New implementations should use soil data from Kaegro API (SoilDataDto)
+ * instead of relying on agro-ecological zone classifications.
+ * 
  * Validates: Requirement 2.1
+ * 
+ * @deprecated Use SoilDataDto from Kaegro API for soil information
  */
+@Deprecated(since = "2.0", forRemoval = false)
 @Entity
 @Table(name = "agro_ecological_zones")
 @Data

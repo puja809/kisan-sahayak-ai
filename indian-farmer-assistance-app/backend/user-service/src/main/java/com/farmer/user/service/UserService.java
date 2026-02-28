@@ -124,15 +124,25 @@ public class UserService {
     }
 
     /**
-     * Authenticate admin with phone and password.
+     * Authenticate admin with email or phone and password.
      * Requirements: 11.1, 22.3
      */
     @Transactional
     public AuthResponse adminLogin(AdminLoginRequest request) {
-        log.info("Admin login attempt for phone: {}", request.getPhone());
+        log.info("Admin login attempt with email: {}, phone: {}", request.getEmail(), request.getPhone());
 
-        User user = userRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new AuthenticationException("USER_NOT_FOUND", "User not found with this phone number"));
+        if (!request.isValid()) {
+            throw new AuthenticationException("INVALID_REQUEST", "Either email or phone must be provided");
+        }
+
+        User user;
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new AuthenticationException("USER_NOT_FOUND", "User not found with this email"));
+        } else {
+            user = userRepository.findByPhone(request.getPhone())
+                    .orElseThrow(() -> new AuthenticationException("USER_NOT_FOUND", "User not found with this phone number"));
+        }
 
         if (user.getRole() != User.Role.ADMIN) {
             throw new AuthenticationException("UNAUTHORIZED", "Only admin users can login with password");
@@ -150,6 +160,46 @@ public class UserService {
         userRepository.save(user);
 
         log.info("Admin login successful for: {}", user.getFarmerId());
+
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        return buildAuthResponse(user, accessToken, refreshToken, false);
+    }
+
+    /**
+     * Authenticate user with email or phone and password.
+     * Requirements: 11.1, 11.2
+     */
+    @Transactional
+    public AuthResponse userLogin(UserLoginRequest request) {
+        log.info("User login attempt with email: {}, phone: {}", request.getEmail(), request.getPhone());
+
+        if (!request.isValid()) {
+            throw new AuthenticationException("INVALID_REQUEST", "Either email or phone must be provided");
+        }
+
+        User user;
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new AuthenticationException("USER_NOT_FOUND", "User not found with this email"));
+        } else {
+            user = userRepository.findByPhone(request.getPhone())
+                    .orElseThrow(() -> new AuthenticationException("USER_NOT_FOUND", "User not found with this phone number"));
+        }
+
+        if (!user.getIsActive()) {
+            throw new AuthenticationException("ACCOUNT_INACTIVE", "Your account has been deactivated. Please contact support.");
+        }
+
+        if (user.getPassword() == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new AuthenticationException("INVALID_PASSWORD", "Invalid password. Please try again.");
+        }
+
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
+
+        log.info("User login successful for: {}", user.getFarmerId());
 
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
