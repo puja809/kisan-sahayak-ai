@@ -1,81 +1,53 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { GeolocationService } from '../../services/geolocation.service';
-import { MLCropPredictionService, MLPredictionResponse } from '../../services/ml-crop-prediction.service';
-
-interface SoilData {
-  textureClass: string;
-  faoClassification: string;
-  sandPct: number;
-  siltPct: number;
-  clayPct: number;
-  bulkDensityGCm3: number;
-  phH2o: number;
-  organicMatterPct: number;
-  nitrogenGKg: number;
-  cecCmolKg: number;
-  capacityFieldVolPct: number;
-  capacityWiltVolPct: number;
-  latencySeconds: number;
-}
-
-interface CropRecommendation {
-  rank: number;
-  gaezSuitability: any;
-  overallSuitabilityScore: number;
-  expectedYieldPerAcre: number;
-  expectedRevenuePerAcre: number;
-  waterRequirementPerAcre: number;
-  growingDurationDays: number;
-  recommendedVarieties: string[];
-  soilHealthRecommendations: string[];
-  riskFactors: string[];
-  notes: string;
-}
-
-interface RecommendationResponse {
-  success: boolean;
-  recommendations: CropRecommendation[];
-  soilData: SoilData;
-  location: string;
-  agroEcologicalZone: string;
-}
-
-interface MLCropPrediction {
-  crop: string;
-  confidence: number;
-  probabilities: { [key: string]: number };
-}
+import { CropRecommendationService, DashboardResponse } from '../../services/crop-recommendation.service';
 
 @Component({
   selector: 'app-crops',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="crops-container">
-      <h2>Crop Recommendations</h2>
+      <h2>🌾 Crop Recommendation Dashboard</h2>
       
-      <!-- ML Predictions Section -->
-      <div *ngIf="mlPrediction" class="ml-prediction-card">
-        <div class="ml-header">
-          <h3>🤖 AI-Powered Crop Recommendation</h3>
-          <span class="model-badge">ML Model v{{ mlPrediction.modelVersion }}</span>
+      <!-- Location & Weather Info -->
+      <div *ngIf="dashboardData" class="info-banner">
+        <div class="info-item">
+          <span class="label">📍 Location:</span>
+          <span class="value">{{ dashboardData?.location }}</span>
         </div>
-        <div class="ml-content">
+        <div class="info-item">
+          <span class="label">🌡️ Temperature:</span>
+          <span class="value">{{ dashboardData?.weatherData?.current?.temp_c | number:'1.1-1' }}°C</span>
+        </div>
+        <div class="info-item">
+          <span class="label">💧 Humidity:</span>
+          <span class="value">{{ dashboardData?.weatherData?.current?.humidity | number:'1.0-0' }}%</span>
+        </div>
+      </div>
+      
+      <!-- Crop Recommendation Section -->
+      <div *ngIf="dashboardData?.cropRecommendation" class="prediction-card crop-card">
+        <div class="card-header">
+          <h3>🌱 Crop Recommendation</h3>
+          <span class="model-badge">ML v{{ dashboardData?.cropRecommendation?.modelVersion }}</span>
+        </div>
+        <div class="card-content">
           <div class="prediction-main">
-            <div class="crop-name">{{ mlPrediction.prediction }}</div>
+            <div class="crop-name">{{ dashboardData?.cropRecommendation?.prediction }}</div>
             <div class="confidence-meter">
               <div class="confidence-bar">
-                <div class="confidence-fill" [style.width.%]="mlPrediction.confidence * 100"></div>
+                <div class="confidence-fill" [style.width.%]="(dashboardData?.cropRecommendation?.confidence || 0) * 100"></div>
               </div>
-              <span class="confidence-text">{{ (mlPrediction.confidence * 100) | number:'1.1-1' }}% Confidence</span>
+              <span class="confidence-text">{{ ((dashboardData?.cropRecommendation?.confidence || 0) * 100) | number:'1.1-1' }}% Confidence</span>
             </div>
           </div>
-          <div *ngIf="mlPrediction.probabilities" class="probabilities">
+          <div class="probabilities">
             <h4>Alternative Crops</h4>
             <div class="prob-list">
-              <div *ngFor="let crop of getTopProbabilities(mlPrediction.probabilities)" class="prob-item">
+              <div *ngFor="let crop of getTopProbabilities(dashboardData?.cropRecommendation?.probabilities || {})" class="prob-item">
                 <span class="crop-name-alt">{{ crop.name }}</span>
                 <div class="prob-bar">
                   <div class="prob-fill" [style.width.%]="crop.probability * 100"></div>
@@ -86,10 +58,18 @@ interface MLCropPrediction {
           </div>
         </div>
       </div>
+      <div *ngIf="!dashboardData?.cropRecommendation" class="prediction-card crop-card no-data-card">
+        <div class="card-header">
+          <h3>🌱 Crop Recommendation</h3>
+        </div>
+        <div class="card-content">
+          <p class="no-data-message">No crop recommendation available. Please check your location and try again.</p>
+        </div>
+      </div>
 
       <!-- Crop Rotation Section -->
-      <div *ngIf="showRotationForm" class="rotation-section">
-        <h3>Crop Rotation Recommendation</h3>
+      <div class="rotation-section">
+        <h3>🔄 Crop Rotation Recommendation</h3>
         <div class="rotation-form">
           <div class="form-group">
             <label>Previous Crop</label>
@@ -104,124 +84,128 @@ interface MLCropPrediction {
               <option value="Summer">Summer</option>
             </select>
           </div>
-          <button (click)="getRotationRecommendation()" class="btn-primary">Get Rotation Recommendation</button>
+          <button (click)="getRotationRecommendation()" class="btn-primary">Get Rotation</button>
         </div>
-        <div *ngIf="rotationPrediction" class="rotation-result">
-          <h4>Recommended Next Crop</h4>
-          <div class="rotation-card">
-            <div class="crop-name">{{ rotationPrediction.prediction }}</div>
+        <div *ngIf="dashboardData?.cropRotation" class="rotation-result">
+          <div class="prediction-card rotation-card">
+            <div class="crop-name">{{ dashboardData?.cropRotation?.prediction }}</div>
             <div class="confidence-meter">
               <div class="confidence-bar">
-                <div class="confidence-fill" [style.width.%]="rotationPrediction.confidence * 100"></div>
+                <div class="confidence-fill" [style.width.%]="(dashboardData?.cropRotation?.confidence || 0) * 100"></div>
               </div>
-              <span class="confidence-text">{{ (rotationPrediction.confidence * 100) | number:'1.1-1' }}% Confidence</span>
+              <span class="confidence-text">{{ ((dashboardData?.cropRotation?.confidence || 0) * 100) | number:'1.1-1' }}% Confidence</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Fertilizer Recommendation Section -->
+      <div *ngIf="dashboardData?.fertilizerRecommendation" class="prediction-card fertilizer-card">
+        <div class="card-header">
+          <h3>🧪 Fertilizer Recommendation</h3>
+          <span class="model-badge">ML v{{ dashboardData?.fertilizerRecommendation?.modelVersion }}</span>
+        </div>
+        <div class="card-content">
+          <div class="fertilizer-grid">
+            <div class="fertilizer-item">
+              <div class="nutrient-label">Nitrogen (N)</div>
+              <div class="nutrient-value">{{ dashboardData?.fertilizerRecommendation?.N_dosage | number:'1.1-1' }}</div>
+              <div class="nutrient-unit">kg/ha</div>
+            </div>
+            <div class="fertilizer-item">
+              <div class="nutrient-label">Phosphorus (P)</div>
+              <div class="nutrient-value">{{ dashboardData?.fertilizerRecommendation?.P_dosage | number:'1.1-1' }}</div>
+              <div class="nutrient-unit">kg/ha</div>
+            </div>
+            <div class="fertilizer-item">
+              <div class="nutrient-label">Potassium (K)</div>
+              <div class="nutrient-value">{{ dashboardData?.fertilizerRecommendation?.K_dosage | number:'1.1-1' }}</div>
+              <div class="nutrient-unit">kg/ha</div>
+            </div>
+            <div class="fertilizer-item total">
+              <div class="nutrient-label">Total NPK</div>
+              <div class="nutrient-value">{{ dashboardData?.fertilizerRecommendation?.total_dosage | number:'1.1-1' }}</div>
+              <div class="nutrient-unit">kg/ha</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="!dashboardData?.fertilizerRecommendation" class="prediction-card fertilizer-card no-data-card">
+        <div class="card-header">
+          <h3>🧪 Fertilizer Recommendation</h3>
+        </div>
+        <div class="card-content">
+          <p class="no-data-message">No fertilizer recommendation available. Crop recommendation is required first.</p>
         </div>
       </div>
       
       <!-- Soil Data Section -->
-      <div *ngIf="soilData" class="soil-data-card">
-        <h3>Soil Analysis</h3>
+      <div *ngIf="dashboardData?.soilData" class="soil-data-card">
+        <h3>🌍 Soil Analysis</h3>
         <div class="soil-grid">
           <div class="soil-item">
             <label>Texture Class</label>
-            <p>{{ soilData.textureClass }}</p>
+            <p>{{ dashboardData?.soilData?.soil_type?.texture_class || 'N/A' }}</p>
           </div>
           <div class="soil-item">
             <label>FAO Classification</label>
-            <p>{{ soilData.faoClassification }}</p>
+            <p>{{ dashboardData?.soilData?.soil_type?.fao_class || 'N/A' }}</p>
           </div>
           <div class="soil-item">
             <label>pH (H₂O)</label>
-            <p>{{ soilData.phH2o | number:'1.2-2' }} ({{ getPhRating(soilData.phH2o) }})</p>
+            <p>{{ dashboardData?.soilData?.chemical_properties?.ph_h2o ? (dashboardData?.soilData?.chemical_properties?.ph_h2o | number:'1.2-2') + ' (' + getPhRating(dashboardData?.soilData?.chemical_properties?.ph_h2o) + ')' : 'N/A' }}</p>
           </div>
           <div class="soil-item">
             <label>Organic Matter</label>
-            <p>{{ soilData.organicMatterPct | number:'1.2-2' }}%</p>
+            <p>{{ dashboardData?.soilData?.chemical_properties?.organic_matter_pct ? (dashboardData?.soilData?.chemical_properties?.organic_matter_pct | number:'1.2-2') + '%' : 'N/A' }}</p>
           </div>
           <div class="soil-item">
             <label>Nitrogen</label>
-            <p>{{ soilData.nitrogenGKg | number:'1.2-2' }} g/kg</p>
+            <p>{{ dashboardData?.soilData?.chemical_properties?.nitrogen_g_kg ? (dashboardData?.soilData?.chemical_properties?.nitrogen_g_kg | number:'1.2-2') + ' g/kg' : 'N/A' }}</p>
           </div>
           <div class="soil-item">
             <label>Water Capacity (Field)</label>
-            <p>{{ soilData.capacityFieldVolPct | number:'1.2-2' }}%</p>
+            <p>{{ dashboardData?.soilData?.water_metrics?.capacity_field_vol_pct ? (dashboardData?.soilData?.water_metrics?.capacity_field_vol_pct | number:'1.2-2') + '%' : 'N/A' }}</p>
           </div>
         </div>
-        <div class="soil-texture">
+        <div class="soil-texture" *ngIf="dashboardData?.soilData?.physical_properties">
           <h4>Soil Texture Composition</h4>
           <div class="texture-bars">
             <div class="texture-bar">
-              <div class="bar sand" [style.width.%]="soilData.sandPct"></div>
-              <span>Sand: {{ soilData.sandPct | number:'1.1-1' }}%</span>
+              <div class="bar sand" [style.width.%]="dashboardData?.soilData?.physical_properties?.sand_pct || 0"></div>
+              <span>Sand: {{ dashboardData?.soilData?.physical_properties?.sand_pct | number:'1.1-1' }}%</span>
             </div>
             <div class="texture-bar">
-              <div class="bar silt" [style.width.%]="soilData.siltPct"></div>
-              <span>Silt: {{ soilData.siltPct | number:'1.1-1' }}%</span>
+              <div class="bar silt" [style.width.%]="dashboardData?.soilData?.physical_properties?.silt_pct || 0"></div>
+              <span>Silt: {{ dashboardData?.soilData?.physical_properties?.silt_pct | number:'1.1-1' }}%</span>
             </div>
             <div class="texture-bar">
-              <div class="bar clay" [style.width.%]="soilData.clayPct"></div>
-              <span>Clay: {{ soilData.clayPct | number:'1.1-1' }}%</span>
+              <div class="bar clay" [style.width.%]="dashboardData?.soilData?.physical_properties?.clay_pct || 0"></div>
+              <span>Clay: {{ dashboardData?.soilData?.physical_properties?.clay_pct | number:'1.1-1' }}%</span>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Crop Recommendations -->
-      <div *ngIf="recommendations.length > 0" class="recommendations-section">
-        <h3>Recommended Crops</h3>
-        <div class="recommendations-grid">
-          <div *ngFor="let rec of recommendations" class="recommendation-card">
-            <div class="rank-badge">Rank {{ rec.rank }}</div>
-            <h4>{{ rec.gaezSuitability?.cropName || 'Crop' }}</h4>
-            <div class="score-bar">
-              <div class="score-fill" [style.width.%]="rec.overallSuitabilityScore"></div>
-              <span class="score-text">{{ rec.overallSuitabilityScore | number:'1.0-0' }}% Suitable</span>
-            </div>
-            <div class="crop-details">
-              <p><strong>Expected Yield:</strong> {{ rec.expectedYieldPerAcre | number:'1.1-1' }} quintals/acre</p>
-              <p><strong>Water Needed:</strong> {{ rec.waterRequirementPerAcre | number:'1.0-0' }} liters</p>
-              <p><strong>Growing Period:</strong> {{ rec.growingDurationDays }} days</p>
-              <p><strong>Expected Revenue:</strong> ₹{{ rec.expectedRevenuePerAcre | number:'1.0-0' }}/acre</p>
-            </div>
-            <div *ngIf="rec.recommendedVarieties && rec.recommendedVarieties.length > 0" class="varieties">
-              <strong>Recommended Varieties:</strong>
-              <ul>
-                <li *ngFor="let variety of rec.recommendedVarieties">{{ variety }}</li>
-              </ul>
-            </div>
-            <div *ngIf="rec.soilHealthRecommendations && rec.soilHealthRecommendations.length > 0" class="recommendations">
-              <strong>Soil Health Tips:</strong>
-              <ul>
-                <li *ngFor="let tip of rec.soilHealthRecommendations">{{ tip }}</li>
-              </ul>
-            </div>
-            <div *ngIf="rec.riskFactors && rec.riskFactors.length > 0" class="risks">
-              <strong>Risk Factors:</strong>
-              <ul>
-                <li *ngFor="let risk of rec.riskFactors">{{ risk }}</li>
-              </ul>
-            </div>
-          </div>
+        <div *ngIf="!dashboardData?.soilData?.physical_properties" class="no-texture-data">
+          <p>Detailed soil texture composition not available.</p>
         </div>
       </div>
 
-      <p *ngIf="!loading && recommendations.length === 0" class="no-data">No recommendations available. Please set your location.</p>
-      <p *ngIf="loading" class="loading">Loading crop recommendations...</p>
+      <p *ngIf="!loading && !dashboardData" class="no-data">No data available. Please enable location access.</p>
+      <p *ngIf="loading" class="loading">⏳ Loading dashboard data...</p>
     </div>
   `,
   styles: [`
     .crops-container {
       padding: 1.5rem;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
     }
     
     h2 {
       color: #2E7D32;
       margin-bottom: 1.5rem;
-      font-size: 1.8rem;
+      font-size: 2rem;
+      text-align: center;
     }
 
     h3 {
@@ -235,26 +219,60 @@ interface MLCropPrediction {
       margin-bottom: 0.5rem;
     }
 
-    /* ML Prediction Card */
-    .ml-prediction-card {
-      background: linear-gradient(135deg, #E3F2FD 0%, #F3E5F5 100%);
-      border-left: 4px solid #7C4DFF;
+    .info-banner {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
       padding: 1.5rem;
       border-radius: 8px;
       margin-bottom: 2rem;
-      box-shadow: 0 2px 8px rgba(124, 77, 255, 0.15);
+      border-left: 4px solid #2E7D32;
     }
 
-    .ml-header {
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-item .label {
+      font-weight: 600;
+      color: #1B5E20;
+    }
+
+    .info-item .value {
+      color: #2E7D32;
+      font-size: 1.1rem;
+    }
+
+    .prediction-card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .crop-card {
+      border-left: 4px solid #7C4DFF;
+      background: linear-gradient(135deg, #F3E5F5 0%, #EDE7F6 100%);
+    }
+
+    .fertilizer-card {
+      border-left: 4px solid #FF6F00;
+      background: linear-gradient(135deg, #FFF3E0 0%, #FCE4EC 100%);
+    }
+
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
     }
 
-    .ml-header h3 {
+    .card-header h3 {
       margin: 0;
-      color: #7C4DFF;
     }
 
     .model-badge {
@@ -266,7 +284,7 @@ interface MLCropPrediction {
       font-weight: 600;
     }
 
-    .ml-content {
+    .card-content {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
@@ -279,7 +297,7 @@ interface MLCropPrediction {
     }
 
     .crop-name {
-      font-size: 1.8rem;
+      font-size: 2rem;
       font-weight: 700;
       color: #7C4DFF;
       margin-bottom: 1rem;
@@ -359,7 +377,6 @@ interface MLCropPrediction {
       font-size: 0.85rem;
     }
 
-    /* Rotation Section */
     .rotation-section {
       background: linear-gradient(135deg, #FFF3E0 0%, #FCE4EC 100%);
       border-left: 4px solid #FF6F00;
@@ -438,6 +455,52 @@ interface MLCropPrediction {
       padding: 1rem;
       border-radius: 6px;
       border-left: 4px solid #FF6F00;
+    }
+
+    .fertilizer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+    }
+
+    .fertilizer-item {
+      text-align: center;
+      padding: 1rem;
+      background: #F5F5F5;
+      border-radius: 6px;
+      border-top: 3px solid #FF6F00;
+    }
+
+    .fertilizer-item.total {
+      border-top-color: #2E7D32;
+      background: #E8F5E9;
+      font-weight: 600;
+    }
+
+    .nutrient-label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .nutrient-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #FF6F00;
+      margin-bottom: 0.25rem;
+    }
+
+    .fertilizer-item.total .nutrient-value {
+      color: #2E7D32;
+    }
+
+    .nutrient-unit {
+      font-size: 0.75rem;
+      color: #999;
     }
 
     .soil-data-card {
@@ -523,115 +586,39 @@ interface MLCropPrediction {
       background: linear-gradient(90deg, #EF9A9A, #E57373);
     }
 
-    .recommendations-section {
-      margin-top: 2rem;
-    }
-
-    .recommendations-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .recommendation-card {
-      background: white;
-      border-radius: 8px;
-      padding: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      border-top: 4px solid #2E7D32;
-      position: relative;
-    }
-
-    .rank-badge {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: #2E7D32;
-      color: white;
-      padding: 0.4rem 0.8rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .recommendation-card h4 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-      color: #1B5E20;
-    }
-
-    .score-bar {
-      background: #E8F5E9;
-      border-radius: 4px;
-      height: 24px;
-      margin-bottom: 1rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .score-fill {
-      background: linear-gradient(90deg, #66BB6A, #2E7D32);
-      height: 100%;
-      transition: width 0.3s ease;
-    }
-
-    .score-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-weight: 600;
-      color: #1B5E20;
-      font-size: 0.85rem;
-    }
-
-    .crop-details {
-      background: #F5F5F5;
-      padding: 1rem;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-    }
-
-    .crop-details p {
-      margin: 0.5rem 0;
-      font-size: 0.9rem;
-      color: #333;
-    }
-
-    .varieties, .recommendations, .risks {
-      margin-bottom: 1rem;
-    }
-
-    .varieties strong, .recommendations strong, .risks strong {
-      display: block;
-      color: #1B5E20;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .varieties ul, .recommendations ul, .risks ul {
-      margin: 0;
-      padding-left: 1.5rem;
-      font-size: 0.85rem;
-      color: #666;
-    }
-
-    .varieties li, .recommendations li, .risks li {
-      margin: 0.25rem 0;
-    }
-
-    .loading {
-      text-align: center;
-      color: #757575;
-      padding: 2rem;
-      font-style: italic;
-    }
-
     .no-data {
       text-align: center;
       color: #999;
       padding: 2rem;
       font-style: italic;
+    }
+
+    .no-data-card {
+      background: #f5f5f5;
+      border-left-color: #ccc;
+    }
+
+    .no-data-message {
+      color: #666;
+      text-align: center;
+      padding: 1rem;
+      font-style: italic;
+    }
+
+    .no-texture-data {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 4px;
+      color: #999;
+      text-align: center;
+      font-style: italic;
+    }
+
+    .loading {
+      text-align: center;
+      color: #2E7D32;
+      padding: 2rem;
+      font-weight: 600;
     }
 
     @media (max-width: 768px) {
@@ -643,11 +630,7 @@ interface MLCropPrediction {
         grid-template-columns: repeat(2, 1fr);
       }
 
-      .recommendations-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .ml-content {
+      .card-content {
         grid-template-columns: 1fr;
       }
 
@@ -658,64 +641,49 @@ interface MLCropPrediction {
       .btn-primary {
         align-self: flex-start;
       }
+
+      .info-banner {
+        grid-template-columns: 1fr;
+      }
+
+      .fertilizer-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
   `]
 })
 export class CropsComponent implements OnInit {
-  recommendations: CropRecommendation[] = [];
-  soilData: SoilData | null = null;
+  dashboardData: DashboardResponse | null = null;
   loading = true;
-  mlPrediction: MLPredictionResponse | null = null;
-  rotationPrediction: MLPredictionResponse | null = null;
-  showRotationForm = false;
   previousCrop = '';
   selectedSeason = '';
   currentLocation: any = null;
 
   constructor(
-    private http: HttpClient,
-    private geolocationService: GeolocationService,
-    private mlPredictionService: MLCropPredictionService
+    private cropRecommendationService: CropRecommendationService,
+    private geolocationService: GeolocationService
   ) {}
 
   ngOnInit(): void {
-    this.loadCropRecommendations();
+    this.loadDashboardData();
   }
 
-  private loadCropRecommendations(): void {
+  private loadDashboardData(): void {
     this.geolocationService.getCurrentLocation().subscribe({
       next: (location: any) => {
         if (location) {
           this.currentLocation = location;
-          this.showRotationForm = true;
-          
-          // Load traditional recommendations
-          this.http.get<RecommendationResponse>(
-            `/api/v1/crops/recommendations?latitude=${location.latitude}&longitude=${location.longitude}`
+          this.cropRecommendationService.getDashboardRecommendations(
+            location.latitude,
+            location.longitude
           ).subscribe({
-            next: (data: RecommendationResponse) => {
-              if (data.success) {
-                this.recommendations = data.recommendations || [];
-                this.soilData = data.soilData || null;
-              }
+            next: (data: DashboardResponse) => {
+              this.dashboardData = data;
               this.loading = false;
             },
             error: (error: any) => {
-              console.error('Failed to load recommendations:', error);
+              console.error('Failed to load dashboard data:', error);
               this.loading = false;
-            }
-          });
-
-          // Load ML predictions
-          this.mlPredictionService.recommendCrop({
-            latitude: location.latitude,
-            longitude: location.longitude
-          }).subscribe({
-            next: (prediction: MLPredictionResponse) => {
-              this.mlPrediction = prediction;
-            },
-            error: (error: any) => {
-              console.error('Failed to load ML prediction:', error);
             }
           });
         } else {
@@ -735,14 +703,14 @@ export class CropsComponent implements OnInit {
       return;
     }
 
-    this.mlPredictionService.recommendCropRotation({
-      previousCrop: this.previousCrop,
-      latitude: this.currentLocation.latitude,
-      longitude: this.currentLocation.longitude,
-      season: this.selectedSeason
-    }).subscribe({
-      next: (prediction: MLPredictionResponse) => {
-        this.rotationPrediction = prediction;
+    this.cropRecommendationService.getDashboardRecommendations(
+      this.currentLocation.latitude,
+      this.currentLocation.longitude,
+      this.selectedSeason,
+      this.previousCrop
+    ).subscribe({
+      next: (data: DashboardResponse) => {
+        this.dashboardData = data;
       },
       error: (error: any) => {
         console.error('Failed to get rotation recommendation:', error);

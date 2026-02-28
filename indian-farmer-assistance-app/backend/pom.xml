@@ -23,7 +23,6 @@
         <module>api-gateway</module>
         <module>user-service</module>
         <module>weather-service</module>
-        <module>crop-service</module>
         <module>scheme-service</module>
         <module>mandi-service</module>
         <module>location-service</module>
@@ -32,6 +31,7 @@
         <module>yield-service</module>
         <module>bandwidth-service</module>
         <module>iot-service</module>
+        <module>crop-service</module>
     </modules>
 
     <properties>

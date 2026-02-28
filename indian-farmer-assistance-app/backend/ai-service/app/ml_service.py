@@ -8,6 +8,7 @@ import os
 import logging
 from crop_recommendation_model import CropRecommendationModel
 from crop_rotation_model import CropRotationModel
+from fertilizer_recommendation_model import FertilizerRecommendationModel
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -18,6 +19,7 @@ app = FastAPI(title="ML Crop Prediction Service", version="1.0.0")
 # Global model instances
 crop_reco_model = None
 crop_rotation_model = None
+fertilizer_model = None
 
 class CropRecommendationRequest(BaseModel):
     latitude: float
@@ -39,6 +41,15 @@ class CropRotationRequest(BaseModel):
     rainfall: float
     season: str
 
+class FertilizerRecommendationRequest(BaseModel):
+    crop: str
+    soilType: str
+    soilPH: float
+    temperature: float
+    humidity: float
+    rainfall: float
+    season: str
+
 class PredictionResponse(BaseModel):
     prediction: str
     confidence: float
@@ -48,7 +59,7 @@ class PredictionResponse(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     """Load models on startup"""
-    global crop_reco_model, crop_rotation_model
+    global crop_reco_model, crop_rotation_model, fertilizer_model
     
     try:
         base_path = os.path.dirname(os.path.abspath(__file__))
@@ -64,6 +75,11 @@ async def startup_event():
         crop_rotation_model.load(os.path.join(models_dir, 'crop_rotation_model.pkl'))
         logger.info("✓ Crop rotation model loaded")
         
+        logger.info("Loading fertilizer recommendation model...")
+        fertilizer_model = FertilizerRecommendationModel()
+        fertilizer_model.load(os.path.join(models_dir, 'fertilizer_recommendation_model.pkl'))
+        logger.info("✓ Fertilizer recommendation model loaded")
+        
     except Exception as e:
         logger.error(f"Error loading models: {e}")
         raise
@@ -74,7 +90,8 @@ async def health_check():
     return {
         "status": "healthy",
         "crop_reco_model": crop_reco_model is not None,
-        "crop_rotation_model": crop_rotation_model is not None
+        "crop_rotation_model": crop_rotation_model is not None,
+        "fertilizer_model": fertilizer_model is not None
     }
 
 @app.post("/api/ml/predict-crop", response_model=PredictionResponse)
@@ -127,6 +144,34 @@ async def predict_rotation(request: CropRotationRequest):
         )
     except Exception as e:
         logger.error(f"Error in crop rotation prediction: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ml/predict-fertilizer")
+async def predict_fertilizer(request: FertilizerRecommendationRequest):
+    """Predict fertilizer dosages (N, P, K)"""
+    try:
+        if fertilizer_model is None:
+            raise HTTPException(status_code=503, detail="Fertilizer recommendation model not loaded")
+        
+        result = fertilizer_model.predict(
+            crop=request.crop,
+            soil_type=request.soilType,
+            soil_pH=request.soilPH,
+            temperature=request.temperature,
+            humidity=request.humidity,
+            rainfall=request.rainfall,
+            season=request.season
+        )
+        
+        return {
+            "N_dosage": result['N_dosage'],
+            "P_dosage": result['P_dosage'],
+            "K_dosage": result['K_dosage'],
+            "total_dosage": result['total_dosage'],
+            "modelVersion": "1.0.0"
+        }
+    except Exception as e:
+        logger.error(f"Error in fertilizer prediction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

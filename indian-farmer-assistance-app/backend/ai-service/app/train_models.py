@@ -1,13 +1,14 @@
 """
-Script to train and save crop recommendation and rotation models
+Script to train and save crop recommendation, rotation, and fertilizer models
 Run this once to generate the model files
 """
 import os
 from crop_recommendation_model import CropRecommendationModel
 from crop_rotation_model import CropRotationModel
+from fertilizer_recommendation_model import FertilizerRecommendationModel
 
 def train_and_save_models():
-    """Train both models and save them"""
+    """Train all models and save them"""
     
     # Paths
     base_path = os.path.dirname(os.path.abspath(__file__))
@@ -18,6 +19,7 @@ def train_and_save_models():
     project_root = os.path.abspath(os.path.join(base_path, '../../../..'))
     crop_reco_csv = os.path.join(project_root, 'documents/crop_reco_weatherapi_kaegro.csv')
     crop_rotation_csv = os.path.join(project_root, 'documents/enhanced_crop_rotation_dataset.csv')
+    fertilizer_csv = os.path.join(project_root, 'documents/fertilizer_recommendation_dataset.csv')
     
     print("Training Crop Recommendation Model...")
     crop_reco_model = CropRecommendationModel()
@@ -30,6 +32,12 @@ def train_and_save_models():
     crop_rotation_model.train(crop_rotation_csv)
     crop_rotation_model.save(os.path.join(models_dir, 'crop_rotation_model.pkl'))
     print(f"✓ Saved: {os.path.join(models_dir, 'crop_rotation_model.pkl')}")
+    
+    print("\nTraining Fertilizer Recommendation Model...")
+    fertilizer_model = FertilizerRecommendationModel()
+    fertilizer_model.train(fertilizer_csv)
+    fertilizer_model.save(os.path.join(models_dir, 'fertilizer_recommendation_model.pkl'))
+    print(f"✓ Saved: {os.path.join(models_dir, 'fertilizer_recommendation_model.pkl')}")
     
     print("\n✓ All models trained and saved successfully!")
 

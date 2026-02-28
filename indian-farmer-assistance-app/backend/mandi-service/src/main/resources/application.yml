@@ -1,7 +1,7 @@
 # Mandi Service Configuration
 
 server:
-  port: ${MANDI_SERVICE_PORT:8096}
+  port: ${MANDI_SERVICE_PORT:8093}
 
 spring:
   application:
@@ -64,6 +64,15 @@ api:
     timeout: 10000
     retry:
       max-attempts: 3
+
+# ML Service Configuration
+ml-service:
+  url: ${ML_SERVICE_URL:http://localhost:8001}
+
+# Weather API Configuration
+weather-api:
+  key: ${WEATHER_API_KEY:}
+  url: https://api.weatherapi.com/v1
 
 # Redis Cache Configuration
 redis:

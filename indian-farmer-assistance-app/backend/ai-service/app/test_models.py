@@ -4,6 +4,7 @@ Test script to verify trained models work correctly
 import os
 from crop_recommendation_model import CropRecommendationModel
 from crop_rotation_model import CropRotationModel
+from fertilizer_recommendation_model import FertilizerRecommendationModel
 
 def test_models():
     """Test loading and using trained models"""
@@ -65,6 +66,33 @@ def test_models():
         sorted_probs = sorted(pred['probabilities'].items(), key=lambda x: x[1], reverse=True)
         for i, (crop, prob) in enumerate(sorted_probs[:3], 1):
             print(f"    {i}. {crop}: {prob:.2%}")
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        return False
+    
+    # Test fertilizer recommendation model
+    print("\n3. Testing Fertilizer Recommendation Model")
+    print("-" * 60)
+    try:
+        fertilizer = FertilizerRecommendationModel()
+        fertilizer.load(os.path.join(models_dir, 'fertilizer_recommendation_model.pkl'))
+        print("✓ Model loaded successfully")
+        
+        # Test prediction
+        pred = fertilizer.predict(
+            crop='Rice',
+            soil_type='loamy',
+            soil_pH=6.5,
+            temperature=26.5,
+            humidity=78,
+            rainfall=210,
+            season='Kharif'
+        )
+        print(f"✓ Prediction successful")
+        print(f"  N dosage: {pred['N_dosage']} kg/ha")
+        print(f"  P dosage: {pred['P_dosage']} kg/ha")
+        print(f"  K dosage: {pred['K_dosage']} kg/ha")
+        print(f"  Total dosage: {pred['total_dosage']} kg/ha")
     except Exception as e:
         print(f"✗ Error: {e}")
         return False

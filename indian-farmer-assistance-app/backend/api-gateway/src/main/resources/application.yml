@@ -131,7 +131,7 @@ spring:
               args:
                 retries: 3
         - id: crop-service
-          uri: lb://crop-service
+          uri: lb://mandi-service
           predicates:
             - Path=/api/v1/crops/**
           filters:
@@ -139,7 +139,7 @@ spring:
             - AuthorizationFilter
             - RateLimitingFilter
             - RequestResponseTransformationFilter
-            - RewritePath=/api/v1/crops/(?<segment>.*), /$\{segment}
+            - RewritePath=/api/v1/crops/(?<segment>.*), /api/v1/crops/$\{segment}
             - name: CircuitBreaker
               args:
                 name: cropCircuitBreaker

@@ -4,13 +4,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
- * Configuration for WebClient bean.
+ * Configuration for WebClient and RestTemplate beans.
  * 
  * Provides WebClient for making HTTP requests to external APIs
- * like data.gov.in and AGMARKNET.
+ * like data.gov.in and AGMARKNET, and RestTemplate for synchronous calls.
  */
 @Configuration
 public class WebClientConfig {
@@ -26,5 +27,15 @@ public class WebClientConfig {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.USER_AGENT, "Indian-Farmer-Assistance-App/1.0")
                 .build();
+    }
+    
+    /**
+     * Create RestTemplate bean for synchronous HTTP calls.
+     * 
+     * @return Configured RestTemplate
+     */
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }
