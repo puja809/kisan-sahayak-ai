@@ -1,8 +1,8 @@
-package com.farmer.mandi.controller;
+package com.farmer.cropservice.controller;
 
-import com.farmer.mandi.dto.CropRecommendationDashboardRequest;
-import com.farmer.mandi.dto.CropRecommendationDashboardResponse;
-import com.farmer.mandi.service.CropRecommendationDashboardService;
+import com.farmer.cropservice.dto.CropRecommendationDashboardRequest;
+import com.farmer.cropservice.dto.CropRecommendationDashboardResponse;
+import com.farmer.cropservice.service.CropRecommendationDashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
-package com.farmer.mandi.client;
+package com.farmer.cropservice.client;
 
-import com.farmer.mandi.dto.SoilDataResponse;
+import com.farmer.cropservice.dto.SoilDataResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

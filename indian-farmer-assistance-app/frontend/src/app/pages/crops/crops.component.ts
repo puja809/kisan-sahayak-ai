@@ -16,15 +16,15 @@ import { CropRecommendationService, DashboardResponse } from '../../services/cro
       <div *ngIf="dashboardData" class="info-banner">
         <div class="info-item">
           <span class="label">📍 Location:</span>
-          <span class="value">{{ dashboardData?.location }}</span>
+          <span class="value">{{ dashboardData.location }}</span>
         </div>
         <div class="info-item">
           <span class="label">🌡️ Temperature:</span>
-          <span class="value">{{ dashboardData?.weatherData?.current?.temp_c | number:'1.1-1' }}°C</span>
+          <span class="value">{{ dashboardData.weatherData.current.temp_c | number:'1.1-1' }}°C</span>
         </div>
         <div class="info-item">
           <span class="label">💧 Humidity:</span>
-          <span class="value">{{ dashboardData?.weatherData?.current?.humidity | number:'1.0-0' }}%</span>
+          <span class="value">{{ dashboardData.weatherData.current.humidity | number:'1.0-0' }}%</span>
         </div>
       </div>
       
@@ -726,7 +726,8 @@ export class CropsComponent implements OnInit {
       .slice(0, 5);
   }
 
-  getPhRating(ph: number): string {
+  getPhRating(ph: number | undefined): string {
+    if (!ph) return 'N/A';
     if (ph < 5.5) return 'Acidic';
     if (ph <= 7.5) return 'Neutral';
     return 'Alkaline';

@@ -1,6 +1,6 @@
-package com.farmer.mandi.client;
+package com.farmer.cropservice.client;
 
-import com.farmer.mandi.dto.WeatherDataResponse;
+import com.farmer.cropservice.dto.WeatherDataResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

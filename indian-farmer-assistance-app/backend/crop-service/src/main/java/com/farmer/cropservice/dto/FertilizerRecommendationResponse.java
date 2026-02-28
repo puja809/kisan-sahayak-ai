@@ -1,4 +1,4 @@
-package com.farmer.mandi.dto;
+package com.farmer.cropservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

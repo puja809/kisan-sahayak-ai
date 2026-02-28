@@ -1,10 +1,10 @@
-package com.farmer.mandi.service;
+package com.farmer.cropservice.service;
 
-import com.farmer.mandi.client.KaegroCropSoilApiClient;
-import com.farmer.mandi.client.MLServiceClient;
-import com.farmer.mandi.client.WeatherApiClient;
-import com.farmer.mandi.dto.*;
-import com.farmer.mandi.util.SoilTypeMapper;
+import com.farmer.cropservice.client.KaegroCropSoilApiClient;
+import com.farmer.cropservice.client.MLServiceClient;
+import com.farmer.cropservice.client.WeatherApiClient;
+import com.farmer.cropservice.dto.*;
+import com.farmer.cropservice.util.SoilTypeMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

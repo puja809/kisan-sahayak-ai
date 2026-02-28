@@ -6,7 +6,7 @@ export const environment = {
   services: {
     admin: 'http://localhost:8091',
     user: 'http://localhost:8099',
-    crop: 'http://localhost:8096',
+    crop: 'http://localhost:8093',
     iot: 'http://localhost:8094',
     location: 'http://localhost:8095',
     mandi: 'http://localhost:8096',

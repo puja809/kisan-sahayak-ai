@@ -1,8 +1,8 @@
-package com.farmer.mandi.client;
+package com.farmer.cropservice.client;
 
-import com.farmer.mandi.dto.FertilizerRecommendationRequest;
-import com.farmer.mandi.dto.FertilizerRecommendationResponse;
-import com.farmer.mandi.dto.CropRotationRequest;
+import com.farmer.cropservice.dto.FertilizerRecommendationRequest;
+import com.farmer.cropservice.dto.FertilizerRecommendationResponse;
+import com.farmer.cropservice.dto.CropRotationRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

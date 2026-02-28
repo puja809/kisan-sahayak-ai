@@ -1,0 +1,58 @@
+# Crop Service Configuration
+
+server:
+  port: ${CROP_SERVICE_PORT:8096}
+
+spring:
+  application:
+    name: crop-service
+  datasource:
+    url: ${CROP_DB_URL:jdbc:postgresql://localhost:5432/crop_service}
+    username: ${CROP_DB_USERNAME:postgres}
+    password: ${CROP_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# ML Service Configuration
+ml-service:
+  url: ${ML_SERVICE_URL:http://localhost:8001}
+
+# Weather API Configuration
+weather-api:
+  key: ${WEATHER_API_KEY:}
+  url: https://api.weatherapi.com/v1
+
+# Logging Configuration
+logging:
+  level:
+    com.farmer.cropservice: DEBUG
+    org.springframework.web: INFO
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+  show-actuator: true
+  use-fqn: true

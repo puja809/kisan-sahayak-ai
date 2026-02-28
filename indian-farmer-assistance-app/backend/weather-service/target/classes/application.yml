@@ -7,7 +7,7 @@ spring:
   datasource:
     url: ${WEATHER_DB_URL:jdbc:postgresql://localhost:5432/farmer_assistance}
     username: ${WEATHER_DB_USERNAME:postgres}
-    password: ${WEATHER_DB_PASSWORD:password}
+    password: ${WEATHER_DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 2

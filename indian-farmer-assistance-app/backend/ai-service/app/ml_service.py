@@ -9,6 +9,7 @@ import logging
 from crop_recommendation_model import CropRecommendationModel
 from crop_rotation_model import CropRotationModel
 from fertilizer_recommendation_model import FertilizerRecommendationModel
+from crop_name_mapper import map_crop_name
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -153,8 +154,12 @@ async def predict_fertilizer(request: FertilizerRecommendationRequest):
         if fertilizer_model is None:
             raise HTTPException(status_code=503, detail="Fertilizer recommendation model not loaded")
         
+        # Map crop name to ensure it's in the fertilizer model's training data
+        mapped_crop = map_crop_name(request.crop)
+        logger.info(f"Mapped crop '{request.crop}' to '{mapped_crop}' for fertilizer prediction")
+        
         result = fertilizer_model.predict(
-            crop=request.crop,
+            crop=mapped_crop,
             soil_type=request.soilType,
             soil_pH=request.soilPH,
             temperature=request.temperature,
