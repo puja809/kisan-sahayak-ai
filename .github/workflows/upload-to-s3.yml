@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'documents/official-docs/**'
+  workflow_dispatch:
 
 jobs:
   upload:
