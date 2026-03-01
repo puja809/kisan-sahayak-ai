@@ -3,7 +3,7 @@ name: Upload Documents to S3
 on:
   push:
     paths:
-      - 'documents/**'
+      - 'documents/official-docs'
 
 jobs:
   upload:
