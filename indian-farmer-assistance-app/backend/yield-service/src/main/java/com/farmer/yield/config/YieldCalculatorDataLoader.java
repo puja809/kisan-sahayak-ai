@@ -33,7 +33,7 @@ public class YieldCalculatorDataLoader implements CommandLineRunner {
         log.info("Loading yield calculator data from JSON file");
         
         try {
-            ClassPathResource resource = new ClassPathResource("ultimate_calculator_app.json");
+            ClassPathResource resource = new ClassPathResource("data/ultimate_calculator_app.json");
             InputStream inputStream = resource.getInputStream();
             JsonNode rootNode = objectMapper.readTree(inputStream);
 
@@ -61,8 +61,8 @@ public class YieldCalculatorDataLoader implements CommandLineRunner {
 
                     yieldCalculatorRepository.save(calculator);
                 }
-
                 log.info("Successfully loaded {} yield calculator records", priceStats.size());
+                log.info("Saved- Data Size = {} records", yieldCalculatorRepository.findAll().size());
             }
         } catch (Exception e) {
             log.error("Error loading yield calculator data: {}", e.getMessage(), e);

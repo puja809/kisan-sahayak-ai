@@ -4,15 +4,6 @@ server:
 spring:
   application:
     name: yield-service
-  eureka:
-    client:
-      service-url:
-        defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
-      register-with-eureka: true
-      fetch-registry: true
-    instance:
-      prefer-ip-address: true
-      instance-id: ${spring.application.name}:${server.port}
   datasource:
     url: ${YIELD_DB_URL:jdbc:postgresql://localhost:5432/farmer_assistance}
     username: ${YIELD_DB_USERNAME:postgres}
@@ -28,11 +19,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  data:
-    mongodb:
-      uri: ${YIELD_MONGODB_URI:mongodb://localhost:27017/farmer_assistance}
-      database: farmer_assistance
-
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 logging:
   level:
     com.farmer.yield: INFO

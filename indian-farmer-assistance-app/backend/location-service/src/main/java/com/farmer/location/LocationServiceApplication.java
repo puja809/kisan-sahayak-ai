@@ -20,17 +20,20 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * - Requirement 14.5: Fallback to network-based location or manual selection
  * - Requirement 7.1-7.7: Government body locator (KVK, district agriculture office, state department)
  */
-@SpringBootApplication
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+
+@SpringBootApplication(exclude = {
+        RedisAutoConfiguration.class,
+        RedisRepositoriesAutoConfiguration.class,
+        MongoAutoConfiguration.class,
+        MongoDataAutoConfiguration.class
+})
 @EnableScheduling
 @EnableDiscoveryClient
-@OpenAPIDefinition(
-    info = @Info(
-        title = "Location Service API",
-        version = "1.0.0",
-        description = "Location services with GPS, reverse geocoding, and government body locator",
-        contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")
-    )
-)
+@OpenAPIDefinition(info = @Info(title = "Location Service API", version = "1.0.0", description = "Location services with GPS, reverse geocoding, and government body locator", contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")))
 public class LocationServiceApplication {
 
     public static void main(String[] args) {

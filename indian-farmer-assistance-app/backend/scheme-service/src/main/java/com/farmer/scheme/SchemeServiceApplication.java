@@ -13,16 +13,19 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * 
  * Requirements: 4.1, 4.2, 11D.10
  */
-@SpringBootApplication
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+
+@SpringBootApplication(exclude = {
+        RedisAutoConfiguration.class,
+        RedisRepositoriesAutoConfiguration.class,
+        MongoAutoConfiguration.class,
+        MongoDataAutoConfiguration.class
+})
 @EnableDiscoveryClient
-@OpenAPIDefinition(
-    info = @Info(
-        title = "Scheme Service API",
-        version = "1.0.0",
-        description = "Government schemes catalog and application tracking service",
-        contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")
-    )
-)
+@OpenAPIDefinition(info = @Info(title = "Scheme Service API", version = "1.0.0", description = "Government schemes catalog and application tracking service", contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")))
 public class SchemeServiceApplication {
 
     public static void main(String[] args) {

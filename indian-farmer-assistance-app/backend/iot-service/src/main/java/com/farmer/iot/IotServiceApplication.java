@@ -13,17 +13,20 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * Provides device provisioning, sensor data collection, threshold monitoring,
  * and alert generation for farm IoT devices.
  */
-@SpringBootApplication
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+
+@SpringBootApplication(exclude = {
+        RedisAutoConfiguration.class,
+        RedisRepositoriesAutoConfiguration.class,
+        MongoAutoConfiguration.class,
+        MongoDataAutoConfiguration.class
+})
 @EnableScheduling
 @EnableDiscoveryClient
-@OpenAPIDefinition(
-    info = @Info(
-        title = "IoT Service API",
-        version = "1.0.0",
-        description = "IoT device management service for farm monitoring",
-        contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")
-    )
-)
+@OpenAPIDefinition(info = @Info(title = "IoT Service API", version = "1.0.0", description = "IoT device management service for farm monitoring", contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")))
 public class IotServiceApplication {
 
     public static void main(String[] args) {

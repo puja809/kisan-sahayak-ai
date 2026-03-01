@@ -271,12 +271,14 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${WEATHER_DB_PASSWORD:-farmer_password}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      WEATHER_API_KEY: ${WEATHER_API_KEY:-}
+      WEATHER_API_URL: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
     ports:
-      - "${WEATHER_SERVICE_PORT:-8092}:8092"
+      - "${WEATHER_SERVICE_PORT:-8100}:8100"
     networks:
       - farmer-network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8092/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8100/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -295,14 +297,14 @@ services:
       SPRING_DATASOURCE_URL: ${YIELD_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       SPRING_DATASOURCE_USERNAME: ${YIELD_DB_USERNAME:-farmer}
       SPRING_DATASOURCE_PASSWORD: ${YIELD_DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
+      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-      - "${YIELD_SERVICE_PORT:-8098}:8098"
+      - "${YIELD_SERVICE_PORT:-8101}:8101"
     networks:
       - farmer-network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8098/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8101/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -343,6 +345,7 @@ services:
     environment:
       API_URL: ${API_URL:-http://localhost:8080}
     ports:
+      - "80:4200"
       - "4200:4200"
     depends_on:
       - api-gateway
