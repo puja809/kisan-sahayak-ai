@@ -3,7 +3,7 @@ name: Upload Documents to S3
 on:
   push:
     paths:
-      - 'documents/official-docs'
+      - 'documents/official-docs/**'
 
 jobs:
   upload:
@@ -22,4 +22,4 @@ jobs:
 
       - name: Sync Documents to S3
         run: |
-          aws s3 sync documents/ s3://${{ secrets.S3_BUCKET }}/documents/
+          aws s3 sync documents/official-docs/ s3://${{ secrets.S3_BUCKET }}/documents/
