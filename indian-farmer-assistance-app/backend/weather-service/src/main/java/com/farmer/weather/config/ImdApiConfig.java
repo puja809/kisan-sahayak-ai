@@ -1,5 +1,7 @@
 package com.farmer.weather.config;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,32 +64,11 @@ public class ImdApiConfig {
 /**
  * Properties for IMD API configuration.
  */
+@Getter
+@AllArgsConstructor
 class ImdApiProperties {
     private final String baseUrl;
     private final String apiKey;
     private final int timeoutSeconds;
     private final int rateLimitRequestsPerMinute;
-
-    public ImdApiProperties(String baseUrl, String apiKey, int timeoutSeconds, int rateLimitRequestsPerMinute) {
-        this.baseUrl = baseUrl;
-        this.apiKey = apiKey;
-        this.timeoutSeconds = timeoutSeconds;
-        this.rateLimitRequestsPerMinute = rateLimitRequestsPerMinute;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public int getTimeoutSeconds() {
-        return timeoutSeconds;
-    }
-
-    public int getRateLimitRequestsPerMinute() {
-        return rateLimitRequestsPerMinute;
-    }
 }

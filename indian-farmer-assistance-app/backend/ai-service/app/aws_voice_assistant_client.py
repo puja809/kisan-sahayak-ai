@@ -91,7 +91,7 @@ def ask_question(question: str) -> Dict:
             logger.info("Successfully parsed JSON response")
             
             # Validate response has answer field
-            if "answer" not in response_data:
+            if "text" not in response_data:
                 logger.warning("Response missing 'answer' field")
                 return {
                     "success": False,
@@ -102,7 +102,7 @@ def ask_question(question: str) -> Dict:
             
             return {
                 "success": True,
-                "answer": response_data["answer"],
+                "answer": response_data["text"],
                 "status_code": response.status_code,
                 "response": response_data
             }

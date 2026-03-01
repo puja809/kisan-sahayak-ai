@@ -14,6 +14,19 @@ from fertilizer_recommendation_model import FertilizerRecommendationModel
 from crop_name_mapper import map_crop_name
 from aws_voice_assistant_client import ask_question
 import py_eureka_client.eureka_client as eureka_client
+from dotenv import load_dotenv
+
+# Load environment variables from .env file (for local development)
+try:
+    # Try to find .env in project root
+    env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../.env'))
+    if os.path.exists(env_path):
+        load_dotenv(env_path)
+    else:
+        # Fallback to current directory
+        load_dotenv()
+except Exception as e:
+    logger.warning(f"Could not load .env file: {e}")
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
