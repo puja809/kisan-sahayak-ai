@@ -28,42 +28,42 @@ spring:
             allowCredentials: true
       routes:
       - id: user-service
-        uri: http://user-service:8099
+        uri: http://user-service.farmer-network.local:8099
         predicates:
         - Path=/api/v1/auth/**, /api/v1/users/**, /api/v1/admin/roles/**
       - id: crop-service
-        uri: http://crop-service:8096
+        uri: http://crop-service.farmer-network.local:8096
         predicates:
         - Path=/api/v1/crops/**
       - id: location-service
-        uri: http://location-service:8097
+        uri: http://location-service.farmer-network.local:8097
         predicates:
         - Path=/api/v1/government-bodies/**
       - id: mandi-service
-        uri: http://mandi-service:8093
+        uri: http://mandi-service.farmer-network.local:8093
         predicates:
         - Path=/api/v1/mandi/**, /api/mandi/**, /api/v1/fertilizer/**
       - id: scheme-service
-        uri: http://scheme-service:8094
+        uri: http://scheme-service.farmer-network.local:8094
         predicates:
         - Path=/api/v1/schemes/**, /api/v1/admin/schemes/**, /api/v1/scheme-applications/**
       - id: admin-service
-        uri: http://admin-service:8098
+        uri: http://admin-service.farmer-network.local:8098
         predicates:
         - Path=/api/v1/admin/documents/**, /api/v1/admin/audit/**
       - id: iot-service
-        uri: http://iot-service:8092
+        uri: http://iot-service.farmer-network.local:8092
         predicates:
         - Path=/api/v1/iot/**
       - id: weather-service
-        uri: http://weather-service:8100
+        uri: http://weather-service.farmer-network.local:8100
         predicates:
         - Path=/api/v1/weather/**
       - id: yield-service
-        uri: http://yield-service:8101
+        uri: http://yield-service.farmer-network.local:8101
         predicates:
         - Path=/api/v1/crops/yield/**, /api/v1/ai/yield/**, /api/crops/yield/**
       - id: ai-ml-service
-        uri: http://ml-service:8001
+        uri: http://ml-service.farmer-network.local:8001
         predicates:
         - Path=/api/ml/**

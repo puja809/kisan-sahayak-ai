@@ -219,8 +219,9 @@ async def ask_voice_question(request: VoiceAssistantRequest):
             }
         else:
             logger.error(f"AWS API error: {result.get('error')}")
+            status_code = result.get('status_code')
             raise HTTPException(
-                status_code=result.get('status_code', 500),
+                status_code=status_code if status_code else 500,
                 detail=result.get('error', 'Failed to get answer from AWS API')
             )
     

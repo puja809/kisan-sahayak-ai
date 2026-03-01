@@ -18,9 +18,9 @@ export interface VoiceAssistantResponse {
   providedIn: 'root'
 })
 export class VoiceAssistantService {
-  private apiUrl = `${environment.services.ai}/api/ml/ask-question`;
+  private apiUrl = '/api/ml/ask-question';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   askQuestion(question: string): Observable<VoiceAssistantResponse> {
     const payload: VoiceAssistantRequest = {

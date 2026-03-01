@@ -1,22 +1,8 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080/api/v1',
+  apiUrl: 'http://localhost:8080',
   wsUrl: 'ws://localhost:8080/ws',
   appVersion: '1.0.0-SNAPSHOT',
-  services: {
-    admin: 'http://localhost:8080',
-    user: 'http://localhost:8080',
-    crop: 'http://localhost:8080',
-    iot: 'http://localhost:8080',
-    location: 'http://localhost:8080',
-    mandi: 'http://localhost:8080',
-    scheme: 'http://localhost:8080',
-    weather: 'http://localhost:8080',
-    yield: 'http://localhost:8080',
-    sync: 'http://localhost:8080',
-    bandwidth: 'http://localhost:8080',
-    ai: 'http://localhost:8080',
-  },
   supportedLanguages: [
     { code: 'en', name: 'English' },
     { code: 'hi', name: 'हिंदी (Hindi)' },
