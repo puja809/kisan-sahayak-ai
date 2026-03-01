@@ -17,7 +17,6 @@ COPY admin-service ./admin-service
 COPY iot-service ./iot-service
 COPY weather-service ./weather-service
 COPY yield-service ./yield-service
-COPY eureka-server ./eureka-server
 
 # Support BuildKit caching for .m2
 RUN \

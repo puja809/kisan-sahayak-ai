@@ -662,7 +662,7 @@ export class CropsComponent implements OnInit {
   constructor(
     private cropRecommendationService: CropRecommendationService,
     private geolocationService: GeolocationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -672,26 +672,29 @@ export class CropsComponent implements OnInit {
     this.geolocationService.getCurrentLocation().subscribe({
       next: (location: any) => {
         if (location) {
-          this.currentLocation = location;
-          this.cropRecommendationService.getDashboardRecommendations(
-            location.latitude,
-            location.longitude
-          ).subscribe({
-            next: (data: DashboardResponse) => {
-              this.dashboardData = data;
-              this.loading = false;
-            },
-            error: (error: any) => {
-              console.error('Failed to load dashboard data:', error);
-              this.loading = false;
-            }
-          });
+          this.fetchRecommendations(location.latitude, location.longitude);
         } else {
-          this.loading = false;
+          console.warn('Geolocation null, falling back to Pune coordinates (18.5204, 73.8567)');
+          this.fetchRecommendations(18.5204, 73.8567);
         }
       },
       error: (error: any) => {
         console.error('Failed to get location:', error);
+        console.warn('Geolocation denied or failed, falling back to Pune coordinates (18.5204, 73.8567)');
+        this.fetchRecommendations(18.5204, 73.8567);
+      }
+    });
+  }
+
+  private fetchRecommendations(lat: number, lng: number): void {
+    this.currentLocation = { latitude: lat, longitude: lng };
+    this.cropRecommendationService.getDashboardRecommendations(lat, lng).subscribe({
+      next: (data: DashboardResponse) => {
+        this.dashboardData = data;
+        this.loading = false;
+      },
+      error: (error: any) => {
+        console.error('Failed to load dashboard data:', error);
         this.loading = false;
       }
     });

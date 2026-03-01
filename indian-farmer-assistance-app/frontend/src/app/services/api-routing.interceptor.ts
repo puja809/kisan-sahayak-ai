@@ -15,27 +15,6 @@ import { environment } from '../../environments/environment';
  */
 @Injectable()
 export class ApiRoutingInterceptor implements HttpInterceptor {
-    // Order matters: more-specific prefixes first
-    private readonly routeMap: { prefix: string; baseUrl: string }[] = [
-        { prefix: '/api/v1/admin', baseUrl: environment.services.admin },
-        { prefix: '/api/v1/auth', baseUrl: environment.services.user },
-        { prefix: '/api/v1/users', baseUrl: environment.services.user },
-        { prefix: '/api/v1/crops/yield', baseUrl: environment.services.yield },
-        { prefix: '/api/v1/ai/yield', baseUrl: environment.services.yield },
-        { prefix: '/api/v1/yield', baseUrl: environment.services.yield },
-        { prefix: '/api/v1/crops', baseUrl: environment.services.crop },
-        { prefix: '/api/v1/iot', baseUrl: environment.services.iot },
-        { prefix: '/api/v1/location', baseUrl: environment.services.location },
-        { prefix: '/api/v1/fertilizer', baseUrl: environment.services.mandi },
-        { prefix: '/api/v1/mandi', baseUrl: environment.services.mandi },
-        { prefix: '/api/mandi', baseUrl: environment.services.mandi }, // New filter endpoints
-        { prefix: '/api/v1/schemes', baseUrl: environment.services.scheme },
-        { prefix: '/api/v1/weather', baseUrl: environment.services.weather },
-        { prefix: '/api/v1/sync', baseUrl: environment.services.sync },
-        { prefix: '/api/v1/bandwidth', baseUrl: environment.services.bandwidth },
-        { prefix: '/api/v1/ai', baseUrl: environment.services.ai }
-    ];
-
     intercept(
         request: HttpRequest<unknown>,
         next: HttpHandler
@@ -45,16 +24,8 @@ export class ApiRoutingInterceptor implements HttpInterceptor {
             return next.handle(request);
         }
 
-        for (const route of this.routeMap) {
-            if (request.url.startsWith(route.prefix)) {
-                const rewrittenUrl = `${route.baseUrl}${request.url}`;
-                const cloned = request.clone({ url: rewrittenUrl });
-                return next.handle(cloned);
-            }
-        }
-
-        // Fallback: send to the main gateway
-        const fallbackUrl = `${environment.apiUrl.replace('/api/v1', '')}${request.url}`;
-        return next.handle(request.clone({ url: fallbackUrl }));
+        // Clean prefix logic: prepend the environment apiUrl (e.g. 'http://localhost:8080' or '')
+        const rewrittenUrl = `${environment.apiUrl}${request.url}`;
+        return next.handle(request.clone({ url: rewrittenUrl }));
     }
 }

@@ -1,0 +1,1028 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS ECS Deployment for Indian Farmer Assistance App (Low Resources)
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select your existing VPC
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Select at least two subnets in your VPC
+Resources:
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: farmer-ecs-cluster
+  EcsTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statements:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ecs-tasks.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  CloudMapNamespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: farmer-network.local
+      Vpc:
+        Ref: VpcId
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow internal communication and API Gateway access
+      VpcId:
+        Ref: VpcId
+      SecurityGroupIngress:
+      - IpProtocol: '-1'
+        SourceSecurityGroupId:
+          Fn::GetAtt:
+          - SecurityGroup
+          - GroupId
+      - IpProtocol: tcp
+        FromPort: 8080
+        ToPort: 8080
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+  AppLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: farmer-alb
+      Subnets:
+        Ref: Subnets
+      SecurityGroups:
+      - Fn::GetAtt:
+        - SecurityGroup
+        - GroupId
+      Type: application
+  ApiGatewayTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: api-gateway-targets
+      Port: 8080
+      Protocol: HTTP
+      VpcId:
+        Ref: VpcId
+      TargetType: ip
+      HealthCheckPath: /actuator/health
+      Matcher:
+        HttpCode: '200'
+  FrontendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: frontend-targets
+      Port: 80
+      Protocol: HTTP
+      VpcId:
+        Ref: VpcId
+      TargetType: ip
+  AlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: FrontendTargetGroup
+      LoadBalancerArn:
+        Ref: AppLoadBalancer
+      Port: 80
+      Protocol: HTTP
+  ApiGatewayRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: ApiGatewayTargetGroup
+      Conditions:
+      - Field: path-pattern
+        Values:
+        - /api/*
+        - /actuator/*
+      ListenerArn:
+        Ref: AlbListener
+      Priority: 10
+  ApiGatewayTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: api-gateway
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: api-gateway
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-api-gateway:latest
+        PortMappings:
+        - ContainerPort: 8080
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${DB_USER:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-api-gateway
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  ApiGatewayDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: api-gateway
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  ApiGatewayEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: api-gateway
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: ApiGatewayTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - ApiGatewayDiscoveryService
+          - Arn
+      LoadBalancers:
+      - ContainerName: api-gateway
+        ContainerPort: 8080
+        TargetGroupArn:
+          Ref: ApiGatewayTargetGroup
+  UserServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: user-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: user-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-user-service:latest
+        PortMappings:
+        - ContainerPort: 8099
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${USER_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${USER_DB_USERNAME:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${USER_DB_PASSWORD:-farmer_password}
+        - Name: USER_DB_URL
+          Value: ${USER_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: USER_DB_USERNAME
+          Value: ${USER_DB_USERNAME:-farmer}
+        - Name: USER_DB_PASSWORD
+          Value: ${USER_DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        - Name: JWT_EXPIRATION
+          Value: ${JWT_EXPIRATION:-86400000}
+        - Name: JWT_REFRESH_EXPIRATION
+          Value: ${JWT_REFRESH_EXPIRATION:-604800000}
+        - Name: JWT_ISSUER
+          Value: ${JWT_ISSUER:-indian-farmer-assistance}
+        - Name: USER_AGRISTACK_API_KEY
+          Value: ${USER_AGRISTACK_API_KEY:-}
+        - Name: AGRISTACK_BASE_URL
+          Value: ${AGRISTACK_BASE_URL:-https://api.agristack.gov.in}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-user-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  UserServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: user-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  UserServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: user-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: UserServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - UserServiceDiscoveryService
+          - Arn
+  CropServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: crop-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: crop-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-crop-service:latest
+        PortMappings:
+        - ContainerPort: 8096
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${CROP_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${CROP_DB_USERNAME:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${CROP_DB_PASSWORD:-farmer_password}
+        - Name: CROP_DB_URL
+          Value: ${CROP_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: CROP_DB_USERNAME
+          Value: ${CROP_DB_USERNAME:-farmer}
+        - Name: CROP_DB_PASSWORD
+          Value: ${CROP_DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        - Name: ML_SERVICE_URL
+          Value: ${ML_SERVICE_URL:-http://ml-service:8001}
+        - Name: WEATHER_API_KEY
+          Value: ${WEATHER_API_KEY:-}
+        - Name: WEATHER_API_URL
+          Value: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
+        - Name: KAEGRO_API_KEY
+          Value: ${KAEGRO_API_KEY:-}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-crop-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  CropServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: crop-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  CropServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: crop-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: CropServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - CropServiceDiscoveryService
+          - Arn
+  LocationServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: location-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: location-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-location-service:latest
+        PortMappings:
+        - ContainerPort: 8095
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${LOCATION_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${LOCATION_DB_USERNAME:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${LOCATION_DB_PASSWORD:-farmer_password}
+        - Name: LOCATION_DB_URL
+          Value: ${LOCATION_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: LOCATION_DB_USERNAME
+          Value: ${LOCATION_DB_USERNAME:-farmer}
+        - Name: LOCATION_DB_PASSWORD
+          Value: ${LOCATION_DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        - Name: JWT_EXPIRATION
+          Value: ${JWT_EXPIRATION:-86400000}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-location-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  LocationServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: location-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  LocationServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: location-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: LocationServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - LocationServiceDiscoveryService
+          - Arn
+  MandiServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: mandi-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: mandi-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-mandi-service:latest
+        PortMappings:
+        - ContainerPort: 8093
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${MANDI_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${MANDI_DB_USERNAME:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${MANDI_DB_PASSWORD:-farmer_password}
+        - Name: MANDI_DB_URL
+          Value: ${MANDI_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: MANDI_DB_USERNAME
+          Value: ${MANDI_DB_USERNAME:-farmer}
+        - Name: MANDI_DB_PASSWORD
+          Value: ${MANDI_DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        - Name: ML_SERVICE_URL
+          Value: ${ML_SERVICE_URL:-http://ml-service:8001}
+        - Name: WEATHER_API_KEY
+          Value: ${WEATHER_API_KEY:-}
+        - Name: WEATHER_API_URL
+          Value: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
+        - Name: MANDI_DATAGOV_PRICE_API_KEY
+          Value: ${MANDI_DATAGOV_PRICE_API_KEY:-}
+        - Name: MANDI_DATAGOV_PRICE_API_URL
+          Value: ${MANDI_DATAGOV_PRICE_API_URL:-https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070}
+        - Name: MANDI_DATAGOV_FERTILIZER_API_KEY
+          Value: ${MANDI_DATAGOV_FERTILIZER_API_KEY:-}
+        - Name: MANDI_DATAGOV_FERTILIZER_API_URL
+          Value: ${MANDI_DATAGOV_FERTILIZER_API_URL:-https://api.data.gov.in/resource/56f40018-fd03-4010-94a3-f34ca7b43f7c}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-mandi-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  MandiServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: mandi-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  MandiServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: mandi-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: MandiServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - MandiServiceDiscoveryService
+          - Arn
+  SchemeServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: scheme-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: scheme-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-scheme-service:latest
+        PortMappings:
+        - ContainerPort: 8097
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${SCHEME_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${SCHEME_DB_USERNAME:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${SCHEME_DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-scheme-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  SchemeServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: scheme-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  SchemeServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: scheme-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: SchemeServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - SchemeServiceDiscoveryService
+          - Arn
+  AdminServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: admin-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: admin-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-admin-service:latest
+        PortMappings:
+        - ContainerPort: 8091
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${ADMIN_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${ADMIN_DB_USERNAME:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${ADMIN_DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-admin-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  AdminServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: admin-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  AdminServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: admin-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: AdminServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - AdminServiceDiscoveryService
+          - Arn
+  IotServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: iot-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: iot-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-iot-service:latest
+        PortMappings:
+        - ContainerPort: 8094
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${IOT_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${IOT_DB_USERNAME:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${IOT_DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-iot-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  IotServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: iot-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  IotServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: iot-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: IotServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - IotServiceDiscoveryService
+          - Arn
+  WeatherServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: weather-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: weather-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-weather-service:latest
+        PortMappings:
+        - ContainerPort: 8100
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${WEATHER_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${WEATHER_DB_USERNAME:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${WEATHER_DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        - Name: WEATHER_API_KEY
+          Value: ${WEATHER_API_KEY:-}
+        - Name: WEATHER_API_URL
+          Value: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-weather-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  WeatherServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: weather-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  WeatherServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: weather-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: WeatherServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - WeatherServiceDiscoveryService
+          - Arn
+  YieldServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: yield-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: yield-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-yield-service:latest
+        PortMappings:
+        - ContainerPort: 8101
+          Protocol: tcp
+        Environment:
+        - Name: SPRING_PROFILES_ACTIVE
+          Value: docker
+        - Name: SPRING_DATASOURCE_URL
+          Value: ${YIELD_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+        - Name: SPRING_DATASOURCE_USERNAME
+          Value: ${YIELD_DB_USERNAME:-farmer}
+        - Name: SPRING_DATASOURCE_PASSWORD
+          Value: ${YIELD_DB_PASSWORD:-farmer_password}
+        - Name: JWT_SECRET
+          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-yield-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  YieldServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: yield-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  YieldServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: yield-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: YieldServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - YieldServiceDiscoveryService
+          - Arn
+  MlServiceTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: ml-service
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: ml-service
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-ml-service:latest
+        PortMappings:
+        - ContainerPort: 8001
+          Protocol: tcp
+        Environment:
+        - Name: PYTHONUNBUFFERED
+          Value: '1'
+        - Name: INSTANCE_HOST
+          Value: ml-service
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-ml-service
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  MlServiceDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: ml-service
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  MlServiceEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: ml-service
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: MlServiceTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - MlServiceDiscoveryService
+          - Arn
+  FrontendTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: frontend
+      Cpu: '256'
+      Memory: '512'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Ref: EcsTaskExecutionRole
+      ContainerDefinitions:
+      - Name: frontend
+        Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-frontend:latest
+        PortMappings:
+        - ContainerPort: 4200
+          Protocol: tcp
+        Environment:
+        - Name: API_URL
+          Value: ${API_URL:-http://localhost:8080}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: /ecs/farmer-frontend
+            awslogs-region: us-east-1
+            awslogs-stream-prefix: ecs
+            awslogs-create-group: 'true'
+  FrontendDiscoveryService:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: frontend
+      DnsConfig:
+        NamespaceId:
+          Ref: CloudMapNamespace
+        DnsRecords:
+        - Type: A
+          TTL: 60
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+  FrontendEcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: frontend
+      Cluster:
+        Ref: EcsCluster
+      TaskDefinition:
+        Ref: FrontendTaskDef
+      LaunchType: FARGATE
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Fn::GetAtt:
+            - SecurityGroup
+            - GroupId
+          Subnets:
+            Ref: Subnets
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - FrontendDiscoveryService
+          - Arn
+      LoadBalancers:
+      - ContainerName: frontend
+        ContainerPort: 80
+        TargetGroupArn:
+          Ref: FrontendTargetGroup
+Outputs:
+  AlbDnsName:
+    Description: The DNS name of the Application Load Balancer
+    Value:
+      Fn::GetAtt:
+      - AppLoadBalancer
+      - DNSName

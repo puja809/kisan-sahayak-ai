@@ -1,9 +1,5 @@
-# API Gateway Configuration
-# Environment: ${SPRING_PROFILES_ACTIVE:dev}
-
 server:
   port: ${GATEWAY_SERVICE_PORT:8080}
-
 spring:
   application:
     name: api-gateway
@@ -12,7 +8,8 @@ spring:
   cloud:
     gateway:
       default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+      - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials,
+        RETAIN_FIRST
       discovery:
         locator:
           enabled: true
@@ -20,99 +17,53 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOriginPatterns: "*"
+            allowedOriginPatterns: '*'
             allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+            allowedHeaders: '*'
             allowCredentials: true
       routes:
-        # User Service - Authentication and User Management
-        # Endpoints: /api/v1/auth/**, /api/v1/users/**, /api/v1/admin/roles/**
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/v1/auth/**, /api/v1/users/**, /api/v1/admin/roles/**
-
-        # Crop Service - Crop Recommendations and Rotation
-        # Endpoints: /api/v1/crops/dashboard/**, /api/v1/crops/yield/**
-        - id: crop-service
-          uri: lb://crop-service
-          predicates:
-            - Path=/api/v1/crops/**
-
-        # Location Service - Government Bodies and Locations
-        # Endpoints: /api/v1/government-bodies/**
-        - id: location-service
-          uri: lb://location-service
-          predicates:
-            - Path=/api/v1/government-bodies/**
-
-        # Mandi Service - Market Prices and Fertilizer Suppliers
-        # Endpoints: /api/v1/mandi/**, /api/mandi/**, /api/v1/fertilizer/**
-        - id: mandi-service
-          uri: lb://mandi-service
-          predicates:
-            - Path=/api/v1/mandi/**, /api/mandi/**, /api/v1/fertilizer/**
-
-        # Scheme Service - Government Schemes and Applications
-        # Endpoints: /api/v1/schemes/**, /api/v1/admin/schemes/**, /api/v1/scheme-applications/**
-        - id: scheme-service
-          uri: lb://scheme-service
-          predicates:
-            - Path=/api/v1/schemes/**, /api/v1/admin/schemes/**, /api/v1/scheme-applications/**
-
-        # Admin Service - Admin Operations, Documents, and Audit Logs
-        # Endpoints: /api/v1/admin/documents/**, /api/v1/admin/audit/**
-        - id: admin-service
-          uri: lb://admin-service
-          predicates:
-            - Path=/api/v1/admin/documents/**, /api/v1/admin/audit/**
-
-        # IoT Service - IoT Device Management and Sensor Data
-        # Endpoints: /api/v1/iot/**
-        - id: iot-service
-          uri: lb://iot-service
-          predicates:
-            - Path=/api/v1/iot/**
-
-        # Weather Service - Weather Data and Forecasts
-        # Endpoints: /api/v1/weather/**
-        - id: weather-service
-          uri: lb://weather-service
-          predicates:
-            - Path=/api/v1/weather/**
-
-        # Yield Service - Crop Yield Predictions and Analytics
-        # Endpoints: /api/v1/crops/yield/**, /api/v1/ai/yield/**
-        - id: yield-service
-          uri: lb://yield-service
-          predicates:
-            - Path=/api/v1/crops/yield/**, /api/v1/ai/yield/**
-
-        # AI/ML Service - Crop Prediction, Rotation, Fertilizer Recommendation
-        # Endpoints: /api/ml/**
-        - id: ai-ml-service
-          uri: lb://ai-ml-service
-          predicates:
-            - Path=/api/ml/**
-
-        # Eureka Server - Service Discovery
-        - id: eureka-server
-          uri: http://eureka-server:8761
-          predicates:
-            - Path=/eureka/**
-          filters:
-            - StripPrefix=1
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
-    registerWithEureka: true
-    fetchRegistry: true
-  instance:
-    preferIpAddress: true
+      - id: user-service
+        uri: http://user-service.farmer-network.local:8099
+        predicates:
+        - Path=/api/v1/auth/**, /api/v1/users/**, /api/v1/admin/roles/**
+      - id: crop-service
+        uri: http://crop-service.farmer-network.local:8096
+        predicates:
+        - Path=/api/v1/crops/**
+      - id: location-service
+        uri: http://location-service.farmer-network.local:8097
+        predicates:
+        - Path=/api/v1/government-bodies/**
+      - id: mandi-service
+        uri: http://mandi-service.farmer-network.local:8093
+        predicates:
+        - Path=/api/v1/mandi/**, /api/mandi/**, /api/v1/fertilizer/**
+      - id: scheme-service
+        uri: http://scheme-service.farmer-network.local:8094
+        predicates:
+        - Path=/api/v1/schemes/**, /api/v1/admin/schemes/**, /api/v1/scheme-applications/**
+      - id: admin-service
+        uri: http://admin-service.farmer-network.local:8098
+        predicates:
+        - Path=/api/v1/admin/documents/**, /api/v1/admin/audit/**
+      - id: iot-service
+        uri: http://iot-service.farmer-network.local:8092
+        predicates:
+        - Path=/api/v1/iot/**
+      - id: weather-service
+        uri: http://weather-service.farmer-network.local:8100
+        predicates:
+        - Path=/api/v1/weather/**
+      - id: yield-service
+        uri: http://yield-service.farmer-network.local:8101
+        predicates:
+        - Path=/api/v1/crops/yield/**, /api/v1/ai/yield/**, /api/crops/yield/**
+      - id: ai-ml-service
+        uri: http://ml-service.farmer-network.local:8001
+        predicates:
+        - Path=/api/ml/**
