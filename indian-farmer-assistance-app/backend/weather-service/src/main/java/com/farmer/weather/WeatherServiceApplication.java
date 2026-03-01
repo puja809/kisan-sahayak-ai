@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Bean;
  * Provides weather data integration with IMD API for farmer assistance.
  */
 @SpringBootApplication
-@EnableDiscoveryClient
+
 @OpenAPIDefinition(
     info = @Info(
         title = "Weather Service API",

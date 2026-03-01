@@ -37,16 +37,6 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
-
 # Custom application configuration
 app:
   session-id: c05a946fe7c08b9859bbcc2813af5fd177f1a2c9ebcc657343605e380196a165

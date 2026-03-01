@@ -33,7 +33,7 @@ export interface YieldCalculationResponse {
 })
 export class YieldCalculatorService {
 
-  private yieldApiUrl = `${environment.services.yield}/api/crops/yield/calculate`;
+  private yieldApiUrl = `${environment.services.yield}/api/v1/crops/yield/calculate`;
   private mandiApiUrl = `${environment.services.mandi}/api/mandi/filter/commodities`;
 
   constructor(private http: HttpClient) { }

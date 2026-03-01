@@ -1,26 +1,5 @@
 version: '3.8'
-
 services:
-  # ==================== BACKEND SERVICES ====================
-
-  # Eureka Server (Service Registry)
-  eureka-server:
-    build:
-      context: ./backend
-      dockerfile: eureka-server/Dockerfile
-    container_name: farmer-eureka-server
-    ports:
-      - "${EUREKA_SERVER_PORT:-8761}:8761"
-    networks:
-      - farmer-network
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # API Gateway (Entry point)
   api-gateway:
     build:
       context: ./backend
@@ -31,22 +10,23 @@ services:
       SPRING_DATASOURCE_URL: ${DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-farmer}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-      - "${GATEWAY_SERVICE_PORT:-8080}:8080"
+    - ${GATEWAY_SERVICE_PORT:-8080}:8080
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - api-gateway
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8080/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-
-  # User Service
   user-service:
     build:
       context: ./backend
@@ -60,7 +40,6 @@ services:
       USER_DB_URL: ${USER_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       USER_DB_USERNAME: ${USER_DB_USERNAME:-farmer}
       USER_DB_PASSWORD: ${USER_DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
@@ -68,19 +47,21 @@ services:
       USER_AGRISTACK_API_KEY: ${USER_AGRISTACK_API_KEY:-}
       AGRISTACK_BASE_URL: ${AGRISTACK_BASE_URL:-https://api.agristack.gov.in}
     ports:
-      - "${USER_SERVICE_PORT:-8099}:8099"
+    - ${USER_SERVICE_PORT:-8099}:8099
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - user-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8099/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8099/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-
-  # Crop Service
   crop-service:
     build:
       context: ./backend
@@ -94,27 +75,29 @@ services:
       CROP_DB_URL: ${CROP_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       CROP_DB_USERNAME: ${CROP_DB_USERNAME:-farmer}
       CROP_DB_PASSWORD: ${CROP_DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
       ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml-service:8001}
       WEATHER_API_KEY: ${WEATHER_API_KEY:-}
       WEATHER_API_URL: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
       KAEGRO_API_KEY: ${KAEGRO_API_KEY:-}
     ports:
-      - "${CROP_SERVICE_PORT:-8096}:8096"
+    - ${CROP_SERVICE_PORT:-8096}:8096
     depends_on:
-      - ml-service
-      - eureka-server
+    - ml-service
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - crop-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8096/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8096/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  # Location Service
   location-service:
     build:
       context: ./backend
@@ -128,23 +111,24 @@ services:
       LOCATION_DB_URL: ${LOCATION_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       LOCATION_DB_USERNAME: ${LOCATION_DB_USERNAME:-farmer}
       LOCATION_DB_PASSWORD: ${LOCATION_DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
     ports:
-      - "${LOCATION_SERVICE_PORT:-8095}:8095"
+    - ${LOCATION_SERVICE_PORT:-8095}:8095
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - location-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8095/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8095/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-
-  # Mandi Service
   mandi-service:
     build:
       context: ./backend
@@ -158,7 +142,6 @@ services:
       MANDI_DB_URL: ${MANDI_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       MANDI_DB_USERNAME: ${MANDI_DB_USERNAME:-farmer}
       MANDI_DB_PASSWORD: ${MANDI_DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
       ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml-service:8001}
       WEATHER_API_KEY: ${WEATHER_API_KEY:-}
@@ -168,19 +151,21 @@ services:
       MANDI_DATAGOV_FERTILIZER_API_KEY: ${MANDI_DATAGOV_FERTILIZER_API_KEY:-}
       MANDI_DATAGOV_FERTILIZER_API_URL: ${MANDI_DATAGOV_FERTILIZER_API_URL:-https://api.data.gov.in/resource/56f40018-fd03-4010-94a3-f34ca7b43f7c}
     ports:
-      - "${MANDI_SERVICE_PORT:-8093}:8093"
+    - ${MANDI_SERVICE_PORT:-8093}:8093
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - mandi-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8093/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8093/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-
-  # Scheme Service
   scheme-service:
     build:
       context: ./backend
@@ -191,22 +176,23 @@ services:
       SPRING_DATASOURCE_URL: ${SCHEME_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       SPRING_DATASOURCE_USERNAME: ${SCHEME_DB_USERNAME:-farmer}
       SPRING_DATASOURCE_PASSWORD: ${SCHEME_DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-      - "${SCHEME_SERVICE_PORT:-8097}:8097"
+    - ${SCHEME_SERVICE_PORT:-8097}:8097
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - scheme-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8097/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8097/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-
-  # Admin Service
   admin-service:
     build:
       context: ./backend
@@ -217,22 +203,23 @@ services:
       SPRING_DATASOURCE_URL: ${ADMIN_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       SPRING_DATASOURCE_USERNAME: ${ADMIN_DB_USERNAME:-farmer}
       SPRING_DATASOURCE_PASSWORD: ${ADMIN_DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-      - "${ADMIN_SERVICE_PORT:-8091}:8091"
+    - ${ADMIN_SERVICE_PORT:-8091}:8091
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - admin-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8091/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8091/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-
-  # IoT Service
   iot-service:
     build:
       context: ./backend
@@ -243,22 +230,23 @@ services:
       SPRING_DATASOURCE_URL: ${IOT_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       SPRING_DATASOURCE_USERNAME: ${IOT_DB_USERNAME:-farmer}
       SPRING_DATASOURCE_PASSWORD: ${IOT_DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-      - "${IOT_SERVICE_PORT:-8094}:8094"
+    - ${IOT_SERVICE_PORT:-8094}:8094
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - iot-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8094/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8094/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-
-  # Weather Service
   weather-service:
     build:
       context: ./backend
@@ -269,24 +257,25 @@ services:
       SPRING_DATASOURCE_URL: ${WEATHER_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       SPRING_DATASOURCE_USERNAME: ${WEATHER_DB_USERNAME:-farmer}
       SPRING_DATASOURCE_PASSWORD: ${WEATHER_DB_PASSWORD:-farmer_password}
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
       WEATHER_API_KEY: ${WEATHER_API_KEY:-}
       WEATHER_API_URL: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
     ports:
-      - "${WEATHER_SERVICE_PORT:-8100}:8100"
+    - ${WEATHER_SERVICE_PORT:-8100}:8100
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - weather-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8100/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8100/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-
-  # Yield Service
   yield-service:
     build:
       context: ./backend
@@ -297,21 +286,23 @@ services:
       SPRING_DATASOURCE_URL: ${YIELD_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
       SPRING_DATASOURCE_USERNAME: ${YIELD_DB_USERNAME:-farmer}
       SPRING_DATASOURCE_PASSWORD: ${YIELD_DB_PASSWORD:-farmer_password}
-      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-      - "${YIELD_SERVICE_PORT:-8101}:8101"
+    - ${YIELD_SERVICE_PORT:-8101}:8101
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - yield-service
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8101/actuator/health" ]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8101/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-  # ==================== ML SERVICE ====================
   ml-service:
     build:
       context: ./backend/ai-service
@@ -319,24 +310,25 @@ services:
     container_name: farmer-ml-service
     environment:
       PYTHONUNBUFFERED: 1
-      EUREKA_SERVER_URL: ${EUREKA_SERVER_URL:-http://eureka-server:8761/eureka/}
       INSTANCE_HOST: ml-service
     ports:
-      - "8001:8001"
+    - 8001:8001
     volumes:
-      - ./backend/ai-service/app/models:/app/app/models
+    - ./backend/ai-service/app/models:/app/app/models
     networks:
-      - farmer-network
+      farmer-network:
+        aliases:
+        - ml-service
     healthcheck:
-      test: [ "CMD", "python", "-c", "import requests; requests.get('http://localhost:8001/health')" ]
+      test:
+      - CMD
+      - python
+      - -c
+      - import requests; requests.get('http://localhost:8001/health')
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    depends_on:
-      - eureka-server
-
-  # ==================== FRONTEND ====================
   frontend:
     build:
       context: ./frontend
@@ -345,19 +337,24 @@ services:
     environment:
       API_URL: ${API_URL:-http://localhost:8080}
     ports:
-      - "80:4200"
-      - "4200:4200"
+    - 80:4200
+    - 4200:4200
     depends_on:
-      - api-gateway
+    - api-gateway
     networks:
-      - farmer-network
+    - farmer-network
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4200/" ]
+      test:
+      - CMD
+      - wget
+      - --quiet
+      - --tries=1
+      - --spider
+      - http://localhost:4200/
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
-
 networks:
   farmer-network:
     driver: bridge
