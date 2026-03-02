@@ -215,3 +215,119 @@ To redeploy the entire application in a new AWS region (e.g., from `us-east-1` t
 | **View service logs** | `aws logs tail /ecs/farmer-<service-name> --follow --region us-east-1` |
 | **Force restart single service** | `aws ecs update-service --cluster farmer-ecs-cluster --service <name> --force-new-deployment` |
 | **Check ALB health** | `curl http://farmer-alb-<ID>.us-east-1.elb.amazonaws.com/actuator/health` |
+
+---
+
+## Part 7: Running Services Locally
+
+There are 3 ways to run the app locally for development and testing.
+
+### Option A: Docker Compose (Recommended — Runs Everything)
+
+This spins up all 12 services plus the frontend in Docker containers, reading credentials from `.env`.
+
+```powershell
+docker-compose up --build
+```
+
+The services will be available at:
+- **Frontend**: http://localhost:4200
+- **API Gateway**: http://localhost:8080
+- **Individual services**: See port table below
+
+To stop everything:
+```powershell
+docker-compose down
+```
+
+### Option B: Run a Single Service via Maven (For Debugging)
+
+If you need to debug a specific service with breakpoints, run it directly with Maven. You must set the environment variables first so it knows which database to connect to.
+
+```powershell
+# Step 1: Set environment variables (reads from .env manually)
+$env:LOCATION_DB_URL = "jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/postgres"
+$env:LOCATION_DB_USERNAME = "postgres"
+$env:LOCATION_DB_PASSWORD = "farmer_password"
+$env:LOCATION_SERVICE_PORT = "8095"
+
+# Step 2: Run the service
+cd backend
+mvn spring-boot:run -pl location-service
+```
+
+Replace `location-service` with whichever service you want to run (e.g., `crop-service`, `scheme-service`).
+
+### Option C: Run a Pre-Built JAR Directly
+
+If you've already built the project with `mvn clean package -DskipTests`, you can run the JAR directly:
+
+```powershell
+# Set env vars (same as Option B)
+$env:LOCATION_DB_URL = "jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/postgres"
+$env:LOCATION_DB_USERNAME = "postgres"
+$env:LOCATION_DB_PASSWORD = "farmer_password"
+
+# Run the JAR
+java -jar backend\location-service\target\location-service-1.0.0-SNAPSHOT.jar
+```
+
+### Service Port Reference
+
+| Service | Local Port | Test URL |
+|---|---|---|
+| api-gateway | 8080 | http://localhost:8080/actuator/health |
+| user-service | 8099 | http://localhost:8099/api/v1/users |
+| crop-service | 8096 | http://localhost:8096/api/v1/crops |
+| location-service | 8095 | http://localhost:8095/api/v1/government-bodies/state/Bihar |
+| mandi-service | 8093 | http://localhost:8093/api/v1/mandi |
+| scheme-service | 8097 | http://localhost:8097/api/v1/schemes/state/Bihar |
+| admin-service | 8091 | http://localhost:8091/api/v1/admin |
+| iot-service | 8094 | http://localhost:8094/api/v1/iot |
+| weather-service | 8100 | http://localhost:8100/api/v1/weather |
+| yield-service | 8101 | http://localhost:8101/api/v1/crops/yield/commodities |
+| ml-service | 8001 | http://localhost:8001/api/ml/health |
+| frontend | 4200 | http://localhost:4200 |
+
+### Running the Frontend Separately (Angular Dev Server)
+
+For live-reload Angular development:
+```powershell
+cd frontend
+npm install
+ng serve
+```
+The frontend will be at http://localhost:4200 and will auto-reload on code changes.
+
+---
+
+## Part 8: CI/CD with GitHub Actions
+
+A GitHub Actions workflow is available at `.github/workflows/deploy-ecs.yml`. It automatically builds all Docker images and deploys them to ECS whenever code is pushed to the `main` branch.
+
+### Required GitHub Secrets
+
+You must add these secrets in your GitHub repository settings (**Settings → Secrets and Variables → Actions**):
+
+| Secret Name | Value |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | Your IAM user's Access Key ID |
+| `AWS_SECRET_ACCESS_KEY` | Your IAM user's Secret Access Key |
+
+### How It Works
+
+1. Triggers on every `push` to the `main` branch.
+2. Checks out your code and sets up JDK 17.
+3. Builds all backend services with `mvn clean package -DskipTests`.
+4. Builds Docker images for all 12 services and pushes them to ECR.
+5. Triggers a `force-new-deployment` on each ECS service to pick up the new images.
+
+### Trigger Branch
+
+The workflow currently triggers on `main`. To change this (e.g., to `aws-ecs`), edit `.github/workflows/deploy-ecs.yml`:
+```yaml
+on:
+  push:
+    branches:
+      - aws-ecs  # Change this to your target branch
+```
