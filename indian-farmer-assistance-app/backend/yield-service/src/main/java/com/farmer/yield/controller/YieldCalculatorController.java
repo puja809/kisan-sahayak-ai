@@ -13,12 +13,22 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for yield calculation endpoints
  */
 @RestController
-@RequestMapping("/api/v1/crops/yield/calculate")
+@RequestMapping("/api/v1/crops/yield")
 @RequiredArgsConstructor
 @Slf4j
 public class YieldCalculatorController {
 
     private final YieldCalculatorService yieldCalculatorService;
+
+    /**
+     * Get all available commodities supported by the yield calculator
+     *
+     * GET /api/v1/crops/yield/commodities
+     */
+    @GetMapping("/commodities")
+    public ResponseEntity<java.util.List<String>> getCommodities() {
+        return ResponseEntity.ok(yieldCalculatorService.getAvailableCommodities());
+    }
 
     /**
      * Calculate yield based on commodity, farm size, and investment amount
@@ -28,12 +38,12 @@ public class YieldCalculatorController {
      * @param request Yield calculation request
      * @return Yield calculation response with estimates
      */
-    @PostMapping
+    @PostMapping("/calculate")
     public ResponseEntity<YieldCalculationResponse> calculateYield(
             @Valid @RequestBody YieldCalculationRequest request) {
-        
+
         log.info("Received yield calculation request for commodity: {}", request.getCommodity());
-        
+
         try {
             YieldCalculationResponse response = yieldCalculatorService.calculateYield(request);
             return ResponseEntity.ok(response);
@@ -43,16 +53,14 @@ public class YieldCalculatorController {
                     YieldCalculationResponse.builder()
                             .success(false)
                             .message("Error: " + e.getMessage())
-                            .build()
-            );
+                            .build());
         } catch (Exception e) {
             log.error("Error calculating yield: {}", e.getMessage());
             return ResponseEntity.internalServerError().body(
                     YieldCalculationResponse.builder()
                             .success(false)
                             .message("Error calculating yield: " + e.getMessage())
-                            .build()
-            );
+                            .build());
         }
     }
 }

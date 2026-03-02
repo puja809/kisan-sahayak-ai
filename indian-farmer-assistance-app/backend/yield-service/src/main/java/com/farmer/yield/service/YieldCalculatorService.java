@@ -21,7 +21,8 @@ public class YieldCalculatorService {
     /**
      * Calculate yield based on commodity, farm size, and investment amount
      * 
-     * @param request Yield calculation request with commodity, farm size, and investment
+     * @param request Yield calculation request with commodity, farm size, and
+     *                investment
      * @return Yield calculation response with estimates
      */
     public YieldCalculationResponse calculateYield(YieldCalculationRequest request) {
@@ -34,6 +35,13 @@ public class YieldCalculatorService {
                         "Commodity not found or inactive: " + request.getCommodity()));
 
         return buildYieldResponse(request, calculator);
+    }
+
+    /**
+     * Get all commodities available for yield calculation
+     */
+    public java.util.List<String> getAvailableCommodities() {
+        return yieldCalculatorRepository.findAllActiveCommodityNames();
     }
 
     /**

@@ -60,11 +60,12 @@ public class DataInitializationListener {
         long varietyCount = varietyRepository.count();
         long gradeCount = gradeRepository.count();
 
-        log.info("Current data counts - States: {}, Districts: {}, Mandis: {}, Commodities: {}, Varieties: {}, Grades: {}",
+        log.info(
+                "Current data counts - States: {}, Districts: {}, Mandis: {}, Commodities: {}, Varieties: {}, Grades: {}",
                 stateCount, districtCount, mandiCount, commodityCount, varietyCount, gradeCount);
 
-        return stateCount > 0 && districtCount > 0 && mandiCount > 0 && 
-               commodityCount > 0 && varietyCount > 0 && gradeCount > 0;
+        return stateCount > 0 && districtCount > 0 && mandiCount > 0 &&
+                commodityCount > 0 && varietyCount > 0 && gradeCount > 0;
     }
 
     /**
@@ -76,7 +77,7 @@ public class DataInitializationListener {
             ClassPathResource resource = new ClassPathResource("sample_mandi_data.csv");
             if (resource.exists()) {
                 log.info("Loading data from classpath: sample_mandi_data.csv");
-                mandiDataImportService.importFromFile(resource.getFile());
+                mandiDataImportService.importFromStream(resource.getInputStream());
                 return;
             }
         } catch (Exception e) {
