@@ -11,7 +11,7 @@ spring:
         predicates:
         - Path=/api/v1/crops/yield/**, /api/v1/ai/yield/**, /api/crops/yield/**
       - id: crop-service
-        uri: http://crop-service.farmer-network.local:8096
+        uri: http://crop-service.farmer-network.local:8093
         predicates:
         - Path=/api/v1/crops/**
       - id: location-service
@@ -21,7 +21,7 @@ spring:
         filters:
         - RewritePath=/api/v1/location/government-bodies/(?<segment>.*), /api/v1/government-bodies/${segment}
       - id: mandi-service
-        uri: http://mandi-service.farmer-network.local:8093
+        uri: http://mandi-service.farmer-network.local:8096
         predicates:
         - Path=/api/v1/mandi/**, /api/mandi/**, /api/v1/fertilizer/**
       - id: scheme-service

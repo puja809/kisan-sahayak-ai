@@ -298,7 +298,7 @@ Resources:
       - Name: crop-service
         Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-crop-service:latest
         PortMappings:
-        - ContainerPort: 8096
+        - ContainerPort: 8093
           Protocol: tcp
         Environment:
         - Name: SPRING_PROFILES_ACTIVE
@@ -462,7 +462,7 @@ Resources:
       - Name: mandi-service
         Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-mandi-service:latest
         PortMappings:
-        - ContainerPort: 8093
+        - ContainerPort: 8096
           Protocol: tcp
         Environment:
         - Name: SPRING_PROFILES_ACTIVE
