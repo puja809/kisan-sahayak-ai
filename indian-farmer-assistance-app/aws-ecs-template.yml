@@ -16,7 +16,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Statements:
+        Statement:
         - Effect: Allow
           Principal:
             Service:
@@ -25,6 +25,17 @@ Resources:
           - sts:AssumeRole
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+      - PolicyName: EcsLogsPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
   CloudMapNamespace:
     Type: AWS::ServiceDiscovery::PrivateDnsNamespace
     Properties:
@@ -38,11 +49,6 @@ Resources:
       VpcId:
         Ref: VpcId
       SecurityGroupIngress:
-      - IpProtocol: '-1'
-        SourceSecurityGroupId:
-          Fn::GetAtt:
-          - SecurityGroup
-          - GroupId
       - IpProtocol: tcp
         FromPort: 8080
         ToPort: 8080
@@ -51,6 +57,10 @@ Resources:
         FromPort: 80
         ToPort: 80
         CidrIp: 0.0.0.0/0
+      - IpProtocol: '-1'
+        SourceSecurityGroupId:
+          Ref: AWS::NoValue # Replaced later in a workaround, or using an explicit Cidr for VPC. Let's use VPC CIDR to be safe since self-reference in CFN can be tricky.
+        CidrIp: 172.31.0.0/16
   AppLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -78,7 +88,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Name: frontend-targets
-      Port: 80
+      Port: 4200
       Protocol: HTTP
       VpcId:
         Ref: VpcId
@@ -130,13 +140,13 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${DB_USER:-farmer}
+          Value: farmer
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -185,6 +195,7 @@ Resources:
         ContainerPort: 8080
         TargetGroupArn:
           Ref: ApiGatewayTargetGroup
+    DependsOn: AlbListener
   UserServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -206,29 +217,29 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${USER_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${USER_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${USER_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: USER_DB_URL
-          Value: ${USER_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: USER_DB_USERNAME
-          Value: ${USER_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: USER_DB_PASSWORD
-          Value: ${USER_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         - Name: JWT_EXPIRATION
-          Value: ${JWT_EXPIRATION:-86400000}
+          Value: 86400000
         - Name: JWT_REFRESH_EXPIRATION
-          Value: ${JWT_REFRESH_EXPIRATION:-604800000}
+          Value: 604800000
         - Name: JWT_ISSUER
-          Value: ${JWT_ISSUER:-indian-farmer-assistance}
+          Value: indian-farmer-assistance
         - Name: USER_AGRISTACK_API_KEY
-          Value: ${USER_AGRISTACK_API_KEY:-}
+          Value: \'\'
         - Name: AGRISTACK_BASE_URL
-          Value: ${AGRISTACK_BASE_URL:-https://api.agristack.gov.in}
+          Value: https://api.agristack.gov.in
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -293,27 +304,27 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${CROP_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${CROP_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${CROP_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: CROP_DB_URL
-          Value: ${CROP_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: CROP_DB_USERNAME
-          Value: ${CROP_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: CROP_DB_PASSWORD
-          Value: ${CROP_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         - Name: ML_SERVICE_URL
-          Value: ${ML_SERVICE_URL:-http://ml-service:8001}
+          Value: http://ml-service.farmer-network.local:8001
         - Name: WEATHER_API_KEY
-          Value: ${WEATHER_API_KEY:-}
+          Value: <YOUR_WEATHER_API_KEY>
         - Name: WEATHER_API_URL
-          Value: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
+          Value: https://api.weatherapi.com/v1
         - Name: KAEGRO_API_KEY
-          Value: ${KAEGRO_API_KEY:-}
+          Value: \'\'
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -378,21 +389,21 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${LOCATION_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${LOCATION_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${LOCATION_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: LOCATION_DB_URL
-          Value: ${LOCATION_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: LOCATION_DB_USERNAME
-          Value: ${LOCATION_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: LOCATION_DB_PASSWORD
-          Value: ${LOCATION_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         - Name: JWT_EXPIRATION
-          Value: ${JWT_EXPIRATION:-86400000}
+          Value: 86400000
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -457,33 +468,33 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${MANDI_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${MANDI_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${MANDI_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: MANDI_DB_URL
-          Value: ${MANDI_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: MANDI_DB_USERNAME
-          Value: ${MANDI_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: MANDI_DB_PASSWORD
-          Value: ${MANDI_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         - Name: ML_SERVICE_URL
-          Value: ${ML_SERVICE_URL:-http://ml-service:8001}
+          Value: http://ml-service.farmer-network.local:8001
         - Name: WEATHER_API_KEY
-          Value: ${WEATHER_API_KEY:-}
+          Value: <YOUR_WEATHER_API_KEY>
         - Name: WEATHER_API_URL
-          Value: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
+          Value: https://api.weatherapi.com/v1
         - Name: MANDI_DATAGOV_PRICE_API_KEY
-          Value: ${MANDI_DATAGOV_PRICE_API_KEY:-}
+          Value: <YOUR_DATAGOV_API_KEY>
         - Name: MANDI_DATAGOV_PRICE_API_URL
-          Value: ${MANDI_DATAGOV_PRICE_API_URL:-https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070}
+          Value: https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070
         - Name: MANDI_DATAGOV_FERTILIZER_API_KEY
-          Value: ${MANDI_DATAGOV_FERTILIZER_API_KEY:-}
+          Value: <YOUR_DATAGOV_API_KEY>
         - Name: MANDI_DATAGOV_FERTILIZER_API_URL
-          Value: ${MANDI_DATAGOV_FERTILIZER_API_URL:-https://api.data.gov.in/resource/56f40018-fd03-4010-94a3-f34ca7b43f7c}
+          Value: https://api.data.gov.in/resource/56f40018-fd03-4010-94a3-f34ca7b43f7c
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -548,13 +559,13 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${SCHEME_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${SCHEME_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${SCHEME_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -619,13 +630,13 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${ADMIN_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${ADMIN_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${ADMIN_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -690,13 +701,13 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${IOT_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${IOT_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${IOT_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -761,17 +772,17 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${WEATHER_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${WEATHER_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${WEATHER_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         - Name: WEATHER_API_KEY
-          Value: ${WEATHER_API_KEY:-}
+          Value: <YOUR_WEATHER_API_KEY>
         - Name: WEATHER_API_URL
-          Value: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
+          Value: https://api.weatherapi.com/v1
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -836,13 +847,13 @@ Resources:
         - Name: SPRING_PROFILES_ACTIVE
           Value: docker
         - Name: SPRING_DATASOURCE_URL
-          Value: ${YIELD_DB_URL:-jdbc:postgresql://farmer-db-free.c6988uycio77.us-east-1.rds.amazonaws.com:5432/farmer_db}
+          Value: jdbc:postgresql://<YOUR_RDS_ENDPOINT>:5432/postgres
         - Name: SPRING_DATASOURCE_USERNAME
-          Value: ${YIELD_DB_USERNAME:-farmer}
+          Value: postgres
         - Name: SPRING_DATASOURCE_PASSWORD
-          Value: ${YIELD_DB_PASSWORD:-farmer_password}
+          Value: <YOUR_DB_PASSWORD>
         - Name: JWT_SECRET
-          Value: ${JWT_SECRET:-your-secret-key-change-in-production}
+          Value: <YOUR_JWT_SECRET>
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -970,7 +981,7 @@ Resources:
           Protocol: tcp
         Environment:
         - Name: API_URL
-          Value: ${API_URL:-http://localhost:8080}
+          Value: http://localhost:8080
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -1016,9 +1027,22 @@ Resources:
           - Arn
       LoadBalancers:
       - ContainerName: frontend
-        ContainerPort: 80
+        ContainerPort: 4200
         TargetGroupArn:
           Ref: FrontendTargetGroup
+    DependsOn: AlbListener
+  SecurityGroupIngressSelf:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Fn::GetAtt:
+        - SecurityGroup
+        - GroupId
+      IpProtocol: '-1'
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+        - SecurityGroup
+        - GroupId
 Outputs:
   AlbDnsName:
     Description: The DNS name of the Application Load Balancer
