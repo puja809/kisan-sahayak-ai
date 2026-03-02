@@ -16,16 +16,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
-
 jwt:
   secret: ${JWT_SECRET:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm}
   expiration: ${JWT_EXPIRATION:86400000}
@@ -33,7 +23,10 @@ jwt:
 logging:
   level:
     com.farmer.location: DEBUG
-    org.springframework.web: INFO
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+    org.springframework.web.server: DEBUG
 
 springdoc:
   api-docs:

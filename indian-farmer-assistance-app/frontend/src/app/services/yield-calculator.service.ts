@@ -33,8 +33,8 @@ export interface YieldCalculationResponse {
 })
 export class YieldCalculatorService {
 
-  private yieldApiUrl = `${environment.services.yield}/api/crops/yield/calculate`;
-  private mandiApiUrl = `${environment.services.mandi}/api/mandi/filter/commodities`;
+  private yieldApiUrl = '/api/v1/crops/yield/calculate';
+  private commoditiesApiUrl = '/api/v1/crops/yield/commodities';
 
   constructor(private http: HttpClient) { }
 
@@ -52,6 +52,6 @@ export class YieldCalculatorService {
    * @returns Observable of commodity list
    */
   getCommodities(): Observable<string[]> {
-    return this.http.get<string[]>(this.mandiApiUrl);
+    return this.http.get<string[]>(this.commoditiesApiUrl);
   }
 }

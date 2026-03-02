@@ -30,7 +30,6 @@
         <module>yield-service</module>
         <module>iot-service</module>
         <module>crop-service</module>
-        <module>eureka-server</module>
     </modules>
 
     <properties>

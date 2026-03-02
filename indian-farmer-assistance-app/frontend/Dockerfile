@@ -12,8 +12,8 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build the Angular application
-RUN npm run build
+# Build the Angular application using production config
+RUN npm run build:prod
 
 # Production stage
 FROM node:18-alpine

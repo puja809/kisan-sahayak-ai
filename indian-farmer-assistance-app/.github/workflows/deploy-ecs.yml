@@ -1,0 +1,79 @@
+name: Deploy to AWS ECS
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 211125690509.dkr.ecr.us-east-1.amazonaws.com
+  ECS_CLUSTER: farmer-ecs-cluster
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        working-directory: ./backend
+        run: mvn clean package -DskipTests
+
+      - name: Build and Push Docker Images
+        run: |
+          SERVICES="user-service crop-service location-service mandi-service scheme-service admin-service iot-service weather-service yield-service api-gateway ml-service frontend"
+          for SERVICE in $SERVICES; do
+            echo "Building $SERVICE..."
+            
+            if [ "$SERVICE" = "frontend" ]; then
+              CONTEXT="."
+              DOCKERFILE="frontend/Dockerfile"
+              IMAGE_REPO="farmer-frontend"
+            elif [ "$SERVICE" = "api-gateway" ]; then
+              CONTEXT="./backend"
+              DOCKERFILE="./backend/api-gateway/Dockerfile"
+              IMAGE_REPO="farmer-api-gateway"
+            elif [ "$SERVICE" = "ml-service" ]; then
+              CONTEXT="./backend"
+              DOCKERFILE="./backend/ai-service/Dockerfile"
+              IMAGE_REPO="farmer-ml-service"
+            else
+              CONTEXT="./backend"
+              DOCKERFILE="./backend/$SERVICE/Dockerfile"
+              IMAGE_REPO="farmer-$SERVICE"
+            fi
+            
+            IMAGE_URI=$ECR_REGISTRY/$IMAGE_REPO:latest
+            
+            docker build -t $IMAGE_URI -f $DOCKERFILE $CONTEXT
+            docker push $IMAGE_URI
+            
+            echo "Force new deployment for $SERVICE on ECS..."
+            # PascalCase conversion for Service Name based on our CloudFormation template
+            ECS_SERVICE=$(echo "$SERVICE" | awk -F'-' '{for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1)) substr($i,2)}} 1' OFS="")
+            aws ecs update-service --cluster $ECS_CLUSTER --service ${ECS_SERVICE}EcsService --force-new-deployment --region $AWS_REGION || echo "Service $ECS_SERVICE might not exist yet, skipping update."
+          done

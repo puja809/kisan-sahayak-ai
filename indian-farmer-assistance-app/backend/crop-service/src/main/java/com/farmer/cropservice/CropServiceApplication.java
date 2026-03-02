@@ -2,7 +2,7 @@ package com.farmer.cropservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,7 +17,7 @@ import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfigurat
         MongoAutoConfiguration.class,
         MongoDataAutoConfiguration.class
 })
-@EnableDiscoveryClient
+
 public class CropServiceApplication {
 
     public static void main(String[] args) {

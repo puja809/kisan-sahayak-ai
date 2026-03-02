@@ -21,9 +21,9 @@ export interface District {
   providedIn: 'root'
 })
 export class StateDistrictService {
-  private apiUrl = `${environment.services.mandi}/api/v1/mandi/states-districts`;
+  private apiUrl = '/api/v1/mandi/states-districts';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllStates(): Observable<State[]> {
     return this.http.get<State[]>(`${this.apiUrl}/states`);

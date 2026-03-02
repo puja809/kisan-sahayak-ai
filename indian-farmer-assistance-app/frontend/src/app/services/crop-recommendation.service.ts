@@ -60,9 +60,9 @@ export interface DashboardResponse {
   providedIn: 'root'
 })
 export class CropRecommendationService {
-  private apiUrl = `${environment.services.crop}/api/v1/crops/dashboard`;
+  private apiUrl = '/api/v1/crops/dashboard';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getDashboardRecommendations(
     latitude: number,

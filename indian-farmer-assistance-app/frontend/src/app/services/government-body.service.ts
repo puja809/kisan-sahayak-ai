@@ -32,9 +32,9 @@ interface BackendGovernmentBody {
   providedIn: 'root'
 })
 export class GovernmentBodyService {
-  private apiUrl = `${environment.services.location}/api/v1/government-bodies`;
+  private apiUrl = '/api/v1/location/government-bodies';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private mapBackendToFrontend(backend: BackendGovernmentBody): GovernmentBody {
     return {

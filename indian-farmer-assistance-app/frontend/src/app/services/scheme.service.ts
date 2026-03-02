@@ -18,9 +18,9 @@ export interface Scheme {
   providedIn: 'root'
 })
 export class SchemeService {
-  private apiUrl = `${environment.services.scheme}/api/v1/schemes`;
+  private apiUrl = '/api/v1/schemes';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllSchemes(): Observable<Scheme[]> {
     return this.http.get<Scheme[]>(`${this.apiUrl}`);

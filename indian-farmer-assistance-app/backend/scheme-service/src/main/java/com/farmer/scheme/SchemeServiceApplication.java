@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
  * Main application class for the Scheme Service.
@@ -24,7 +23,7 @@ import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfigurat
         MongoAutoConfiguration.class,
         MongoDataAutoConfiguration.class
 })
-@EnableDiscoveryClient
+
 @OpenAPIDefinition(info = @Info(title = "Scheme Service API", version = "1.0.0", description = "Government schemes catalog and application tracking service", contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")))
 public class SchemeServiceApplication {
 
