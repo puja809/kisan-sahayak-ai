@@ -10,6 +10,7 @@ interface ConversationMessage {
   systemResponse: string;
   userAudioPath?: string;
   systemAudioPath?: string;
+  systemAudioBase64?: string;
 }
 
 @Component({
@@ -53,10 +54,8 @@ interface ConversationMessage {
           class="toggle-btn" 
           [class.active]="inputMode === 'voice'"
           (click)="switchMode('voice')"
-          disabled
-          title="Voice input coming soon"
         >
-          🎤 Voice (Coming Soon)
+          🎤 Voice
         </button>
       </div>
 
@@ -84,6 +83,14 @@ interface ConversationMessage {
               </div>
               <div class="system-message">
                 <p>{{ message.systemResponse }}</p>
+                <button 
+                  *ngIf="message.systemAudioBase64" 
+                  class="btn-play-audio"
+                  (click)="playAudio(message.systemAudioBase64!)"
+                  title="Play audio response"
+                >
+                  🔊 Play Audio
+                </button>
               </div>
             </div>
           </div>
@@ -115,10 +122,29 @@ interface ConversationMessage {
           </div>
         </div>
 
-        <!-- Voice Input Section (Placeholder) -->
+        <!-- Voice Input Section -->
         <div class="input-section" *ngIf="inputMode === 'voice'">
-          <div class="voice-placeholder">
-            <p>🎤 Voice input will be available soon</p>
+          <div class="voice-controls">
+            <button 
+              class="btn-record" 
+              [class.recording]="isRecording"
+              (click)="toggleRecording()"
+              [disabled]="isProcessing"
+            >
+              {{ isRecording ? '⏹ Stop' : '🎤 Record' }}
+            </button>
+            <div class="recording-status" *ngIf="isRecording">
+              <span class="pulse"></span>
+              Recording... {{ recordingDuration }}s
+            </div>
+          </div>
+          <div *ngIf="isProcessing" class="processing-indicator">
+            <div class="spinner"></div>
+            <p>Processing voice input...</p>
+          </div>
+          <div *ngIf="lastRecordingUrl" class="audio-preview">
+            <p>Recorded audio:</p>
+            <audio controls [src]="lastRecordingUrl"></audio>
           </div>
         </div>
       </div>
@@ -354,6 +380,22 @@ interface ConversationMessage {
       line-height: 1.5;
     }
 
+    .btn-play-audio {
+      margin-top: 0.75rem;
+      padding: 0.5rem 1rem;
+      background: #3d6b1f;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .btn-play-audio:hover {
+      background: #2d5016;
+    }
+
     .input-section {
       background: white;
       padding: 1.5rem;
@@ -444,6 +486,83 @@ interface ConversationMessage {
       font-size: 1.1rem;
     }
 
+    .voice-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-record {
+      padding: 1rem 3rem;
+      background: #e53935;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s;
+    }
+
+    .btn-record:hover:not(:disabled) {
+      background: #c62828;
+      transform: scale(1.05);
+    }
+
+    .btn-record.recording {
+      background: #b71c1c;
+      animation: pulse-record 1.5s infinite;
+    }
+
+    .btn-record:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @keyframes pulse-record {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4); }
+      50% { box-shadow: 0 0 0 15px rgba(229, 57, 53, 0); }
+    }
+
+    .recording-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #e53935;
+      font-weight: 600;
+    }
+
+    .pulse {
+      width: 12px;
+      height: 12px;
+      background: #e53935;
+      border-radius: 50%;
+      animation: pulse-dot 1s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .audio-preview {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f5f5f5;
+      border-radius: 8px;
+    }
+
+    .audio-preview p {
+      margin: 0 0 0.5rem 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .audio-preview audio {
+      width: 100%;
+    }
+
     @media (max-width: 768px) {
       .voice-agent-container {
         padding: 1rem;
@@ -480,6 +599,12 @@ export class VoiceAgentComponent implements OnInit {
   conversationHistory: ConversationMessage[] = [];
   isProcessing = false;
   textInput = '';
+  isRecording = false;
+  recordingDuration = 0;
+  lastRecordingUrl: string | null = null;
+  private mediaRecorder: MediaRecorder | null = null;
+  private audioChunks: Blob[] = [];
+  private recordingInterval: any = null;
 
   constructor(
     private toastr: ToastrService,
@@ -497,6 +622,153 @@ export class VoiceAgentComponent implements OnInit {
   switchMode(mode: 'text' | 'voice'): void {
     this.inputMode = mode;
     this.textInput = '';
+  }
+
+  async toggleRecording(): Promise<void> {
+    if (this.isRecording) {
+      this.stopRecording();
+    } else {
+      await this.startRecording();
+    }
+  }
+
+  private async startRecording(): Promise<void> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.mediaRecorder = new MediaRecorder(stream);
+      this.audioChunks = [];
+
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.audioChunks.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+        this.lastRecordingUrl = URL.createObjectURL(audioBlob);
+        this.processVoiceInput(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      this.mediaRecorder.start();
+      this.isRecording = true;
+      this.recordingDuration = 0;
+      
+      this.recordingInterval = setInterval(() => {
+        this.recordingDuration++;
+        if (this.recordingDuration >= 30) {
+          this.stopRecording();
+        }
+      }, 1000);
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      this.toastr.error('Could not access microphone. Please check permissions.');
+    }
+  }
+
+  private stopRecording(): void {
+    if (this.mediaRecorder && this.isRecording) {
+      this.mediaRecorder.stop();
+      this.isRecording = false;
+      clearInterval(this.recordingInterval);
+    }
+  }
+
+  private processVoiceInput(audioBlob: Blob): void {
+    this.isProcessing = true;
+    
+    this.voiceAssistantService.askQuestionWithAudio(audioBlob).subscribe({
+      next: (response) => {
+        this.lastRecordingUrl = null;
+        this.isProcessing = false;
+        
+        if (response && response.success && response.answer) {
+          // Use transcribed text if available (handle both snake_case and camelCase)
+          const userText = response.transcribed_text || response.transcribedText || 'Voice input';
+          
+          const message: ConversationMessage = {
+            timestamp: new Date(),
+            userText: userText,
+            systemResponse: response.answer,
+            systemAudioBase64: response.audio
+          };
+          
+          this.conversationHistory.push(message);
+          this.saveConversationHistory();
+          
+          console.log(`Transcribed: ${userText}`);
+          console.log(`Answer: ${response.answer}`);
+          
+          this.toastr.success('Voice response received');
+          
+          // Auto-play audio response if available
+          if (response.audio) {
+            console.log('Auto-playing AI audio response...');
+            setTimeout(() => this.playAudio(response.audio), 500);
+          }
+        } else {
+          this.toastr.error('Could not process voice input');
+        }
+      },
+      error: (error) => {
+        this.lastRecordingUrl = null;
+        this.isProcessing = false;
+        console.error('Voice processing error:', error);
+        this.toastr.error('Failed to process voice input');
+      }
+    });
+  }
+
+  playAudio(base64Audio: string): void {
+    try {
+      console.log('Playing audio response, length:', base64Audio.length);
+      
+      // Decode base64 to binary string
+      const binaryString = atob(base64Audio);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Create blob from bytes (MP3 from Polly)
+      const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      console.log('Audio blob created, size:', audioBlob.size, 'bytes');
+      
+      const audio = new Audio();
+      audio.src = audioUrl;
+      audio.volume = 1.0;
+      
+      audio.oncanplay = () => {
+        console.log('Audio ready to play');
+      };
+      
+      audio.onended = () => {
+        console.log('Audio playback completed');
+        URL.revokeObjectURL(audioUrl);
+      };
+      
+      audio.onerror = (e) => {
+        console.error('Audio playback error:', e);
+        URL.revokeObjectURL(audioUrl);
+      };
+      
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => console.log('Audio playing'))
+          .catch(err => {
+            console.error('Error playing audio:', err);
+            URL.revokeObjectURL(audioUrl);
+          });
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error);
+    }
   }
 
   sendTextQuery(): void {

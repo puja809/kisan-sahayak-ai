@@ -1,7 +1,7 @@
 # Mandi Service Configuration
 
 server:
-  port: ${MANDI_SERVICE_PORT:8093}
+  port: ${MANDI_SERVICE_PORT:8096}
 
 spring:
   application:

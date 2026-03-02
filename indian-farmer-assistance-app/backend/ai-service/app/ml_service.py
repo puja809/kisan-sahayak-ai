@@ -2,7 +2,7 @@
 FastAPI service for ML model predictions
 Serves crop recommendation and rotation models
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File
 from pydantic import BaseModel
 import os
 import logging
@@ -11,7 +11,7 @@ from crop_recommendation_model import CropRecommendationModel
 from crop_rotation_model import CropRotationModel
 from fertilizer_recommendation_model import FertilizerRecommendationModel
 from crop_name_mapper import map_crop_name
-from aws_voice_assistant_client import ask_question
+from aws_voice_assistant_client import ask_question_text, ask_question_audio
 from dotenv import load_dotenv
 
 # Load environment variables from .env file (for local development)
@@ -209,7 +209,7 @@ async def ask_voice_question(request: VoiceAssistantRequest):
         logger.info(f"Forwarding question to AWS Voice Assistant: {request.question[:50]}...")
         
         # Call AWS Voice Assistant API
-        result = ask_question(request.question)
+        result = ask_question_text(request.question)
         
         if result.get('success'):
             return {
@@ -229,6 +229,61 @@ async def ask_voice_question(request: VoiceAssistantRequest):
         raise
     except Exception as e:
         logger.error(f"Error in voice question endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ml/ask-question-audio")
+async def ask_question_with_audio(audio: bytes = File(...)):
+    """
+    Process audio input and get response from AWS Voice Assistant
+    1. Receives audio from UI
+    2. Sends to AWS /ask-voice endpoint
+    3. AWS returns: transcribed_text, text (answer), audio (MP3 base64)
+    4. Returns all three to UI for display and playback
+    """
+    try:
+        if not audio or len(audio) == 0:
+            raise HTTPException(status_code=400, detail="Audio data is required")
+        
+        logger.info(f"Processing audio input: {len(audio)} bytes")
+        
+        # Convert audio to base64 for AWS API
+        import base64
+        base64_audio = base64.b64encode(audio).decode('utf-8')
+        
+        # Call AWS Voice Assistant API with audio
+        result = ask_question_audio(base64_audio)
+        
+        if result.get('success'):
+            # Extract response from AWS
+            answer = result.get('answer', '')
+            transcribed_text = result.get('transcribed_text', '')
+            audio_response = result.get('audio')
+            language = result.get('language', 'en')
+            
+            logger.info(f"AWS Response - Transcribed: {transcribed_text[:50]}...")
+            logger.info(f"AWS Response - Answer: {answer[:50]}...")
+            logger.info(f"AWS Response - Audio present: {audio_response is not None}")
+            
+            return {
+                "success": True,
+                "transcribedText": transcribed_text,
+                "answer": answer,
+                "audio": audio_response,
+                "language": language,
+                "status_code": 200
+            }
+        else:
+            logger.error(f"AWS API error: {result.get('error')}")
+            status_code = result.get('status_code', 500)
+            raise HTTPException(
+                status_code=status_code,
+                detail=result.get('error', 'Failed to process audio')
+            )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in audio question endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

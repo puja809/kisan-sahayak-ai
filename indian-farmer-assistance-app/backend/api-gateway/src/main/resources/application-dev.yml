@@ -1,0 +1,46 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: user-service
+        uri: http://localhost:8099
+        predicates:
+        - Path=/api/v1/auth/**, /api/v1/users/**, /api/v1/admin/roles/**
+      - id: yield-service
+        uri: http://localhost:8101
+        predicates:
+        - Path=/api/v1/crops/yield/**, /api/v1/ai/yield/**, /api/crops/yield/**
+      - id: crop-service
+        uri: http://localhost:8093
+        predicates:
+        - Path=/api/v1/crops/**, /api/v1/crops/dashboard/**
+      - id: location-service
+        uri: http://localhost:8095
+        predicates:
+        - Path=/api/v1/location/government-bodies/**, /api/v1/government-bodies/**
+        filters:
+        - RewritePath=/api/v1/location/government-bodies/(?<segment>.*), /api/v1/government-bodies/${segment}
+      - id: mandi-service
+        uri: http://localhost:8096
+        predicates:
+        - Path=/api/v1/mandi/**, /api/mandi/**, /api/v1/fertilizer/**
+      - id: scheme-service
+        uri: http://localhost:8097
+        predicates:
+        - Path=/api/v1/schemes/**, /api/v1/admin/schemes/**, /api/v1/scheme-applications/**
+      - id: admin-service
+        uri: http://localhost:8091
+        predicates:
+        - Path=/api/v1/admin/documents/**, /api/v1/admin/audit/**
+      - id: iot-service
+        uri: http://localhost:8094
+        predicates:
+        - Path=/api/v1/iot/**
+      - id: weather-service
+        uri: http://localhost:8100
+        predicates:
+        - Path=/api/v1/weather/**
+      - id: ai-ml-service
+        uri: http://localhost:8001
+        predicates:
+        - Path=/api/ml/**

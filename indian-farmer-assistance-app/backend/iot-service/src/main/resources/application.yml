@@ -4,6 +4,19 @@ server:
 spring:
   application:
     name: iot-service
+  datasource:
+    url: ${IOT_DB_URL:jdbc:postgresql://localhost:5432/iot_service}
+    username: ${IOT_DB_USERNAME:postgres}
+    password: ${IOT_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
 # IoT Service Configuration
 iot:
   data-retention-days: 30

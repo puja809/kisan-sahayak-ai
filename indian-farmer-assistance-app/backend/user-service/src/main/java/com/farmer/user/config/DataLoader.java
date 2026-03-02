@@ -25,7 +25,7 @@ public class DataLoader implements CommandLineRunner {
 
     private static final String DEFAULT_ADMIN_PHONE = "+91-9999999999";
     private static final String DEFAULT_ADMIN_NAME = "System Administrator";
-    private static final String DEFAULT_ADMIN_EMAIL = "admin@farmer-assistance.in";
+        private static final String DEFAULT_ADMIN_EMAIL = "admin@farmer-assistance.in";
     private static final String DEFAULT_ADMIN_STATE = "National";
     private static final String DEFAULT_ADMIN_DISTRICT = "Admin";
     private static final String DEFAULT_ADMIN_PASSWORD = "Admin@123456";
