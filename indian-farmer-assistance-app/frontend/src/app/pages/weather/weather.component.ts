@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { WeatherService, CurrentWeatherDto, SevenDayForecastDto, AgrometAdvisoryDto } from '../../services/weather.service';
+import { GeolocationService } from '../../services/geolocation.service';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
@@ -343,7 +344,8 @@ export class WeatherComponent implements OnInit {
 
   constructor(
     private weatherService: WeatherService,
-    private http: HttpClient
+    private http: HttpClient,
+    private geolocationService: GeolocationService
   ) { }
 
   ngOnInit() {
@@ -356,16 +358,19 @@ export class WeatherComponent implements OnInit {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
-            // Very simple reverse geocode using public BigDataCloud API for District name
+            // Reverse geocode using the centralized Geolocation Service
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            const response: any = await firstValueFrom(
-              this.http.get(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+            const address = await firstValueFrom(
+              this.geolocationService.getAddressFromCoordinates(lat, lng)
             );
 
-            // Attempt to extract district/city
-            if (response && (response.city || response.locality)) {
-              this.currentDistrict = response.city || response.locality;
+            // Extract district/city from the formatted address string (e.g. "Pune, Maharashtra, India")
+            if (address) {
+              const parts = address.split(',');
+              if (parts.length > 0 && parts[0].trim()) {
+                this.currentDistrict = parts[0].trim();
+              }
             }
             this.fetchAllWeatherData();
           } catch (e) {

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { MandiService, MandiPriceDto, FertilizerSupplierDto } from '../../services/mandi.service';
+import { GeolocationService } from '../../services/geolocation.service';
 
 @Component({
   selector: 'app-mandi',
@@ -275,7 +276,7 @@ export class MandiComponent implements OnInit {
   hasSearchedFertilizers = false;
   supplierFilter: 'ALL' | 'WHOLESALER' | 'RETAILER' = 'ALL';
 
-  constructor(private mandiService: MandiService, private http: HttpClient) { }
+  constructor(private mandiService: MandiService, private http: HttpClient, private geolocationService: GeolocationService) { }
 
   ngOnInit() {
     this.detectUserLocationAndInit();
@@ -293,13 +294,13 @@ export class MandiComponent implements OnInit {
         try {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          const url = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=en';
+          const address = await firstValueFrom(this.geolocationService.getAddressFromCoordinates(lat, lng));
 
-          const response: any = await firstValueFrom(this.http.get(url));
-
-          if (response) {
-            const detectedState = response.principalSubdivision || 'Maharashtra';
-            const detectedDistrict = response.city || response.locality || 'Pune';
+          if (address) {
+            const parts = address.split(',').map(p => p.trim());
+            // Expected format from our service: "District, State, Country"
+            const detectedDistrict = parts.length > 0 && parts[0] ? parts[0] : 'Pune';
+            const detectedState = parts.length > 1 && parts[1] ? parts[1] : 'Maharashtra';
 
             // Setup fertilizer location
             this.filterState = detectedState;

@@ -2,7 +2,7 @@
 FastAPI service for ML model predictions
 Serves crop recommendation and rotation models
 """
-from fastapi import FastAPI, HTTPException, File
+from fastapi import FastAPI, HTTPException, File, UploadFile, Query
 from pydantic import BaseModel
 import os
 import logging
@@ -12,6 +12,7 @@ from crop_rotation_model import CropRotationModel
 from fertilizer_recommendation_model import FertilizerRecommendationModel
 from crop_name_mapper import map_crop_name
 from aws_voice_assistant_client import ask_question_text, ask_question_audio
+from disease_detection_client import detect_disease as detect_disease_from_aws
 from dotenv import load_dotenv
 
 # Load environment variables from .env file (for local development)
@@ -75,6 +76,16 @@ class PredictionResponse(BaseModel):
     probabilities: dict
     modelVersion: str = "1.0.0"
 
+class DiseaseDetectionResponse(BaseModel):
+    crop: str
+    disease: str
+    symptoms: str
+    treatment: str
+    prevention: str
+    confidence: float = 0.0
+    modelVersion: str = "1.0.0"
+    raw_analysis: str = ""
+
 @app.on_event("startup")
 async def startup_event():
     """Load models and register with Eureka on startup"""
@@ -112,6 +123,32 @@ async def health_check():
         "fertilizer_model": fertilizer_model is not None
     }
 
+# Supported languages for all AI features (Voice, Text, Disease Detection)
+SUPPORTED_LANGUAGES = [
+    {"code": "en", "name": "English",    "nativeName": "English"},
+    {"code": "hi", "name": "Hindi",      "nativeName": "हिंदी"},
+    {"code": "bn", "name": "Bengali",    "nativeName": "বাংলা"},
+    {"code": "te", "name": "Telugu",     "nativeName": "తెలుగు"},
+    {"code": "mr", "name": "Marathi",    "nativeName": "मराठी"},
+    {"code": "ta", "name": "Tamil",      "nativeName": "தமிழ்"},
+    {"code": "gu", "name": "Gujarati",   "nativeName": "ગુજરાતી"},
+    {"code": "pa", "name": "Punjabi",    "nativeName": "ਪੰਜਾਬੀ"},
+    {"code": "ka", "name": "Kannada",    "nativeName": "ಕನ್ನಡ"},
+    {"code": "ml", "name": "Malayalam",  "nativeName": "മലയാളം"},
+]
+
+@app.get("/api/ml/languages")
+async def get_supported_languages():
+    """
+    Returns the list of languages supported by all AI features:
+    Voice Assistant, Text Assistant, and Disease Detection.
+    Each language includes code, English name, and native script name.
+    """
+    return {
+        "languages": SUPPORTED_LANGUAGES,
+        "default": "en"
+    }
+
 @app.post("/api/ml/predict-crop", response_model=PredictionResponse)
 async def predict_crop(request: CropRecommendationRequest):
     """Predict crop based on soil and weather parameters"""
@@ -137,6 +174,15 @@ async def predict_crop(request: CropRecommendationRequest):
     except Exception as e:
         logger.error(f"Error in crop prediction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/ml/fertilizer-crops")
+async def get_fertilizer_crops():
+    """Returns the list of crops supported by the fertilizer recommendation model"""
+    from crop_name_mapper import CROP_NAME_MAPPING
+    # Extract unique crop names from both keys and values to provide a comprehensive list
+    supported_crops = set(CROP_NAME_MAPPING.keys()).union(set(CROP_NAME_MAPPING.values()))
+    sorted_crops = sorted(list(supported_crops))
+    return {"crops": sorted_crops}
 
 @app.post("/api/ml/predict-rotation", response_model=PredictionResponse)
 async def predict_rotation(request: CropRotationRequest):
@@ -229,6 +275,44 @@ async def ask_voice_question(request: VoiceAssistantRequest):
         raise
     except Exception as e:
         logger.error(f"Error in voice question endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ml/disease-detect", response_model=DiseaseDetectionResponse)
+async def detect_disease_endpoint(
+    image: UploadFile = File(...),
+    language: str = Query(default="en", description="Language code: en, hi, bn"),
+    session_id: str = Query(default="default-session", description="Session ID for chat memory")
+):
+    """
+    Detect crop disease from image and return disease details.
+    Proxies to AWS Lambda disease-detect endpoint.
+    Supports language preference (en/hi/bn) — Lambda responds in the requested language.
+    Returns: crop name, disease, symptoms, treatment, prevention, raw_analysis
+    """
+    try:
+        image_bytes = await image.read()
+        if not image_bytes or len(image_bytes) == 0:
+            raise HTTPException(status_code=400, detail="Image data is required")
+        
+        logger.info(f"Processing disease detection image: {len(image_bytes)} bytes, language={language}")
+        
+        # Call disease detection client — passes language & session_id to Lambda
+        result = detect_disease_from_aws(image_bytes, language=language, session_id=session_id)
+        
+        return DiseaseDetectionResponse(
+            crop=result["crop"],
+            disease=result["disease"],
+            symptoms=result["symptoms"],
+            treatment=result["treatment"],
+            prevention=result["prevention"],
+            confidence=result["confidence"],
+            raw_analysis=result.get("raw_analysis", "")
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in disease detection: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/ml/ask-question-audio")

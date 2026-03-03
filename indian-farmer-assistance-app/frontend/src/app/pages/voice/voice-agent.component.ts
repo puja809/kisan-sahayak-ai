@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { VoiceAssistantService } from '../../services/voice-assistant.service';
+import { LanguageService, Language } from '../../services/language.service';
 
 interface ConversationMessage {
   timestamp: Date;
@@ -27,16 +28,9 @@ interface ConversationMessage {
         <div class="language-selector">
           <label for="language">Language:</label>
           <select id="language" [(ngModel)]="selectedLanguage" (change)="onLanguageChange()">
-            <option value="en">English</option>
-            <option value="hi">Hindi</option>
-            <option value="ta">Tamil</option>
-            <option value="te">Telugu</option>
-            <option value="ka">Kannada</option>
-            <option value="ml">Malayalam</option>
-            <option value="mr">Marathi</option>
-            <option value="gu">Gujarati</option>
-            <option value="pa">Punjabi</option>
-            <option value="bn">Bengali</option>
+            <option *ngFor="let lang of languages" [value]="lang.code">
+              {{ lang.nativeName }} ({{ lang.name }})
+            </option>
           </select>
         </div>
       </div>
@@ -595,6 +589,7 @@ interface ConversationMessage {
 })
 export class VoiceAgentComponent implements OnInit {
   selectedLanguage = 'en';
+  languages: Language[] = [];
   inputMode: 'text' | 'voice' = 'text';
   conversationHistory: ConversationMessage[] = [];
   isProcessing = false;
@@ -608,11 +603,16 @@ export class VoiceAgentComponent implements OnInit {
 
   constructor(
     private toastr: ToastrService,
-    private voiceAssistantService: VoiceAssistantService
+    private voiceAssistantService: VoiceAssistantService,
+    private languageService: LanguageService
   ) { }
 
   ngOnInit(): void {
     this.loadConversationHistory();
+    this.languageService.getLanguages().subscribe({
+      next: (response) => { this.languages = response.languages; },
+      error: () => { /* fallback already handled inside LanguageService */ }
+    });
   }
 
   onLanguageChange(): void {
@@ -654,7 +654,7 @@ export class VoiceAgentComponent implements OnInit {
       this.mediaRecorder.start();
       this.isRecording = true;
       this.recordingDuration = 0;
-      
+
       this.recordingInterval = setInterval(() => {
         this.recordingDuration++;
         if (this.recordingDuration >= 30) {
@@ -677,31 +677,31 @@ export class VoiceAgentComponent implements OnInit {
 
   private processVoiceInput(audioBlob: Blob): void {
     this.isProcessing = true;
-    
+
     this.voiceAssistantService.askQuestionWithAudio(audioBlob).subscribe({
       next: (response) => {
         this.lastRecordingUrl = null;
         this.isProcessing = false;
-        
+
         if (response && response.success && response.answer) {
           // Use transcribed text if available (handle both snake_case and camelCase)
           const userText = response.transcribed_text || response.transcribedText || 'Voice input';
-          
+
           const message: ConversationMessage = {
             timestamp: new Date(),
             userText: userText,
             systemResponse: response.answer,
             systemAudioBase64: response.audio
           };
-          
+
           this.conversationHistory.push(message);
           this.saveConversationHistory();
-          
+
           console.log(`Transcribed: ${userText}`);
           console.log(`Answer: ${response.answer}`);
-          
+
           this.toastr.success('Voice response received');
-          
+
           // Auto-play audio response if available
           if (response.audio) {
             console.log('Auto-playing AI audio response...');
@@ -723,40 +723,40 @@ export class VoiceAgentComponent implements OnInit {
   playAudio(base64Audio: string): void {
     try {
       console.log('Playing audio response, length:', base64Audio.length);
-      
+
       // Decode base64 to binary string
       const binaryString = atob(base64Audio);
       const len = binaryString.length;
       const bytes = new Uint8Array(len);
-      
+
       for (let i = 0; i < len; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      
+
       // Create blob from bytes (MP3 from Polly)
       const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
-      
+
       console.log('Audio blob created, size:', audioBlob.size, 'bytes');
-      
+
       const audio = new Audio();
       audio.src = audioUrl;
       audio.volume = 1.0;
-      
+
       audio.oncanplay = () => {
         console.log('Audio ready to play');
       };
-      
+
       audio.onended = () => {
         console.log('Audio playback completed');
         URL.revokeObjectURL(audioUrl);
       };
-      
+
       audio.onerror = (e) => {
         console.error('Audio playback error:', e);
         URL.revokeObjectURL(audioUrl);
       };
-      
+
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise

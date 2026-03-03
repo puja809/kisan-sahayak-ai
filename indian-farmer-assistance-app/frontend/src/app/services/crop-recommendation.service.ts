@@ -56,6 +56,21 @@ export interface DashboardResponse {
   location: string;
 }
 
+export interface CropDTO {
+  id?: number;
+  commodity: string;
+  category: string;
+  season: string;
+  durationDays: string;
+  seedRateKgPerAcre: string;
+  spacingCm: string;
+  fertilizerNpkKgPerAcre: string;
+  irrigationNumber: string;
+  keyOperations: string;
+  harvestSigns: string;
+  yieldKgPerAcre: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -74,5 +89,17 @@ export class CropRecommendationService {
     if (season) url += `&season=${season}`;
     if (previousCrop) url += `&previousCrop=${previousCrop}`;
     return this.http.get<DashboardResponse>(url);
+  }
+
+  getAvailableCrops(): Observable<{ crops: string[] }> {
+    return this.http.get<{ crops: string[] }>('/api/ml/fertilizer-crops');
+  }
+
+  getCropDetails(commodity: string): Observable<CropDTO> {
+    return this.http.get<CropDTO>(`/api/v1/crops/commodity/${encodeURIComponent(commodity)}`);
+  }
+
+  predictFertilizer(requestBody: any): Observable<FertilizerRecommendation> {
+    return this.http.post<FertilizerRecommendation>('/api/ml/predict-fertilizer', requestBody);
   }
 }

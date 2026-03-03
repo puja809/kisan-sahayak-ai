@@ -1,11 +1,11 @@
 package com.farmer.cropservice;
 
+import com.farmer.cropservice.service.CropService;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
-
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
@@ -27,5 +27,10 @@ public class CropServiceApplication {
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
+    }
+
+    @Bean
+    public CommandLineRunner loadCrops(CropService cropService) {
+        return args -> cropService.loadCropsFromCsv();
     }
 }

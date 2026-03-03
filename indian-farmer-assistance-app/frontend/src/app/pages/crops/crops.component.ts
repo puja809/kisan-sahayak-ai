@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GeolocationService } from '../../services/geolocation.service';
-import { CropRecommendationService, DashboardResponse } from '../../services/crop-recommendation.service';
+import { CropRecommendationService, DashboardResponse, CropDTO } from '../../services/crop-recommendation.service';
 
 @Component({
   selector: 'app-crops',
@@ -12,6 +12,13 @@ import { CropRecommendationService, DashboardResponse } from '../../services/cro
     <div class="crops-container">
       <h2>🌾 Crop Recommendation Dashboard</h2>
       
+      <!-- Tabs Navigation -->
+      <div class="tabs" *ngIf="dashboardData">
+        <button class="tab-btn" [class.active]="activeTab === 'recommendation'" (click)="switchTab('recommendation')">🌱 Recommendation</button>
+        <button class="tab-btn" [class.active]="activeTab === 'fertilizer'" (click)="switchTab('fertilizer')">🧪 Fertilizer</button>
+        <button class="tab-btn" [class.active]="activeTab === 'rotation'" (click)="switchTab('rotation')">🔄 Rotation</button>
+      </div>
+
       <!-- Location & Weather Info -->
       <div *ngIf="dashboardData" class="info-banner">
         <div class="info-item">
@@ -79,15 +86,16 @@ import { CropRecommendationService, DashboardResponse } from '../../services/cro
         </div>
       </div>
       
-      <!-- Crop Recommendation Section -->
-      <div *ngIf="dashboardData?.cropRecommendation" class="prediction-card crop-card">
+      <!-- TAB 1: Crop Recommendation Section -->
+      <div *ngIf="activeTab === 'recommendation'">
+        <div *ngIf="dashboardData?.cropRecommendation" class="prediction-card crop-card">
         <div class="card-header">
           <h3>🌱 Crop Recommendation</h3>
           <span class="model-badge">ML v{{ dashboardData?.cropRecommendation?.modelVersion }}</span>
         </div>
         <div class="card-content">
           <div class="prediction-main">
-            <div class="crop-name">{{ dashboardData?.cropRecommendation?.prediction }}</div>
+            <div class="crop-name clickable-crop" (click)="viewCropDetails(dashboardData?.cropRecommendation?.prediction || '')" title="View Crop Details">{{ dashboardData?.cropRecommendation?.prediction }}</div>
             <div class="confidence-meter">
               <div class="confidence-bar">
                 <div class="confidence-fill" [style.width.%]="(dashboardData?.cropRecommendation?.confidence || 0) * 100"></div>
@@ -98,7 +106,7 @@ import { CropRecommendationService, DashboardResponse } from '../../services/cro
           <div class="probabilities">
             <h4>Alternative Crops</h4>
             <div class="prob-list">
-              <div *ngFor="let crop of getTopProbabilities(dashboardData?.cropRecommendation?.probabilities || {})" class="prob-item">
+              <div *ngFor="let crop of getTopProbabilities(dashboardData?.cropRecommendation?.probabilities || {})" class="prob-item clickable-crop" (click)="viewCropDetails(crop.name)" title="View Crop Details">
                 <span class="crop-name-alt">{{ crop.name }}</span>
                 <div class="prob-bar">
                   <div class="prob-fill" [style.width.%]="crop.probability * 100"></div>
@@ -118,13 +126,19 @@ import { CropRecommendationService, DashboardResponse } from '../../services/cro
         </div>
       </div>
 
-      <!-- Crop Rotation Section -->
-      <div class="rotation-section">
+      </div> <!-- End Tab 1 -->
+
+      <!-- TAB 3: Crop Rotation Section -->
+      <div *ngIf="activeTab === 'rotation'">
+        <div class="rotation-section">
         <h3>🔄 Crop Rotation Recommendation</h3>
         <div class="rotation-form">
           <div class="form-group">
             <label>Previous Crop</label>
-            <input type="text" [(ngModel)]="previousCrop" placeholder="e.g., Wheat, Rice, Cotton">
+            <select [(ngModel)]="previousCrop" class="rotation-select">
+              <option value="">Select Previous Crop</option>
+              <option *ngFor="let c of availableCrops" [value]="c">{{ c }}</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Season</label>
@@ -149,91 +163,325 @@ import { CropRecommendationService, DashboardResponse } from '../../services/cro
           </div>
         </div>
       </div>
+      </div> <!-- End Tab 3 -->
 
-      <!-- Fertilizer Recommendation Section -->
-      <div *ngIf="dashboardData?.fertilizerRecommendation" class="prediction-card fertilizer-card">
+      <!-- TAB 2: Fertilizer Recommendation Section -->
+      <div *ngIf="activeTab === 'fertilizer'">
+        <div *ngIf="dashboardData?.fertilizerRecommendation" class="prediction-card fertilizer-card">
         <div class="card-header">
           <h3>🧪 Fertilizer Recommendation</h3>
           <span class="model-badge">ML v{{ dashboardData?.fertilizerRecommendation?.modelVersion }}</span>
         </div>
-        <div class="card-content">
-          <div class="fertilizer-grid">
-            <div class="fertilizer-item">
-              <div class="nutrient-label">Nitrogen (N)</div>
-              <div class="nutrient-value">{{ dashboardData?.fertilizerRecommendation?.N_dosage | number:'1.1-1' }}</div>
-              <div class="nutrient-unit">kg/ha</div>
+          <div class="card-content" style="display:flex; flex-direction:column; gap: 1rem;">
+            <div class="fertilizer-header" style="display:flex; align-items:center; gap: 1rem;">
+              <label style="font-weight:600; color:#E65100;">Target Crop:</label>
+              <select [(ngModel)]="selectedFertilizerCrop" (change)="onFertilizerCropChange()" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #FFB74D;">
+                <option *ngFor="let c of availableCrops" [value]="c">{{ c }}</option>
+              </select>
+              <span *ngIf="isCalculatingFertilizer" style="color: #666; font-size: 0.9rem;">⏳ Calculating...</span>
             </div>
-            <div class="fertilizer-item">
-              <div class="nutrient-label">Phosphorus (P)</div>
-              <div class="nutrient-value">{{ dashboardData?.fertilizerRecommendation?.P_dosage | number:'1.1-1' }}</div>
-              <div class="nutrient-unit">kg/ha</div>
+            <div class="fertilizer-grid" [class.blur-content]="isCalculatingFertilizer">
+              <div class="fertilizer-item">
+                <div class="nutrient-label">Nitrogen (N)</div>
+                <div class="nutrient-value">{{ currentFertilizer.N | number:'1.1-1' }}</div>
+                <div class="nutrient-unit">kg/ha</div>
+              </div>
+              <div class="fertilizer-item">
+                <div class="nutrient-label">Phosphorus (P)</div>
+                <div class="nutrient-value">{{ currentFertilizer.P | number:'1.1-1' }}</div>
+                <div class="nutrient-unit">kg/ha</div>
+              </div>
+              <div class="fertilizer-item">
+                <div class="nutrient-label">Potassium (K)</div>
+                <div class="nutrient-value">{{ currentFertilizer.K | number:'1.1-1' }}</div>
+                <div class="nutrient-unit">kg/ha</div>
+              </div>
+              <div class="fertilizer-item total">
+                <div class="nutrient-label">Total NPK</div>
+                <div class="nutrient-value">{{ currentFertilizer.total | number:'1.1-1' }}</div>
+                <div class="nutrient-unit">kg/ha</div>
+              </div>
             </div>
-            <div class="fertilizer-item">
-              <div class="nutrient-label">Potassium (K)</div>
-              <div class="nutrient-value">{{ dashboardData?.fertilizerRecommendation?.K_dosage | number:'1.1-1' }}</div>
-              <div class="nutrient-unit">kg/ha</div>
+          </div>
+        </div>
+        <div *ngIf="!dashboardData?.fertilizerRecommendation" class="prediction-card fertilizer-card no-data-card">
+          <div class="card-header">
+            <h3>🧪 Fertilizer Recommendation</h3>
+          </div>
+          <div class="card-content">
+            <p class="no-data-message">No fertilizer recommendation available. Crop recommendation is required first.</p>
+          </div>
+        </div>
+      </div> <!-- End Tab 2 -->
+
+      <p *ngIf="!loading && !dashboardData" class="no-data">No data available. Please enable location access.</p>
+      <p *ngIf="loading" class="loading">⏳ Loading dashboard data...</p>
+
+      <!-- Crop Details Modal -->
+      <div class="modal-overlay" *ngIf="showCropModal" (click)="closeCropModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <button class="close-btn" (click)="closeCropModal()">×</button>
+          
+          <div *ngIf="isLoadingCropDetails" class="loading-modal">
+            <p>⏳ Loading details for {{ selectedFertilizerCrop }}...</p>
+          </div>
+          
+          <div *ngIf="!isLoadingCropDetails && selectedCropDetails" class="crop-details">
+            <h2>{{ selectedCropDetails.commodity }}</h2>
+            <div class="detail-badge-container">
+              <span class="detail-badge category" *ngIf="selectedCropDetails.category">{{ selectedCropDetails.category }}</span>
+              <span class="detail-badge season" *ngIf="selectedCropDetails.season">{{ selectedCropDetails.season }}</span>
             </div>
-            <div class="fertilizer-item total">
-              <div class="nutrient-label">Total NPK</div>
-              <div class="nutrient-value">{{ dashboardData?.fertilizerRecommendation?.total_dosage | number:'1.1-1' }}</div>
-              <div class="nutrient-unit">kg/ha</div>
+            
+            <div class="crop-meta-grid">
+              <div class="meta-item">
+                <span class="meta-icon">⏱️</span>
+                <div class="meta-text">
+                  <label>Duration</label>
+                  <span>{{ selectedCropDetails.durationDays }} Days</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">🌱</span>
+                <div class="meta-text">
+                  <label>Seed Rate</label>
+                  <span>{{ selectedCropDetails.seedRateKgPerAcre }}</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">📏</span>
+                <div class="meta-text">
+                  <label>Spacing</label>
+                  <span>{{ selectedCropDetails.spacingCm }}</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">💧</span>
+                <div class="meta-text">
+                  <label>Irrigation</label>
+                  <span>{{ selectedCropDetails.irrigationNumber }}</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">⚖️</span>
+                <div class="meta-text">
+                  <label>Expected Yield</label>
+                  <span>{{ selectedCropDetails.yieldKgPerAcre }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="detail-section" *ngIf="selectedCropDetails.keyOperations">
+              <h4>Key Operations</h4>
+              <p>{{ selectedCropDetails.keyOperations }}</p>
+            </div>
+            
+            <div class="detail-section" *ngIf="selectedCropDetails.harvestSigns">
+              <h4>Harvest Signs</h4>
+              <p>{{ selectedCropDetails.harvestSigns }}</p>
+            </div>
+
+            <div class="modal-actions">
+              <button class="btn-primary" (click)="navigateToFertilizerFromModal()">
+                View Fertilizer Needs
+              </button>
+            </div>
+          </div>
+          
+          <div *ngIf="!isLoadingCropDetails && !selectedCropDetails" class="no-data-modal">
+            <p>Detailed metadata for {{ selectedFertilizerCrop }} is currently unavailable.</p>
+            <div class="modal-actions" style="justify-content: center; margin-top: 1.5rem;">
+              <button class="btn-primary" (click)="navigateToFertilizerFromModal()">
+                View Fertilizer Needs Instead
+              </button>
             </div>
           </div>
         </div>
       </div>
-      <div *ngIf="!dashboardData?.fertilizerRecommendation" class="prediction-card fertilizer-card no-data-card">
-        <div class="card-header">
-          <h3>🧪 Fertilizer Recommendation</h3>
-        </div>
-        <div class="card-content">
-          <p class="no-data-message">No fertilizer recommendation available. Crop recommendation is required first.</p>
-        </div>
-      </div>
-
-      <p *ngIf="!loading && !dashboardData" class="no-data">No data available. Please enable location access.</p>
-      <p *ngIf="loading" class="loading">⏳ Loading dashboard data...</p>
     </div>
   `,
   styles: [`
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    .modal-content {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 12px;
+      max-width: 700px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .close-btn {
+      position: absolute;
+      top: 1rem; right: 1.5rem;
+      font-size: 2rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #757575;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.2s;
+    }
+    .close-btn:hover { color: #333; }
+    
+    .crop-details h2 { margin-bottom: 0.5rem; text-align: left; color: #2E7D32; font-size: 2rem; }
+    .detail-badge-container { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+    .detail-badge {
+      padding: 0.35rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+    }
+    .detail-badge.category { background: #E3F2FD; color: #1565C0; }
+    .detail-badge.season { background: #FFF3E0; color: #E65100; }
+    
+    .crop-meta-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;
+    }
+    .meta-item {
+      display: flex; gap: 1rem; background: #fafafa; padding: 1.25rem; border-radius: 10px; border: 1px solid #eee;
+      align-items: center; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .meta-item:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .meta-icon { font-size: 1.8rem; }
+    .meta-text label { display: block; font-size: 0.85rem; color: #757575; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;}
+    .meta-text span { font-weight: 700; color: #333; font-size: 1.1rem; }
+    
+    .detail-section { margin-bottom: 1.5rem; background: #E8F5E9; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #2E7D32; }
+    .detail-section h4 { color: #1B5E20; margin-bottom: 0.75rem; font-size: 1.1rem; margin-top: 0; }
+    .detail-section p { color: #444; line-height: 1.6; margin: 0; }
+    
+    .modal-actions { display: flex; justify-content: flex-end; margin-top: 2rem; }
+    .loading-modal, .no-data-modal { text-align: center; padding: 4rem 0; color: #666; font-size: 1.1rem; }
+    
+    .rotation-select {
+      width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; background: white;
+      font-size: 1rem; transition: border-color 0.2s; font-family: inherit; margin-top: 0.5rem;
+    }
+    .rotation-select:focus { outline: none; border-color: #2E7D32; box-shadow: 0 0 0 2px rgba(46,125,50,0.2); }
+
     .crops-container {
       padding: 1.5rem;
       max-width: 1400px;
       margin: 0 auto;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
     }
     
     h2 {
       color: #2E7D32;
       margin-bottom: 1.5rem;
-      font-size: 2rem;
+      font-size: 2.2rem;
       text-align: center;
+      font-weight: 700;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+      border-bottom: 2px solid #E8F5E9;
+      padding-bottom: 1rem;
+    }
+
+    .tab-btn {
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      font-size: 1.1rem;
+      color: #616161;
+      padding: 0.75rem 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      border-radius: 30px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tab-btn:hover {
+      background: #E8F5E9;
+      color: #2E7D32;
+      border-color: #2E7D32;
+      transform: translateY(-2px);
+    }
+
+    .tab-btn.active {
+      background: #2E7D32;
+      color: white;
+      border-color: #2E7D32;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
     }
 
     h3 {
       color: #1B5E20;
       margin-bottom: 1rem;
-      font-size: 1.3rem;
+      font-size: 1.4rem;
+      font-weight: 700;
     }
 
     h4 {
       color: #2E7D32;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
     }
 
     .info-banner {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
       gap: 1rem;
-      background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
+      background: linear-gradient(135deg, #ffffff 0%, #F1F8E9 100%);
       padding: 1.5rem;
-      border-radius: 8px;
-      margin-bottom: 2rem;
-      border-left: 4px solid #2E7D32;
+      border-radius: 12px;
+      margin-bottom: 2.5rem;
+      border: 1px solid #C8E6C9;
+      border-left: 6px solid #2E7D32;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     .info-item {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
+      padding: 0.5rem 1rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .clickable-crop {
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 0.5rem;
+      border-radius: 6px;
+      margin: -0.5rem;
+    }
+    .clickable-crop:hover {
+      background-color: #f3e5f5;
+      transform: scale(1.02);
+    }
+
+    .prediction-card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+      transition: box-shadow 0.3s ease;
+    }
+    .prediction-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
 
     .info-item .label {
@@ -244,14 +492,6 @@ import { CropRecommendationService, DashboardResponse } from '../../services/cro
     .info-item .value {
       color: #2E7D32;
       font-size: 1.1rem;
-    }
-
-    .prediction-card {
-      background: white;
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .crop-card {
@@ -659,13 +899,122 @@ export class CropsComponent implements OnInit {
   selectedSeason = '';
   currentLocation: any = null;
 
+  // Modal State
+  selectedCropDetails: CropDTO | null = null;
+  showCropModal = false;
+  isLoadingCropDetails = false;
+
+  activeTab: 'recommendation' | 'fertilizer' | 'rotation' = 'recommendation';
+  selectedFertilizerCrop: string = '';
+  availableCrops: string[] = [
+    'Apple', 'Banana', 'Blackgram', 'Chickpea', 'Coconut', 'Coffee', 'Cotton', 'Grapes', 'Jute',
+    'Kidneybeans', 'Lentil', 'Maize', 'Mango', 'Mothbeans', 'Mungbean', 'Muskmelon', 'Orange',
+    'Papaya', 'Pigeonpeas', 'Pomegranate', 'Rice', 'Watermelon'
+  ].sort();
+  currentFertilizer: { N: number; P: number; K: number; total: number } = { N: 0, P: 0, K: 0, total: 0 };
+  isCalculatingFertilizer = false;
   constructor(
     private cropRecommendationService: CropRecommendationService,
     private geolocationService: GeolocationService
   ) { }
 
+  switchTab(tab: 'recommendation' | 'fertilizer' | 'rotation') {
+    this.activeTab = tab;
+  }
+
+  viewCropDetails(cropName: string) {
+    if (!cropName) return;
+    this.selectedFertilizerCrop = cropName; // Save choice for fertilizer link
+    this.isLoadingCropDetails = true;
+    this.showCropModal = true;
+    this.selectedCropDetails = null;
+
+    this.cropRecommendationService.getCropDetails(cropName).subscribe({
+      next: (details) => {
+        this.selectedCropDetails = details;
+        this.isLoadingCropDetails = false;
+      },
+      error: (err) => {
+        console.error('Failed to get crop details', err);
+        this.isLoadingCropDetails = false;
+      }
+    });
+  }
+
+  closeCropModal() {
+    this.showCropModal = false;
+  }
+
+  navigateToFertilizerFromModal() {
+    this.closeCropModal();
+    this.onFertilizerCropChange();
+    this.switchTab('fertilizer');
+  }
+
+  selectCropForFertilizer(cropName: string) {
+    this.selectedFertilizerCrop = cropName;
+    this.onFertilizerCropChange();
+    this.switchTab('fertilizer');
+  }
+
+  onFertilizerCropChange() {
+    if (!this.dashboardData || !this.selectedFertilizerCrop) return;
+
+    this.isCalculatingFertilizer = true;
+
+    // Build the request payload matching FertilizerRecommendationRequest in ml_service.py
+    const requestBody = {
+      crop: this.selectedFertilizerCrop,
+      soilType: this.dashboardData.soilData?.soil_type?.texture_class || 'Loam', // Fallback type
+      soilPH: this.dashboardData.soilData?.chemical_properties?.ph_h2o || 7.0, // Fallback pH
+      temperature: this.dashboardData.weatherData?.current?.temp_c || 25,
+      humidity: this.dashboardData.weatherData?.current?.humidity || 50,
+      rainfall: this.dashboardData.weatherData?.current?.precip_mm || 100, // Fallback precipitation
+      season: this.getSeasonFromMonth() // Calculate derived season from current date
+    };
+
+    this.cropRecommendationService.predictFertilizer(requestBody).subscribe({
+      next: (modelFertilizer) => {
+        this.currentFertilizer = {
+          N: modelFertilizer.N_dosage,
+          P: modelFertilizer.P_dosage,
+          K: modelFertilizer.K_dosage,
+          total: modelFertilizer.total_dosage
+        };
+        this.isCalculatingFertilizer = false;
+      },
+      error: (err) => {
+        console.error('Failed to calculate fertilizer for new crop', err);
+        // Fallback to zero if backend fails
+        this.currentFertilizer = { N: 0, P: 0, K: 0, total: 0 };
+        this.isCalculatingFertilizer = false;
+      }
+    });
+  }
+
+  private getSeasonFromMonth(): string {
+    const month = new Date().getMonth() + 1; // 1-12
+    if (month >= 6 && month <= 10) return 'Kharif';
+    if (month >= 11 || month <= 2) return 'Rabi';
+    return 'Summer';
+  }
+
   ngOnInit(): void {
+    this.loadAvailableCrops();
     this.loadDashboardData();
+  }
+
+  private loadAvailableCrops(): void {
+    this.cropRecommendationService.getAvailableCrops().subscribe({
+      next: (res) => {
+        if (res && res.crops && res.crops.length > 0) {
+          this.availableCrops = res.crops;
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load dynamic crops list, using local fallback:', err);
+      }
+    });
   }
 
   private loadDashboardData(): void {
@@ -691,6 +1040,27 @@ export class CropsComponent implements OnInit {
     this.cropRecommendationService.getDashboardRecommendations(lat, lng).subscribe({
       next: (data: DashboardResponse) => {
         this.dashboardData = data;
+
+        // Fetch location name asynchronously
+        this.geolocationService.getAddressFromCoordinates(lat, lng).subscribe({
+          next: (address) => {
+            if (this.dashboardData && address) {
+              this.dashboardData.location = address;
+            }
+          }
+        });
+
+        // Initialize fertilizer tab with the primary recommended crop
+        if (data.cropRecommendation?.prediction) {
+          this.selectedFertilizerCrop = data.cropRecommendation.prediction;
+          // Ensure it's in the list
+          if (!this.availableCrops.includes(this.selectedFertilizerCrop)) {
+            this.availableCrops.push(this.selectedFertilizerCrop);
+            this.availableCrops.sort();
+          }
+          this.onFertilizerCropChange();
+        }
+
         this.loading = false;
       },
       error: (error: any) => {

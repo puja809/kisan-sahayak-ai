@@ -57,6 +57,10 @@ Resources:
         FromPort: 80
         ToPort: 80
         CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
       - IpProtocol: '-1'
         SourceSecurityGroupId:
           Ref: AWS::NoValue # Replaced later in a workaround, or using an explicit Cidr for VPC. Let's use VPC CIDR to be safe since self-reference in CFN can be tricky.
@@ -97,13 +101,28 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       DefaultActions:
+      - Type: redirect
+        RedirectConfig:
+          Protocol: HTTPS
+          Port: '443'
+          StatusCode: HTTP_301
+      LoadBalancerArn:
+        Ref: AppLoadBalancer
+      Port: 80
+      Protocol: HTTP
+  AlbHttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
       - Type: forward
         TargetGroupArn:
           Ref: FrontendTargetGroup
       LoadBalancerArn:
         Ref: AppLoadBalancer
-      Port: 80
-      Protocol: HTTP
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+      - CertificateArn: arn:aws:acm:us-east-1:211125690509:certificate/ed191740-e8e9-44a2-b9a0-f5d4e34170e5
   ApiGatewayRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
@@ -117,7 +136,7 @@ Resources:
         - /api/*
         - /actuator/*
       ListenerArn:
-        Ref: AlbListener
+        Ref: AlbHttpsListener
       Priority: 10
   ApiGatewayTaskDef:
     Type: AWS::ECS::TaskDefinition

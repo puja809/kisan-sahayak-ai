@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { Observable, Subject, BehaviorSubject, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { map, catchError } from 'rxjs/operators';
 
 export interface UserLocation {
   latitude: number;
@@ -34,7 +36,7 @@ export class GeolocationService {
   private savedAddress$ = new BehaviorSubject<string | null>(null);
   private watchId: number | null = null;
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.checkGeolocationSupport();
     this.loadSavedAddress();
   }
@@ -306,13 +308,25 @@ export class GeolocationService {
     latitude: number,
     longitude: number
   ): Observable<string> {
-    return new Observable(observer => {
-      // This would typically call a backend service
-      // For now, returning a formatted coordinate string
-      const address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-      observer.next(address);
-      observer.complete();
-    });
+    const url = `https://photon.komoot.io/reverse?lat=${latitude}&lon=${longitude}&lang=en`;
+    return this.http.get(url).pipe(
+      map((response: any) => {
+        if (response && response.features && response.features.length > 0) {
+          const props = response.features[0].properties;
+          const addressParts = [
+            props.city || props.county || props.district || props.locality,
+            props.state,
+            props.country
+          ].filter(Boolean);
+          return addressParts.length > 0 ? addressParts.join(', ') : `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+        }
+        return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+      }),
+      catchError(err => {
+        console.error('Reverse geocode failed', err);
+        return of(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+      })
+    );
   }
 
   /**

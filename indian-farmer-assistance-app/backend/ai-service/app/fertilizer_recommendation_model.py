@@ -61,10 +61,24 @@ class FertilizerRecommendationModel:
         if self.model_n is None or self.model_p is None or self.model_k is None:
             raise ValueError("Models not trained. Call train() first.")
         
-        # Encode categorical inputs
-        crop_encoded = self.label_encoders['crop'].transform([crop])[0]
-        soil_type_encoded = self.label_encoders['soil_type'].transform([soil_type])[0]
-        season_encoded = self.label_encoders['season'].transform([season])[0]
+        # Encode categorical inputs safely with fallbacks
+        try:
+            crop_encoded = self.label_encoders['crop'].transform([crop])[0]
+        except ValueError:
+            # Fallback to first crop if unknown
+            crop_encoded = 0
+
+        try:
+            soil_type_encoded = self.label_encoders['soil_type'].transform([soil_type])[0]
+        except ValueError:
+            # Fallback to first soil type (e.g., Loamy) if 'Sandy Loam' or others are unseen
+            soil_type_encoded = 0
+            
+        try:
+            season_encoded = self.label_encoders['season'].transform([season])[0]
+        except ValueError:
+            # Fallback to first season
+            season_encoded = 0
         
         X = np.array([[soil_pH, temperature, humidity, rainfall,
                        crop_encoded, soil_type_encoded, season_encoded]])

@@ -1,37 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-
-interface DiseaseDetectionResult {
-  id: number;
-  diseaseName: string;
-  diseaseNameLocal: string;
-  confidenceScore: number;
-  severityLevel: string;
-  affectedAreaPercent: number;
-  treatmentRecommendations: TreatmentRecommendation[];
-  detectionTimestamp: string;
-  imageUrl: string;
-}
-
-interface TreatmentRecommendation {
-  type: string;
-  description: string;
-  dosage: string;
-  applicationTiming: string;
-  estimatedCost: number;
-  safetyPrecautions: string;
-}
+import { DiseaseDetectionService, DiseaseDetectionResult } from '../../services/disease-detection.service';
+import { LanguageService, Language } from '../../services/language.service';
 
 @Component({
   selector: 'app-disease-detection',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="disease-detection-container">
       <div class="header">
-        <h1>Disease Detection</h1>
+        <h1>🌿 Disease Detection</h1>
         <p>Upload crop images to identify diseases and get treatment recommendations</p>
       </div>
 
@@ -39,25 +20,41 @@ interface TreatmentRecommendation {
         <!-- Image Upload Section -->
         <div class="card upload-card">
           <h2>Upload Image</h2>
+
+          <!-- Language Selector -->
+          <div class="language-selector">
+            <label for="languageSelect">Response Language:</label>
+            <select id="languageSelect" [(ngModel)]="selectedLanguage" class="lang-select">
+              <option *ngFor="let lang of languages" [value]="lang.code">
+                {{ lang.nativeName }} ({{ lang.name }})
+              </option>
+            </select>
+          </div>
+
           <div class="upload-area" (click)="fileInput.click()" [class.dragover]="isDragOver"
                (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
             <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
             <div class="upload-content">
               <span class="icon">📸</span>
               <p>Click to upload or drag and drop</p>
-              <p class="hint">PNG, JPG up to 10MB</p>
+              <p class="hint">PNG, JPG, WebP up to 10MB</p>
             </div>
+          </div>
+
+          <!-- Image Preview -->
+          <div *ngIf="previewUrl" class="image-preview-box">
+            <img [src]="previewUrl" alt="Crop image preview" class="image-preview" />
           </div>
 
           <div *ngIf="selectedFile" class="file-preview">
             <p><strong>Selected:</strong> {{ selectedFile.name }}</p>
             <button class="btn-primary" (click)="uploadImage()" [disabled]="isUploading">
-              {{ isUploading ? 'Uploading...' : 'Analyze Image' }}
+              {{ isUploading ? 'Analyzing...' : 'Analyze Image' }}
             </button>
           </div>
 
           <div *ngIf="isAnalyzing" class="analyzing-indicator">
-            <p>Analyzing image...</p>
+            <p>🔬 Analyzing crop image with AI...</p>
             <div class="progress-bar">
               <div class="progress"></div>
             </div>
@@ -69,53 +66,47 @@ interface TreatmentRecommendation {
           <h2>Detection Results</h2>
           <div class="result-content">
             <div class="disease-info">
-              <h3>{{ detectionResult.diseaseName }}</h3>
-              <p class="local-name">{{ detectionResult.diseaseNameLocal }}</p>
-              
-              <div class="confidence-score">
+              <h3>{{ detectionResult.disease || 'Analysis Complete' }}</h3>
+              <p class="crop-name"><strong>Crop:</strong> {{ detectionResult.crop || 'See analysis below' }}</p>
+
+              <div class="confidence-score" *ngIf="detectionResult.confidence > 0">
                 <span>Confidence:</span>
-                <span class="score" [class]="'score-' + getConfidenceLevel(detectionResult.confidenceScore)">
-                  {{ (detectionResult.confidenceScore * 100).toFixed(1) }}%
+                <span class="score" [class]="'score-' + getConfidenceLevel(detectionResult.confidence)">
+                  {{ (detectionResult.confidence * 100).toFixed(1) }}%
                 </span>
               </div>
-
-              <div class="severity">
-                <span>Severity:</span>
-                <span class="severity-badge" [class]="'severity-' + detectionResult.severityLevel.toLowerCase()">
-                  {{ detectionResult.severityLevel }}
-                </span>
-              </div>
-
-              <div class="affected-area">
-                <span>Affected Area:</span>
-                <span>{{ detectionResult.affectedAreaPercent }}%</span>
-              </div>
-            </div>
-
-            <div class="image-preview" *ngIf="detectionResult.imageUrl">
-              <img [src]="detectionResult.imageUrl" alt="Detected disease" />
             </div>
           </div>
         </div>
 
-        <!-- Treatment Recommendations -->
-        <div class="card treatments-card" *ngIf="detectionResult && detectionResult.treatmentRecommendations.length > 0">
-          <h2>Treatment Recommendations</h2>
-          <div class="treatments-list">
-            <div *ngFor="let treatment of detectionResult.treatmentRecommendations" class="treatment-item">
-              <h3>{{ treatment.type }}</h3>
-              <p><strong>Description:</strong> {{ treatment.description }}</p>
-              <p><strong>Dosage:</strong> {{ treatment.dosage }}</p>
-              <p><strong>Application Timing:</strong> {{ treatment.applicationTiming }}</p>
-              <p><strong>Estimated Cost:</strong> ₹{{ treatment.estimatedCost }}</p>
-              <p><strong>Safety Precautions:</strong> {{ treatment.safetyPrecautions }}</p>
-            </div>
-          </div>
+        <!-- Symptoms -->
+        <div class="card symptoms-card" *ngIf="detectionResult?.symptoms">
+          <h2>🩺 Symptoms</h2>
+          <p>{{ detectionResult!.symptoms }}</p>
+        </div>
+
+        <!-- Treatment -->
+        <div class="card treatment-card" *ngIf="detectionResult?.treatment">
+          <h2>💊 Treatment</h2>
+          <p>{{ detectionResult!.treatment }}</p>
+        </div>
+
+        <!-- Prevention -->
+        <div class="card prevention-card" *ngIf="detectionResult?.prevention">
+          <h2>🛡️ Prevention</h2>
+          <p>{{ detectionResult!.prevention }}</p>
+        </div>
+
+        <!-- Raw Analysis Fallback (shown when structured parsing has gaps) -->
+        <div class="card raw-card"
+             *ngIf="detectionResult?.raw_analysis && (!detectionResult?.disease || !detectionResult?.symptoms)">
+          <h2>📋 Full Analysis</h2>
+          <p class="raw-analysis">{{ detectionResult!.raw_analysis }}</p>
         </div>
 
         <!-- KVK Expert Links -->
         <div class="card expert-card" *ngIf="detectionResult">
-          <h2>Expert Consultation</h2>
+          <h2>👨‍🌾 Expert Consultation</h2>
           <p>For detailed guidance, contact your nearest KVK (Krishi Vigyan Kendra):</p>
           <button class="btn-secondary" (click)="findNearbyKVK()">
             Find Nearby KVK
@@ -167,6 +158,35 @@ interface TreatmentRecommendation {
       padding-bottom: 0.5rem;
     }
 
+    /* Language selector */
+    .language-selector {
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .language-selector label {
+      font-size: 0.9rem;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .lang-select {
+      flex: 1;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      background: #f8f9fa;
+      cursor: pointer;
+    }
+
+    .lang-select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
     .upload-area {
       border: 2px dashed #667eea;
       border-radius: 8px;
@@ -201,6 +221,20 @@ interface TreatmentRecommendation {
     .hint {
       font-size: 0.85rem;
       color: #999;
+    }
+
+    /* Image preview */
+    .image-preview-box {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .image-preview {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      object-fit: contain;
     }
 
     .file-preview {
@@ -281,15 +315,13 @@ interface TreatmentRecommendation {
       color: #333;
     }
 
-    .local-name {
+    .crop-name {
       color: #666;
       font-size: 0.9rem;
       margin-bottom: 1rem;
     }
 
-    .confidence-score,
-    .severity,
-    .affected-area {
+    .confidence-score {
       display: flex;
       justify-content: space-between;
       margin: 0.75rem 0;
@@ -301,75 +333,25 @@ interface TreatmentRecommendation {
       font-size: 1.1rem;
     }
 
-    .score-high {
-      color: #27ae60;
+    .score-high { color: #27ae60; }
+    .score-medium { color: #f39c12; }
+    .score-low { color: #e74c3c; }
+
+    .symptoms-card p,
+    .treatment-card p,
+    .prevention-card p {
+      color: #555;
+      line-height: 1.7;
+      margin: 0;
+      white-space: pre-line;
     }
 
-    .score-medium {
-      color: #f39c12;
-    }
-
-    .score-low {
-      color: #e74c3c;
-    }
-
-    .severity-badge {
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: white;
-    }
-
-    .severity-low {
-      background: #3498db;
-    }
-
-    .severity-medium {
-      background: #f39c12;
-    }
-
-    .severity-high {
-      background: #e74c3c;
-    }
-
-    .severity-critical {
-      background: #c0392b;
-    }
-
-    .image-preview {
-      text-align: center;
-    }
-
-    .image-preview img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 4px;
-      max-height: 300px;
-    }
-
-    .treatments-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .treatment-item {
-      padding: 1rem;
-      background: #f8f9fa;
-      border-radius: 4px;
-      border-left: 4px solid #667eea;
-    }
-
-    .treatment-item h3 {
-      margin: 0 0 0.5rem 0;
-      color: #333;
-    }
-
-    .treatment-item p {
-      margin: 0.5rem 0;
-      color: #666;
-      font-size: 0.9rem;
+    /* Raw analysis fallback */
+    .raw-analysis {
+      color: #555;
+      line-height: 1.7;
+      white-space: pre-line;
+      font-size: 0.95rem;
     }
 
     .btn-secondary {
@@ -397,27 +379,31 @@ interface TreatmentRecommendation {
 })
 export class DiseaseDetectionComponent implements OnInit {
   selectedFile: File | null = null;
+  previewUrl: string | null = null;
   isDragOver = false;
   isUploading = false;
   isAnalyzing = false;
   detectionResult: DiseaseDetectionResult | null = null;
+  selectedLanguage = 'en';
+  languages: Language[] = [];
 
   constructor(
-    private http: HttpClient,
-    private toastr: ToastrService
+    private diseaseDetectionService: DiseaseDetectionService,
+    private toastr: ToastrService,
+    private languageService: LanguageService
   ) { }
 
   ngOnInit(): void {
+    this.languageService.getLanguages().subscribe({
+      next: (response) => { this.languages = response.languages; },
+      error: () => { /* handled in service with fallback */ }
+    });
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
-      if (this.selectedFile.size > 10 * 1024 * 1024) {
-        this.toastr.error('File size must be less than 10MB');
-        this.selectedFile = null;
-      }
+      this.setFile(input.files[0]);
     }
   }
 
@@ -435,8 +421,24 @@ export class DiseaseDetectionComponent implements OnInit {
     event.preventDefault();
     this.isDragOver = false;
     if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-      this.selectedFile = event.dataTransfer.files[0];
+      this.setFile(event.dataTransfer.files[0]);
     }
+  }
+
+  private setFile(file: File): void {
+    if (file.size > 10 * 1024 * 1024) {
+      this.toastr.error('File size must be less than 10MB');
+      return;
+    }
+    this.selectedFile = file;
+    this.detectionResult = null;
+
+    // Generate preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.previewUrl = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   uploadImage(): void {
@@ -444,21 +446,22 @@ export class DiseaseDetectionComponent implements OnInit {
 
     this.isUploading = true;
     this.isAnalyzing = true;
-    const formData = new FormData();
-    formData.append('image', this.selectedFile);
+    this.detectionResult = null;
 
-    this.http.post<DiseaseDetectionResult>('/api/v1/ai/disease/detect', formData).subscribe({
+    this.diseaseDetectionService.detectDisease(this.selectedFile, this.selectedLanguage).subscribe({
       next: (result) => {
         this.isUploading = false;
         this.isAnalyzing = false;
         this.detectionResult = result;
         this.toastr.success('Disease detection completed');
         this.selectedFile = null;
+        this.previewUrl = null;
       },
       error: (error) => {
         this.isUploading = false;
         this.isAnalyzing = false;
-        this.toastr.error('Failed to analyze image');
+        this.toastr.error('Failed to analyze image. Please try again.');
+        console.error('Disease detection error:', error);
       }
     });
   }
@@ -470,7 +473,6 @@ export class DiseaseDetectionComponent implements OnInit {
   }
 
   findNearbyKVK(): void {
-    // Navigate to KVK locator
-    console.log('Finding nearby KVK');
+    window.open('https://www.google.com/maps/search/Krishi+Vigyan+Kendra+near+me', '_blank');
   }
 }
