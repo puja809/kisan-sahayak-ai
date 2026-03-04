@@ -60,7 +60,7 @@ Write-Host "`nAll ECS services successfully reached a STABLE state!"
 
 Write-Host "`nPerforming Health Check on ALB API Gateway..."
 
-$TEST_URL = "http://farmer-alb-1165490536.us-east-1.elb.amazonaws.com/api/v1/schemes/state/Bihar"
+$TEST_URL = "https://farmer-alb-1165490536.us-east-1.elb.amazonaws.com/api/v1/schemes/state/Bihar"
 try {
     $response = Invoke-WebRequest -Uri $TEST_URL -UseBasicParsing -TimeoutSec 15
     if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 300) {

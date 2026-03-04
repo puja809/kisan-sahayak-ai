@@ -25,10 +25,10 @@ public class WeatherService {
         this.weatherApiClient = weatherApiClient;
     }
 
-    public Mono<SevenDayForecastDto> getSevenDayForecast(String district, String state) {
-        logger.info("Fetching 7-day forecast for district: {}, state: {}", district, state);
+    public Mono<SevenDayForecastDto> getSevenDayForecast(String district, String state, Double lat, Double lon) {
+        logger.info("Fetching 7-day forecast for district: {}, state: {}, lat: {}, lon: {}", district, state, lat, lon);
 
-        return weatherApiClient.getSevenDayForecast(district, state)
+        return weatherApiClient.getSevenDayForecast(district, state, lat, lon)
                 .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
                         .filter(this::isRetryableError)
                         .doBeforeRetry(retrySignal -> {
@@ -43,10 +43,11 @@ public class WeatherService {
                 });
     }
 
-    public Mono<CurrentWeatherDto> getCurrentWeather(String district, String state) {
-        logger.info("Fetching current weather for district: {}, state: {}", district, state);
+    public Mono<CurrentWeatherDto> getCurrentWeather(String district, String state, Double lat, Double lon) {
+        logger.info("Fetching current weather for district: {}, state: {}, lat: {}, lon: {}", district, state, lat,
+                lon);
 
-        return weatherApiClient.getCurrentWeather(district, state)
+        return weatherApiClient.getCurrentWeather(district, state, lat, lon)
                 .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
                         .filter(this::isRetryableError)
                         .doBeforeRetry(retrySignal -> {
@@ -61,10 +62,10 @@ public class WeatherService {
                 });
     }
 
-    public Mono<NowcastDto> getNowcast(String district, String state) {
-        logger.info("Fetching nowcast for district: {}, state: {}", district, state);
+    public Mono<NowcastDto> getNowcast(String district, String state, Double lat, Double lon) {
+        logger.info("Fetching nowcast for district: {}, state: {}, lat: {}, lon: {}", district, state, lat, lon);
 
-        return weatherApiClient.getNowcast(district, state)
+        return weatherApiClient.getNowcast(district, state, lat, lon)
                 .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
                         .filter(this::isRetryableError)
                         .doBeforeRetry(retrySignal -> {
@@ -111,10 +112,11 @@ public class WeatherService {
                 });
     }
 
-    public Mono<AgrometAdvisoryDto> getAgrometAdvisories(String district, String state) {
-        logger.info("Fetching agromet advisories for district: {}, state: {}", district, state);
+    public Mono<AgrometAdvisoryDto> getAgrometAdvisories(String district, String state, Double lat, Double lon) {
+        logger.info("Fetching agromet advisories for district: {}, state: {}, lat: {}, lon: {}", district, state, lat,
+                lon);
 
-        return weatherApiClient.getAgrometAdvisories(district, state)
+        return weatherApiClient.getAgrometAdvisories(district, state, lat, lon)
                 .retryWhen(Retry.backoff(MAX_RETRIES, INITIAL_BACKOFF)
                         .filter(this::isRetryableError)
                         .doBeforeRetry(retrySignal -> {

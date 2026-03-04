@@ -16,6 +16,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: location-service
+        version: "1.0.0"
+
 jwt:
   secret: ${JWT_SECRET:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm}
   expiration: ${JWT_EXPIRATION:86400000}

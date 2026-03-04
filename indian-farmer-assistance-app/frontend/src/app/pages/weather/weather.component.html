@@ -1,0 +1,91 @@
+<div class="weather-page">
+      <div class="header">
+        <h2>Local Weather Forecast</h2>
+        <p>Current conditions and 7-day forecasts for your farm planning.</p>
+      </div>
+
+      <div class="loader" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Loading weather data for {{ currentDistrict }}...</p>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <ng-container *ngIf="!isLoading && !errorMessage">
+        <!-- Current Weather -->
+        <div class="current-weather" *ngIf="currentWeather">
+          <div class="weather-main">
+            <div class="location-info">
+              <h3>{{ currentWeather.district }}, {{ currentWeather.state }}</h3>
+              <p class="time">{{ currentWeather.observationTime | date:'mediumTime' }}</p>
+            </div>
+            <div class="temp-display">
+              <span class="temp">{{ currentWeather.temperatureCelsius | number:'1.0-0' }}°C</span>
+              <span class="desc">{{ currentWeather.weatherDescription }}</span>
+            </div>
+          </div>
+          
+          <div class="weather-details">
+            <div class="detail-item">
+              <span class="icon">💧</span>
+              <span class="label">Humidity</span>
+              <span class="value">{{ currentWeather.humidity }}%</span>
+            </div>
+            <div class="detail-item">
+              <span class="icon">💨</span>
+              <span class="label">Wind</span>
+              <span class="value">{{ currentWeather.windSpeedKmph }} km/h ({{ currentWeather.windDirection }})</span>
+            </div>
+            <div class="detail-item">
+              <span class="icon">🌧️</span>
+              <span class="label">Rain (24h)</span>
+              <span class="value">{{ currentWeather.rainfall24HoursMm }} mm</span>
+            </div>
+            <div class="detail-item">
+              <span class="icon">☁️</span>
+              <span class="label">Cloud Cover</span>
+              <span class="value">{{ currentWeather.cloudCoverage }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7-Day Forecast -->
+        <h3 class="section-title" *ngIf="forecast?.forecastDays?.length">7-Day Forecast</h3>
+        <div class="forecast-grid" *ngIf="forecast?.forecastDays?.length">
+          <div class="forecast-card" *ngFor="let day of forecast?.forecastDays">
+            <h4>{{ day.date | date:'EEE, MMM d' }}</h4>
+            <div class="temps">
+              <span class="max">{{ day.maxTempCelsius | number:'1.0-0' }}°</span>
+              <span class="min">{{ day.minTempCelsius | number:'1.0-0' }}°</span>
+            </div>
+            <div class="day-details">
+              <span>💧 {{ day.rainfallMm > 0 ? day.rainfallMm + 'mm' : 'Dry' }}</span>
+              <span>💨 {{ day.windSpeedKmph }} km/h</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agromet Advisories -->
+        <div class="advisories-section" *ngIf="advisories?.advisories?.length">
+          <h3 class="section-title">Agro-Meteorological Advisories</h3>
+          <p class="general-advice" *ngIf="advisories?.generalAdvice">{{ advisories?.generalAdvice }}</p>
+          
+          <div class="advisory-cards">
+            <div class="advisory-card" *ngFor="let advisory of advisories?.advisories" [ngClass]="advisory.priority.toLowerCase()">
+              <div class="card-header">
+                <span class="type">{{ advisory.type }}</span>
+                <span class="priority" *ngIf="advisory.priority !== 'NORMAL'">{{ advisory.priority }}</span>
+              </div>
+              <h4>{{ advisory.title }}</h4>
+              <p>{{ advisory.description }}</p>
+              
+              <ul class="recommendations" *ngIf="advisory.recommendations.length">
+                <li *ngFor="let rec of advisory.recommendations">👉 {{ rec }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>

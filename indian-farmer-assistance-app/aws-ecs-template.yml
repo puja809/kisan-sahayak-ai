@@ -938,6 +938,24 @@ Resources:
           Value: '1'
         - Name: INSTANCE_HOST
           Value: ml-service
+        - Name: MCP_ENDPOINTS
+          Value: http://scheme-service.farmer-network.local:8097/mcp/sse,http://mandi-service.farmer-network.local:8096/mcp/sse,http://location-service.farmer-network.local:8095/mcp/sse,http://weather-service.farmer-network.local:8100/mcp/sse,http://crop-service.farmer-network.local:8093/mcp/sse,http://yield-service.farmer-network.local:8101/mcp/sse
+        - Name: AWS_ACCESS_KEY_ID
+          Value: <YOUR_AWS_ACCESS_KEY>
+        - Name: AWS_SECRET_ACCESS_KEY
+          Value: <YOUR_AWS_SECRET_KEY>
+        - Name: AWS_REGION
+          Value: us-east-1
+        - Name: AWS_API_TEXT_ENDPOINT
+          Value: https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask
+        - Name: AWS_API_VOICE_ENDPOINT
+          Value: https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask-voice
+        - Name: AWS_API_STREAM_TEXT_ENDPOINT
+          Value: https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask/stream
+        - Name: AWS_API_STREAM_VOICE_ENDPOINT
+          Value: https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask-voice/stream
+        - Name: AWS_API_DETECT_DISEASE_ENDPOINT
+          Value: https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/detect-disease
         LogConfiguration:
           LogDriver: awslogs
           Options:

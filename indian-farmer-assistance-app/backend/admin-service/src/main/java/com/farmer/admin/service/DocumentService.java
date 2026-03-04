@@ -19,7 +19,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import org.springframework.web.multipart.MultipartFile;
+import java.time.Duration;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -31,7 +40,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * Service for document management including upload, validation, embedding, and storage.
+ * Service for document management including upload, validation, embedding, and
+ * storage.
  * Requirements: 21.2, 21.3, 21.4, 21.5, 21.6, 21.7
  */
 @Service
@@ -43,6 +53,13 @@ public class DocumentService {
     private final DocumentVersionRepository documentVersionRepository;
     private final MongoTemplate mongoTemplate;
     private final AuditService auditService;
+    private final S3Client s3Client;
+
+    @Value("${aws.s3.bucket-name:krishi-sahayak-docs}")
+    private String bucketName;
+
+    @Value("${aws.s3.documents-path:documents/}")
+    private String documentsPath;
 
     @Value("${app.document.max-size-mb:50}")
     private int maxSizeMb;
@@ -59,7 +76,8 @@ public class DocumentService {
             mongoTemplate.indexOps(Document.class)
                     .ensureIndex(new Index().on("category", org.springframework.data.domain.Sort.Direction.ASC));
             mongoTemplate.indexOps(Document.class)
-                    .ensureIndex(new Index().on("metadata.uploadedBy", org.springframework.data.domain.Sort.Direction.ASC));
+                    .ensureIndex(
+                            new Index().on("metadata.uploadedBy", org.springframework.data.domain.Sort.Direction.ASC));
             mongoTemplate.indexOps(Document.class)
                     .ensureIndex(new Index().on("isActive", org.springframework.data.domain.Sort.Direction.ASC));
             log.info("MongoDB indexes created for Document collection");
@@ -84,6 +102,23 @@ public class DocumentService {
         // Generate document ID
         String documentId = UUID.randomUUID().toString();
 
+        // Upload to S3
+        String s3Key = documentsPath + documentId + "/" + file.getOriginalFilename();
+        try {
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .contentType(file.getContentType())
+                    .build();
+            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            log.info("Successfully uploaded document to S3: {}", s3Key);
+        } catch (IOException e) {
+            throw new DocumentValidationException("Failed to read file for S3 upload", e);
+        } catch (Exception e) {
+            log.error("Failed to upload document to S3: {}", e.getMessage());
+            throw new RuntimeException("Could not upload to S3", e);
+        }
+
         // Create document
         Document document = Document.builder()
                 .documentId(documentId)
@@ -102,6 +137,7 @@ public class DocumentService {
                         .fileFormat(getFileExtension(file.getOriginalFilename()))
                         .fileSizeBytes(file.getSize())
                         .originalFilename(file.getOriginalFilename())
+                        .s3Key(s3Key)
                         .build())
                 .isActive(true)
                 .isDeleted(false)
@@ -137,15 +173,15 @@ public class DocumentService {
         // Check file size
         if (file.getSize() > MAX_SIZE_BYTES) {
             throw new DocumentValidationException(
-                String.format("File size %d bytes exceeds maximum allowed size of %d bytes (50MB)", 
-                    file.getSize(), MAX_SIZE_BYTES));
+                    String.format("File size %d bytes exceeds maximum allowed size of %d bytes (50MB)",
+                            file.getSize(), MAX_SIZE_BYTES));
         }
 
         // Check file format
         String extension = getFileExtension(filename).toUpperCase();
         if (!ALLOWED_FORMATS.contains(extension)) {
             throw new DocumentValidationException(
-                String.format("Invalid file format '%s'. Allowed formats: %s", extension, ALLOWED_FORMATS));
+                    String.format("Invalid file format '%s'. Allowed formats: %s", extension, ALLOWED_FORMATS));
         }
 
         log.debug("Document validation passed for: {}", filename);
@@ -157,7 +193,7 @@ public class DocumentService {
      */
     public String extractTextContent(MultipartFile file) {
         String extension = getFileExtension(file.getOriginalFilename()).toUpperCase();
-        
+
         try (InputStream inputStream = file.getInputStream()) {
             return switch (extension) {
                 case "PDF" -> extractPdfText(inputStream);
@@ -198,8 +234,39 @@ public class DocumentService {
      * Requirements: 21.5
      */
     public Document getDocument(String documentId) {
-        return documentRepository.findByDocumentId(documentId)
+        Document doc = documentRepository.findByDocumentId(documentId)
                 .orElseThrow(() -> new DocumentNotFoundException(documentId));
+        return doc;
+    }
+
+    /**
+     * Get a presigned URL to download the document direct from S3.
+     */
+    public String getPresignedUrl(String documentId, int expirationMinutes) {
+        Document document = getDocument(documentId);
+        String s3Key = document.getMetadata().getS3Key();
+        if (s3Key == null || s3Key.isEmpty()) {
+            throw new DocumentValidationException("Document missing S3 Key");
+        }
+
+        try (S3Presigner presigner = S3Presigner.builder().region(s3Client.serviceClientConfiguration().region())
+                .build()) {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(s3Key)
+                    .build();
+
+            GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(expirationMinutes))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedGetObjectRequest = presigner.presignGetObject(getObjectPresignRequest);
+            return presignedGetObjectRequest.url().toString();
+        } catch (Exception e) {
+            log.error("Failed to generate presigned URL: {}", e.getMessage());
+            throw new RuntimeException("Could not generate download URL");
+        }
     }
 
     /**
@@ -241,7 +308,7 @@ public class DocumentService {
         if (request.getContentLanguage() != null) {
             document.setContentLanguage(request.getContentLanguage());
         }
-        
+
         // Update metadata
         DocumentMetadataInfo metadata = document.getMetadata();
         if (metadata == null) {
@@ -305,12 +372,22 @@ public class DocumentService {
     public void permanentDeleteOldDocuments() {
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(retentionDays);
         List<Document> oldDocuments = documentRepository.findDocumentsForPermanentDeletion(cutoffDate);
-        
+
         for (Document document : oldDocuments) {
             documentRepository.delete(document);
-            log.info("Permanently deleted document: {}", document.getDocumentId());
+            log.info("Permanently deleted document metadata: {}", document.getDocumentId());
+
+            String s3Key = document.getMetadata() != null ? document.getMetadata().getS3Key() : null;
+            if (s3Key != null && !s3Key.isEmpty()) {
+                try {
+                    s3Client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(s3Key).build());
+                    log.info("Permanently deleted document from S3: {}", s3Key);
+                } catch (Exception e) {
+                    log.error("Failed to delete document from S3 (Key: {}). Error: {}", s3Key, e.getMessage());
+                }
+            }
         }
-        
+
         log.info("Permanent deletion completed. Deleted {} documents", oldDocuments.size());
     }
 
@@ -369,7 +446,7 @@ public class DocumentService {
                 .changedBy(changedBy)
                 .changeReason(changeReason)
                 .build();
-        
+
         documentVersionRepository.save(version);
     }
 
@@ -407,7 +484,8 @@ public class DocumentService {
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {
                 String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
+                if (hex.length() == 1)
+                    hexString.append('0');
                 hexString.append(hex);
             }
             return hexString.toString();
@@ -417,12 +495,12 @@ public class DocumentService {
     }
 
     private String serializeMetadata(DocumentMetadataInfo metadata) {
-        if (metadata == null) return "{}";
+        if (metadata == null)
+            return "{}";
         return String.format(
-            "{\"source\":\"%s\",\"state\":\"%s\",\"version\":%d}",
-            metadata.getSource() != null ? metadata.getSource() : "",
-            metadata.getState() != null ? metadata.getState() : "",
-            metadata.getVersion() != null ? metadata.getVersion() : 1
-        );
+                "{\"source\":\"%s\",\"state\":\"%s\",\"version\":%d}",
+                metadata.getSource() != null ? metadata.getSource() : "",
+                metadata.getState() != null ? metadata.getState() : "",
+                metadata.getVersion() != null ? metadata.getVersion() : 1);
     }
 }

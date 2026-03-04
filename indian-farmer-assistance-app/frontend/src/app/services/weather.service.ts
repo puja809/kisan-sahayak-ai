@@ -62,21 +62,27 @@ export class WeatherService {
 
     constructor(private http: HttpClient) { }
 
-    getCurrentWeather(district: string, state?: string): Observable<CurrentWeatherDto> {
+    getCurrentWeather(district: string, state?: string, lat?: number, lon?: number): Observable<CurrentWeatherDto> {
         let params = new HttpParams();
         if (state) params = params.set('state', state);
+        if (lat !== undefined) params = params.set('lat', lat.toString());
+        if (lon !== undefined) params = params.set('lon', lon.toString());
         return this.http.get<CurrentWeatherDto>(`${this.apiUrl}/current/${encodeURIComponent(district)}`, { params });
     }
 
-    getSevenDayForecast(district: string, state?: string): Observable<SevenDayForecastDto> {
+    getSevenDayForecast(district: string, state?: string, lat?: number, lon?: number): Observable<SevenDayForecastDto> {
         let params = new HttpParams();
         if (state) params = params.set('state', state);
+        if (lat !== undefined) params = params.set('lat', lat.toString());
+        if (lon !== undefined) params = params.set('lon', lon.toString());
         return this.http.get<SevenDayForecastDto>(`${this.apiUrl}/forecast/${encodeURIComponent(district)}`, { params });
     }
 
-    getAgrometAdvisories(district: string, state?: string): Observable<AgrometAdvisoryDto> {
+    getAgrometAdvisories(district: string, state?: string, lat?: number, lon?: number): Observable<AgrometAdvisoryDto> {
         let params = new HttpParams();
         if (state) params = params.set('state', state);
+        if (lat !== undefined) params = params.set('lat', lat.toString());
+        if (lon !== undefined) params = params.set('lon', lon.toString());
         return this.http.get<AgrometAdvisoryDto>(`${this.apiUrl}/agromet/${encodeURIComponent(district)}`, { params });
     }
 }

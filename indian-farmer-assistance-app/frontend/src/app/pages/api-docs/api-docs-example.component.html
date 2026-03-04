@@ -1,0 +1,106 @@
+<div class="example-container">
+      <h1>API Documentation Examples</h1>
+
+      <!-- Example 1: Service Selection -->
+      <section class="example-section">
+        <h2>Example 1: Browse Services</h2>
+        <div class="service-selector">
+          <select [(ngModel)]="selectedServiceId" (change)="loadServiceDocumentation()">
+            <option *ngFor="let service of services" [value]="service.id">
+              {{ service.name }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="currentDocumentation" class="documentation-display">
+          <h3>{{ currentDocumentation.serviceName }}</h3>
+          <p>Version: {{ currentDocumentation.version }}</p>
+          <p>Port: {{ currentDocumentation.port }}</p>
+          <p>Endpoints: {{ currentDocumentation.endpoints.length }}</p>
+
+          <div class="endpoints-preview">
+            <h4>Sample Endpoints:</h4>
+            <div *ngFor="let endpoint of currentDocumentation.endpoints | slice:0:5" class="endpoint">
+              <span class="method" [ngClass]="endpoint.method.toLowerCase()">{{ endpoint.method }}</span>
+              <span class="path">{{ endpoint.path }}</span>
+              <p *ngIf="endpoint.summary">{{ endpoint.summary }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Example 2: Search Endpoints -->
+      <section class="example-section">
+        <h2>Example 2: Search Endpoints</h2>
+        <div class="search-box">
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            placeholder="Search endpoints (e.g., 'user', 'crop', 'weather')"
+            (keyup)="searchEndpoints()">
+        </div>
+
+        <div *ngIf="searchResults.length > 0" class="search-results">
+          <div *ngFor="let result of searchResults" class="search-result">
+            <h4>{{ result.service.name }}</h4>
+            <div *ngFor="let endpoint of result.endpoints" class="endpoint">
+              <span class="method" [ngClass]="endpoint.method.toLowerCase()">{{ endpoint.method }}</span>
+              <span class="path">{{ endpoint.path }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="searchQuery && searchResults.length === 0" class="no-results">
+          No endpoints found for "{{ searchQuery }}"
+        </div>
+      </section>
+
+      <!-- Example 3: Generate Client Code -->
+      <section class="example-section">
+        <h2>Example 3: Generate Client Code</h2>
+        <div class="generator-controls">
+          <select [(ngModel)]="generatorServiceId">
+            <option *ngFor="let service of services" [value]="service.id">
+              {{ service.name }}
+            </option>
+          </select>
+          <button (click)="generateClientCode()">Generate Client</button>
+        </div>
+
+        <div *ngIf="generatedClient" class="generated-code">
+          <h4>Generated: {{ generatedClient.className }}</h4>
+          <pre><code>{{ generatedClient.code }}</code></pre>
+          <button (click)="downloadGeneratedCode()">Download as File</button>
+        </div>
+      </section>
+
+      <!-- Example 4: Load All Services -->
+      <section class="example-section">
+        <h2>Example 4: Load All Services</h2>
+        <button (click)="loadAllServices()">Load All Services</button>
+
+        <div *ngIf="allServices.length > 0" class="all-services">
+          <div *ngFor="let service of allServices" class="service-summary">
+            <h4>{{ service.serviceName }}</h4>
+            <p>Endpoints: {{ service.endpoints.length }}</p>
+            <p>Port: {{ service.port }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Example 5: Service Information -->
+      <section class="example-section">
+        <h2>Example 5: Service Information</h2>
+        <div class="services-info">
+          <div *ngFor="let service of services" class="service-info">
+            <h4>{{ service.name }}</h4>
+            <p>{{ service.description }}</p>
+            <p class="port">Port: {{ service.port }}</p>
+            <div class="links">
+              <a [href]="getSwaggerUrl(service.id)" target="_blank">Swagger UI</a>
+              <a [href]="getOpenApiUrl(service.id)" target="_blank">OpenAPI JSON</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>

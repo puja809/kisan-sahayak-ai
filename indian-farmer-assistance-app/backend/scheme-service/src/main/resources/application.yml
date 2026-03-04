@@ -30,6 +30,14 @@ spring:
   config:
     import: optional:file:./config/common.yml
 
+# Spring AI MCP Server Configuration
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: scheme-service
+        version: "1.0.0"
+
 # Custom application configuration
 app:
   session-id: c05a946fe7c08b9859bbcc2813af5fd177f1a2c9ebcc657343605e380196a165

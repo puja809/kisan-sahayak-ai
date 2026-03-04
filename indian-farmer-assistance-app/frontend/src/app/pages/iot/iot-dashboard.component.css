@@ -1,0 +1,285 @@
+.iot-dashboard-container {
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      color: #333;
+      margin: 0;
+    }
+
+    .btn-primary {
+      padding: 0.75rem 1.5rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #5568d3;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .iot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      color: #333;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 0.5rem;
+    }
+
+    .devices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .device-item {
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 4px;
+      border-left: 4px solid #27ae60;
+    }
+
+    .device-item.offline {
+      border-left-color: #e74c3c;
+      opacity: 0.7;
+    }
+
+    .device-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .device-header h3 {
+      margin: 0;
+      color: #333;
+    }
+
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    .status-active {
+      background: #27ae60;
+    }
+
+    .status-inactive {
+      background: #95a5a6;
+    }
+
+    .status-offline {
+      background: #e74c3c;
+    }
+
+    .device-id,
+    .device-type,
+    .last-seen {
+      margin: 0.25rem 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .device-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .btn-small {
+      flex: 1;
+      padding: 0.5rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .btn-small:hover {
+      background: #5568d3;
+    }
+
+    .btn-small.danger {
+      background: #e74c3c;
+    }
+
+    .btn-small.danger:hover {
+      background: #c0392b;
+    }
+
+    .no-data {
+      color: #999;
+      font-style: italic;
+    }
+
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .sensor-item {
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .sensor-item .label {
+      display: block;
+      color: #666;
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .sensor-item .value {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #ddd;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      background: #667eea;
+      transition: width 0.3s;
+    }
+
+    .reading-time {
+      color: #999;
+      font-size: 0.85rem;
+      margin: 1rem 0 0 0;
+    }
+
+    .alert-config {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .config-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .config-group label {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .range-inputs {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .range-inputs input {
+      flex: 1;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .range-inputs span {
+      color: #666;
+    }
+
+    .trends-info {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .trends-info p {
+      margin: 0.5rem 0;
+      color: #666;
+    }
+
+    .chart-placeholder {
+      text-align: center;
+      color: #999;
+      padding: 2rem;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    .provisioning-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .provisioning-form input,
+    .provisioning-form select {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .provisioning-form input:focus,
+    .provisioning-form select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .iot-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sensor-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }

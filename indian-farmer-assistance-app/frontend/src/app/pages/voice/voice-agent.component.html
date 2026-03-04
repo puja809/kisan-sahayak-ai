@@ -1,0 +1,101 @@
+<div class="voice-agent-container">
+  <div class="voice-header">
+    <div class="header-content">
+      <h1>🌾 Krishi Assistant</h1>
+      <p>Ask questions about farming, schemes, and agriculture</p>
+    </div>
+    <div class="language-selector">
+      <label for="language">Language:</label>
+      <select id="language" [(ngModel)]="selectedLanguage" (change)="onLanguageChange()">
+        <option *ngFor="let lang of languages" [value]="lang.code">
+          {{ lang.nativeName }} ({{ lang.name }})
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Location Bar -->
+  <div class="location-bar" *ngIf="locationDenied">
+    <span class="location-icon">📍</span>
+    <input type="text" [(ngModel)]="userCityName" placeholder="Enter your city or district name..." class="city-input"
+      autocomplete="off" />
+    <span class="location-hint">Location access denied. Enter your city for better results.</span>
+  </div>
+
+  <!-- Mode Toggle -->
+  <div class="mode-toggle">
+    <button class="toggle-btn" [class.active]="inputMode === 'text'" (click)="switchMode('text')">
+      💬 Text Chat
+    </button>
+    <button class="toggle-btn" [class.active]="inputMode === 'voice'" (click)="switchMode('voice')">
+      🎤 Voice
+    </button>
+  </div>
+
+  <div class="voice-content">
+    <!-- Conversation History -->
+    <div class="conversation-history">
+      <div class="history-header">
+        <h2>Chat History</h2>
+        <button class="btn-clear" (click)="clearHistory()" [disabled]="conversationHistory.length === 0"
+          title="Clear all messages">
+          ✕
+        </button>
+      </div>
+      <div class="messages-container">
+        <div *ngIf="conversationHistory.length === 0" class="welcome-message">
+          <p>👋 Welcome! Ask me anything about agriculture, farming schemes, or government support.</p>
+        </div>
+        <div *ngFor="let message of conversationHistory" class="message-group">
+          <div class="user-message">
+            <p>{{ message.userText }}</p>
+          </div>
+          <div class="system-message">
+            <p>{{ message.systemResponse }}</p>
+            <button *ngIf="message.systemAudioBase64" class="btn-play-audio"
+              (click)="playAudio(message.systemAudioBase64!)" title="Play audio response">
+              🔊 Play Audio
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Input Section -->
+    <div class="input-section" *ngIf="inputMode === 'text'">
+      <div class="text-input-group">
+        <input type="text" [(ngModel)]="textInput" placeholder="Type your question here..."
+          (keyup.enter)="sendTextQuery()" class="text-input" [disabled]="isProcessing" autocomplete="off" />
+        <button class="btn-send" (click)="sendTextQuery()" [disabled]="!textInput.trim() || isProcessing">
+          {{ isProcessing ? '⏳' : '➤' }}
+        </button>
+      </div>
+      <div *ngIf="isProcessing" class="processing-indicator">
+        <div class="spinner"></div>
+        <p>Getting answer...</p>
+      </div>
+    </div>
+
+    <!-- Voice Input Section -->
+    <div class="input-section" *ngIf="inputMode === 'voice'">
+      <div class="voice-controls">
+        <button class="btn-record" [class.recording]="isRecording" (click)="toggleRecording()"
+          [disabled]="isProcessing">
+          {{ isRecording ? '⏹ Stop' : '🎤 Record' }}
+        </button>
+        <div class="recording-status" *ngIf="isRecording">
+          <span class="pulse"></span>
+          Recording... {{ recordingDuration }}s
+        </div>
+      </div>
+      <div *ngIf="isProcessing" class="processing-indicator">
+        <div class="spinner"></div>
+        <p>Processing voice input...</p>
+      </div>
+      <div *ngIf="lastRecordingUrl" class="audio-preview">
+        <p>Recorded audio:</p>
+        <audio controls [src]="lastRecordingUrl"></audio>
+      </div>
+    </div>
+  </div>
+</div>

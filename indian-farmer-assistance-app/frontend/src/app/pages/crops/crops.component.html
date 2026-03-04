@@ -1,0 +1,290 @@
+<div class="crops-container">
+      <h2>🌾 Crop Recommendation Dashboard</h2>
+      
+      <!-- Tabs Navigation -->
+      <div class="tabs" *ngIf="dashboardData">
+        <button class="tab-btn" [class.active]="activeTab === 'recommendation'" (click)="switchTab('recommendation')">🌱 Recommendation</button>
+        <button class="tab-btn" [class.active]="activeTab === 'fertilizer'" (click)="switchTab('fertilizer')">🧪 Fertilizer</button>
+        <button class="tab-btn" [class.active]="activeTab === 'rotation'" (click)="switchTab('rotation')">🔄 Rotation</button>
+      </div>
+
+      <!-- Location & Weather Info -->
+      <div *ngIf="dashboardData" class="info-banner">
+        <div class="info-item">
+          <span class="label">📍 Location:</span>
+          <span class="value">{{ dashboardData.location }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">🌡️ Temperature:</span>
+          <span class="value">{{ dashboardData.weatherData.current.temp_c | number:'1.1-1' }}°C</span>
+        </div>
+        <div class="info-item">
+          <span class="label">💧 Humidity:</span>
+          <span class="value">{{ dashboardData.weatherData.current.humidity | number:'1.0-0' }}%</span>
+        </div>
+      </div>
+      
+      <!-- Soil Data Section (Moved to Top) -->
+      <div *ngIf="dashboardData?.soilData" class="soil-data-card">
+        <h3>🌍 Soil Analysis</h3>
+        <div class="soil-grid">
+          <div class="soil-item">
+            <label>Texture Class</label>
+            <p>{{ dashboardData?.soilData?.soil_type?.texture_class || 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>FAO Classification</label>
+            <p>{{ dashboardData?.soilData?.soil_type?.fao_class || 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>pH (H₂O)</label>
+            <p>{{ dashboardData?.soilData?.chemical_properties?.ph_h2o ? (dashboardData?.soilData?.chemical_properties?.ph_h2o | number:'1.2-2') + ' (' + getPhRating(dashboardData?.soilData?.chemical_properties?.ph_h2o) + ')' : 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>Organic Matter</label>
+            <p>{{ dashboardData?.soilData?.chemical_properties?.organic_matter_pct ? (dashboardData?.soilData?.chemical_properties?.organic_matter_pct | number:'1.2-2') + '%' : 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>Nitrogen</label>
+            <p>{{ dashboardData?.soilData?.chemical_properties?.nitrogen_g_kg ? (dashboardData?.soilData?.chemical_properties?.nitrogen_g_kg | number:'1.2-2') + ' g/kg' : 'N/A' }}</p>
+          </div>
+          <div class="soil-item">
+            <label>Water Capacity (Field)</label>
+            <p>{{ dashboardData?.soilData?.water_metrics?.capacity_field_vol_pct ? (dashboardData?.soilData?.water_metrics?.capacity_field_vol_pct | number:'1.2-2') + '%' : 'N/A' }}</p>
+          </div>
+        </div>
+        <div class="soil-texture" *ngIf="dashboardData?.soilData?.physical_properties">
+          <h4>Soil Texture Composition</h4>
+          <div class="texture-bars">
+            <div class="texture-bar">
+              <div class="bar sand" [style.width.%]="dashboardData?.soilData?.physical_properties?.sand_pct || 0"></div>
+              <span>Sand: {{ dashboardData?.soilData?.physical_properties?.sand_pct | number:'1.1-1' }}%</span>
+            </div>
+            <div class="texture-bar">
+              <div class="bar silt" [style.width.%]="dashboardData?.soilData?.physical_properties?.silt_pct || 0"></div>
+              <span>Silt: {{ dashboardData?.soilData?.physical_properties?.silt_pct | number:'1.1-1' }}%</span>
+            </div>
+            <div class="texture-bar">
+              <div class="bar clay" [style.width.%]="dashboardData?.soilData?.physical_properties?.clay_pct || 0"></div>
+              <span>Clay: {{ dashboardData?.soilData?.physical_properties?.clay_pct | number:'1.1-1' }}%</span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!dashboardData?.soilData?.physical_properties" class="no-texture-data">
+          <p>Detailed soil texture composition not available.</p>
+        </div>
+      </div>
+      
+      <!-- TAB 1: Crop Recommendation Section -->
+      <div *ngIf="activeTab === 'recommendation'">
+        <div *ngIf="dashboardData?.cropRecommendation" class="prediction-card crop-card">
+        <div class="card-header">
+          <h3>🌱 Crop Recommendation</h3>
+          <span class="model-badge">ML v{{ dashboardData?.cropRecommendation?.modelVersion }}</span>
+        </div>
+        <div class="card-content">
+          <div class="prediction-main">
+            <div class="crop-name clickable-crop" (click)="viewCropDetails(dashboardData?.cropRecommendation?.prediction || '')" title="View Crop Details">{{ dashboardData?.cropRecommendation?.prediction }}</div>
+            <div class="confidence-meter">
+              <div class="confidence-bar">
+                <div class="confidence-fill" [style.width.%]="(dashboardData?.cropRecommendation?.confidence || 0) * 100"></div>
+              </div>
+              <span class="confidence-text">{{ ((dashboardData?.cropRecommendation?.confidence || 0) * 100) | number:'1.1-1' }}% Confidence</span>
+            </div>
+          </div>
+          <div class="probabilities">
+            <h4>Alternative Crops</h4>
+            <div class="prob-list">
+              <div *ngFor="let crop of getTopProbabilities(dashboardData?.cropRecommendation?.probabilities || {})" class="prob-item clickable-crop" (click)="viewCropDetails(crop.name)" title="View Crop Details">
+                <span class="crop-name-alt">{{ crop.name }}</span>
+                <div class="prob-bar">
+                  <div class="prob-fill" [style.width.%]="crop.probability * 100"></div>
+                </div>
+                <span class="prob-value">{{ (crop.probability * 100) | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="!dashboardData?.cropRecommendation" class="prediction-card crop-card no-data-card">
+        <div class="card-header">
+          <h3>🌱 Crop Recommendation</h3>
+        </div>
+        <div class="card-content">
+          <p class="no-data-message">No crop recommendation available. Please check your location and try again.</p>
+        </div>
+      </div>
+
+      </div> <!-- End Tab 1 -->
+
+      <!-- TAB 3: Crop Rotation Section -->
+      <div *ngIf="activeTab === 'rotation'">
+        <div class="rotation-section">
+        <h3>🔄 Crop Rotation Recommendation</h3>
+        <div class="rotation-form">
+          <div class="form-group">
+            <label>Previous Crop</label>
+            <select [(ngModel)]="previousCrop" class="rotation-select">
+              <option value="">Select Previous Crop</option>
+              <option *ngFor="let c of availableCrops" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Season</label>
+            <select [(ngModel)]="selectedSeason">
+              <option value="">Select Season</option>
+              <option value="Kharif">Kharif</option>
+              <option value="Rabi">Rabi</option>
+              <option value="Summer">Summer</option>
+            </select>
+          </div>
+          <button (click)="getRotationRecommendation()" class="btn-primary">Get Rotation</button>
+        </div>
+        <div *ngIf="dashboardData?.cropRotation" class="rotation-result">
+          <div class="prediction-card rotation-card">
+            <div class="crop-name">{{ dashboardData?.cropRotation?.prediction }}</div>
+            <div class="confidence-meter">
+              <div class="confidence-bar">
+                <div class="confidence-fill" [style.width.%]="(dashboardData?.cropRotation?.confidence || 0) * 100"></div>
+              </div>
+              <span class="confidence-text">{{ ((dashboardData?.cropRotation?.confidence || 0) * 100) | number:'1.1-1' }}% Confidence</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div> <!-- End Tab 3 -->
+
+      <!-- TAB 2: Fertilizer Recommendation Section -->
+      <div *ngIf="activeTab === 'fertilizer'">
+        <div *ngIf="dashboardData?.fertilizerRecommendation" class="prediction-card fertilizer-card">
+        <div class="card-header">
+          <h3>🧪 Fertilizer Recommendation</h3>
+          <span class="model-badge">ML v{{ dashboardData?.fertilizerRecommendation?.modelVersion }}</span>
+        </div>
+          <div class="card-content" style="display:flex; flex-direction:column; gap: 1rem;">
+            <div class="fertilizer-header" style="display:flex; align-items:center; gap: 1rem;">
+              <label style="font-weight:600; color:#E65100;">Target Crop:</label>
+              <select [(ngModel)]="selectedFertilizerCrop" (change)="onFertilizerCropChange()" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #FFB74D;">
+                <option *ngFor="let c of availableCrops" [value]="c">{{ c }}</option>
+              </select>
+              <span *ngIf="isCalculatingFertilizer" style="color: #666; font-size: 0.9rem;">⏳ Calculating...</span>
+            </div>
+            <div class="fertilizer-grid" [class.blur-content]="isCalculatingFertilizer">
+              <div class="fertilizer-item">
+                <div class="nutrient-label">Nitrogen (N)</div>
+                <div class="nutrient-value">{{ currentFertilizer.N | number:'1.1-1' }}</div>
+                <div class="nutrient-unit">kg/ha</div>
+              </div>
+              <div class="fertilizer-item">
+                <div class="nutrient-label">Phosphorus (P)</div>
+                <div class="nutrient-value">{{ currentFertilizer.P | number:'1.1-1' }}</div>
+                <div class="nutrient-unit">kg/ha</div>
+              </div>
+              <div class="fertilizer-item">
+                <div class="nutrient-label">Potassium (K)</div>
+                <div class="nutrient-value">{{ currentFertilizer.K | number:'1.1-1' }}</div>
+                <div class="nutrient-unit">kg/ha</div>
+              </div>
+              <div class="fertilizer-item total">
+                <div class="nutrient-label">Total NPK</div>
+                <div class="nutrient-value">{{ currentFertilizer.total | number:'1.1-1' }}</div>
+                <div class="nutrient-unit">kg/ha</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!dashboardData?.fertilizerRecommendation" class="prediction-card fertilizer-card no-data-card">
+          <div class="card-header">
+            <h3>🧪 Fertilizer Recommendation</h3>
+          </div>
+          <div class="card-content">
+            <p class="no-data-message">No fertilizer recommendation available. Crop recommendation is required first.</p>
+          </div>
+        </div>
+      </div> <!-- End Tab 2 -->
+
+      <p *ngIf="!loading && !dashboardData" class="no-data">No data available. Please enable location access.</p>
+      <p *ngIf="loading" class="loading">⏳ Loading dashboard data...</p>
+
+      <!-- Crop Details Modal -->
+      <div class="modal-overlay" *ngIf="showCropModal" (click)="closeCropModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <button class="close-btn" (click)="closeCropModal()">×</button>
+          
+          <div *ngIf="isLoadingCropDetails" class="loading-modal">
+            <p>⏳ Loading details for {{ selectedFertilizerCrop }}...</p>
+          </div>
+          
+          <div *ngIf="!isLoadingCropDetails && selectedCropDetails" class="crop-details">
+            <h2>{{ selectedCropDetails.commodity }}</h2>
+            <div class="detail-badge-container">
+              <span class="detail-badge category" *ngIf="selectedCropDetails.category">{{ selectedCropDetails.category }}</span>
+              <span class="detail-badge season" *ngIf="selectedCropDetails.season">{{ selectedCropDetails.season }}</span>
+            </div>
+            
+            <div class="crop-meta-grid">
+              <div class="meta-item">
+                <span class="meta-icon">⏱️</span>
+                <div class="meta-text">
+                  <label>Duration</label>
+                  <span>{{ selectedCropDetails.durationDays }} Days</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">🌱</span>
+                <div class="meta-text">
+                  <label>Seed Rate</label>
+                  <span>{{ selectedCropDetails.seedRateKgPerAcre }}</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">📏</span>
+                <div class="meta-text">
+                  <label>Spacing</label>
+                  <span>{{ selectedCropDetails.spacingCm }}</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">💧</span>
+                <div class="meta-text">
+                  <label>Irrigation</label>
+                  <span>{{ selectedCropDetails.irrigationNumber }}</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <span class="meta-icon">⚖️</span>
+                <div class="meta-text">
+                  <label>Expected Yield</label>
+                  <span>{{ selectedCropDetails.yieldKgPerAcre }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="detail-section" *ngIf="selectedCropDetails.keyOperations">
+              <h4>Key Operations</h4>
+              <p>{{ selectedCropDetails.keyOperations }}</p>
+            </div>
+            
+            <div class="detail-section" *ngIf="selectedCropDetails.harvestSigns">
+              <h4>Harvest Signs</h4>
+              <p>{{ selectedCropDetails.harvestSigns }}</p>
+            </div>
+
+            <div class="modal-actions">
+              <button class="btn-primary" (click)="navigateToFertilizerFromModal()">
+                View Fertilizer Needs
+              </button>
+            </div>
+          </div>
+          
+          <div *ngIf="!isLoadingCropDetails && !selectedCropDetails" class="no-data-modal">
+            <p>Detailed metadata for {{ selectedFertilizerCrop }} is currently unavailable.</p>
+            <div class="modal-actions" style="justify-content: center; margin-top: 1.5rem;">
+              <button class="btn-primary" (click)="navigateToFertilizerFromModal()">
+                View Fertilizer Needs Instead
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

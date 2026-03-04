@@ -19,6 +19,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Spring AI MCP Server Configuration
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: yield-service
+        version: "1.0.0"
+
 logging:
   level:
     com.farmer.yield: INFO

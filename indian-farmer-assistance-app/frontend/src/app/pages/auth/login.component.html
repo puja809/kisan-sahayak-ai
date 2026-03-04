@@ -1,0 +1,91 @@
+<div class="login-container">
+      <div class="login-card">
+        <h1>Indian Farmer Assistance</h1>
+        <h2>{{ isAdminLogin ? 'Admin Login' : 'Farmer Login' }}</h2>
+        
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label>Login with:</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" formControlName="loginType" value="email" />
+                Email
+              </label>
+              <label class="radio-label">
+                <input type="radio" formControlName="loginType" value="phone" />
+                Phone
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="loginForm.get('loginType')?.value === 'email'">
+            <label for="email">Email Address</label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="Enter your email"
+              class="form-control"
+            />
+            <div *ngIf="loginForm.hasError('emailRequired')" class="error">
+              Email is required
+            </div>
+            <div *ngIf="loginForm.hasError('invalidEmail')" class="error">
+              Please enter a valid email
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="loginForm.get('loginType')?.value === 'phone'">
+            <label for="phone">Phone Number</label>
+            <input
+              id="phone"
+              type="tel"
+              formControlName="phone"
+              placeholder="Enter your phone number"
+              class="form-control"
+            />
+            <div *ngIf="loginForm.hasError('phoneRequired')" class="error">
+              Phone number is required
+            </div>
+            <div *ngIf="loginForm.hasError('invalidPhone')" class="error">
+              Please enter a valid 10-digit phone number
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              formControlName="password"
+              placeholder="Enter your password"
+              class="form-control"
+            />
+            <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="error">
+              Password is required
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="!loginForm.valid || isLoading" class="btn-primary">
+            {{ isLoading ? 'Logging in...' : 'Login' }}
+          </button>
+        </form>
+
+        <p class="register-link">
+          <a (click)="toggleAdminLogin()">
+            {{ isAdminLogin ? 'Switch to Farmer Login' : 'Login as Admin' }}
+          </a>
+        </p>
+
+        <p class="register-link" *ngIf="!isAdminLogin">
+          Don't have an account? <a (click)="goToRegister()">Register here</a>
+        </p>
+
+        <div *ngIf="!isOnline" class="offline-notice">
+          <p>You are offline. Attempting offline login with cached credentials.</p>
+          <button type="button" (click)="loginOffline()" class="btn-secondary">
+            Login Offline
+          </button>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,208 @@
+.mandi-container {
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      color: #333;
+      margin: 0;
+    }
+
+    .mandi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      color: #333;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 0.5rem;
+    }
+
+    .search-form,
+    .alert-form {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .search-form input,
+    .alert-form input {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .search-form input:focus,
+    .alert-form input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-primary {
+      padding: 0.75rem 1.5rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .search-results,
+    .mandis-list,
+    .alerts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .price-item,
+    .mandi-item,
+    .alert-item {
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 4px;
+      border-left: 4px solid #667eea;
+    }
+
+    .price-item h3,
+    .mandi-item h3 {
+      margin: 0 0 0.5rem 0;
+      color: #333;
+    }
+
+    .price-item p,
+    .mandi-item p,
+    .alert-item p {
+      margin: 0.25rem 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .date {
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 0.75rem;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 1rem;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-small {
+      padding: 0.5rem 1rem;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn-small:hover {
+      background: #c0392b;
+    }
+
+    .trends-info,
+    .msp-info {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+
+    .trends-info p,
+    .msp-info p {
+      margin: 0.5rem 0;
+      color: #666;
+    }
+
+    .msp-item {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 4px;
+      border-left: 4px solid #667eea;
+    }
+
+    .above-msp {
+      color: #27ae60;
+      font-weight: 600;
+    }
+
+    .below-msp {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+
+    .status {
+      font-weight: 600;
+    }
+
+    .status.active {
+      color: #27ae60;
+    }
+
+    .status.inactive {
+      color: #e74c3c;
+    }
+
+    .chart-placeholder {
+      text-align: center;
+      color: #999;
+      padding: 2rem;
+      background: white;
+      border-radius: 4px;
+      margin-top: 1rem;
+    }
+
+    .no-data {
+      color: #999;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .mandi-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .search-form,
+      .alert-form {
+        flex-direction: column;
+      }
+    }

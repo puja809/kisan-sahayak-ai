@@ -28,6 +28,13 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: mandi-service
+        version: "1.0.0"
+
 # AGMARKNET API Configuration
 agmarknet:
   api:
@@ -64,6 +71,13 @@ logging:
     com.farmer.mandi: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: WARN
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
 
 # Swagger/OpenAPI Configuration
 springdoc:

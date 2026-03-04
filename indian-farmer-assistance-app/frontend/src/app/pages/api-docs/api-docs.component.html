@@ -1,0 +1,85 @@
+<div class="api-docs-container">
+      <div class="docs-header">
+        <h1>API Documentation</h1>
+        <p>Indian Farmer Assistance Application - REST API Reference</p>
+      </div>
+
+      <div class="docs-content">
+        <!-- Search Bar -->
+        <div class="search-section">
+          <input 
+            type="text" 
+            placeholder="Search endpoints..." 
+            [(ngModel)]="searchQuery"
+            (keyup)="onSearch()"
+            class="search-input">
+          <button (click)="clearSearch()" class="clear-btn" *ngIf="searchQuery">Clear</button>
+        </div>
+
+        <!-- Service Tabs -->
+        <div class="service-tabs">
+          <button 
+            *ngFor="let service of services" 
+            [class.active]="selectedService === service.id"
+            (click)="selectService(service.id)"
+            class="service-tab">
+            {{ service.name }}
+            <span class="loading-indicator" *ngIf="(isLoading$ | async)">⟳</span>
+          </button>
+        </div>
+
+        <!-- Swagger UI Iframe -->
+        <div class="swagger-ui-wrapper" *ngIf="selectedService && !searchQuery">
+          <iframe 
+            [src]="getSwaggerUrl(selectedService)" 
+            class="swagger-iframe"
+            title="Swagger UI">
+          </iframe>
+        </div>
+
+        <!-- Endpoints List (when searching) -->
+        <div class="endpoints-list" *ngIf="searchQuery && searchResults.length > 0">
+          <div *ngFor="let result of searchResults" class="service-endpoints">
+            <h3>{{ result.service.name }}</h3>
+            <div class="endpoints">
+              <div *ngFor="let endpoint of result.endpoints" class="endpoint-item">
+                <div class="endpoint-header">
+                  <span class="method" [ngClass]="endpoint.method.toLowerCase()">{{ endpoint.method }}</span>
+                  <span class="path">{{ endpoint.path }}</span>
+                </div>
+                <div class="endpoint-details" *ngIf="endpoint.summary || endpoint.description">
+                  <p class="summary">{{ endpoint.summary }}</p>
+                  <p class="description" *ngIf="endpoint.description">{{ endpoint.description }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="no-results" *ngIf="searchQuery && searchResults.length === 0">
+          <p>No endpoints found matching "{{ searchQuery }}"</p>
+        </div>
+
+        <!-- Service Cards -->
+        <div class="api-info" *ngIf="!searchQuery">
+          <h2>Available Services</h2>
+          <div class="services-grid">
+            <div *ngFor="let service of services" class="service-card">
+              <h3>{{ service.name }}</h3>
+              <p>{{ service.description }}</p>
+              <div class="service-meta">
+                <span class="port">Port: {{ service.port }}</span>
+              </div>
+              <div class="service-links">
+                <a [href]="getSwaggerUrl(service.id)" target="_blank" class="docs-link">
+                  Swagger UI →
+                </a>
+                <a [href]="getOpenApiJsonUrl(service.id)" target="_blank" class="docs-link">
+                  OpenAPI JSON →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

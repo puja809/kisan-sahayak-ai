@@ -1,7 +1,7 @@
 # Crop Service Configuration
 
 server:
-  port: ${CROP_SERVICE_PORT:8096}
+  port: ${CROP_SERVICE_PORT:8093}
 
 spring:
   application:
@@ -17,6 +17,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Spring AI MCP Server Configuration
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: crop-service
+        version: "1.0.0"
 
 # ML Service Configuration
 ml-service:

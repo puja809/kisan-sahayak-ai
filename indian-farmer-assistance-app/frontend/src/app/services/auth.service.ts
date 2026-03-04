@@ -67,7 +67,9 @@ export class AuthService {
    * User login with email or phone and password
    */
   userLogin(request: UserLoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/user-login`, request).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/user-login`, request, {
+      headers: { 'Content-Type': 'application/json' }
+    }).pipe(
       tap(response => {
         localStorage.setItem(this.tokenKey, response.accessToken);
         const user: User = {
@@ -94,7 +96,9 @@ export class AuthService {
    * Admin login with email or phone and password
    */
   adminLogin(request: AdminLoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/admin-login`, request).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/admin-login`, request, {
+      headers: { 'Content-Type': 'application/json' }
+    }).pipe(
       tap(response => {
         localStorage.setItem(this.tokenKey, response.accessToken);
         const user: User = {

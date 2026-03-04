@@ -6,19 +6,28 @@ import com.farmer.admin.dto.DocumentUploadRequest;
 import com.farmer.admin.entity.Document;
 import com.farmer.admin.entity.DocumentMetadataInfo;
 import com.farmer.admin.entity.DocumentVersion;
+import com.farmer.admin.exception.DocumentNotFoundException;
+import com.farmer.admin.exception.DocumentValidationException;
 import com.farmer.admin.service.AuditService;
 import com.farmer.admin.service.DocumentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,8 +39,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/admin/documents")
 @RequiredArgsConstructor
 @Slf4j
-// @PreAuthorize("hasRole('ADMIN')") // Temporarily disabled until JWT filter is
-// implemented
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminDocumentController {
 
     private final DocumentService documentService;
@@ -111,6 +119,36 @@ public class AdminDocumentController {
     }
 
     /**
+     * Get pre-signed download URL for a document.
+     * Requirements: 21.5, 21.6
+     */
+    @GetMapping("/{id}/url")
+    @Operation(summary = "Get document download URL", description = "Retrieves a pre-signed S3 URL for downloading the document")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "URL retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Document not found")
+    })
+    public ResponseEntity<String> getDocumentDownloadUrl(
+            @Parameter(description = "Document ID") @PathVariable String id,
+            @Parameter(description = "URL expiration time in minutes (default 60)") @RequestParam(defaultValue = "60") int expirationMinutes,
+            HttpServletRequest request) {
+
+        String adminId = getUsername(request);
+        log.info("Document URL requested by: {} for ID: {}", adminId, id);
+
+        try {
+            String url = documentService.getPresignedUrl(id, expirationMinutes);
+            return ResponseEntity.ok(url);
+        } catch (DocumentNotFoundException e) {
+            log.warn("Document not found: {}", id);
+            return ResponseEntity.notFound().build();
+        } catch (DocumentValidationException e) {
+            log.warn("Document URL generation failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
      * Update a document.
      * PUT /api/v1/admin/documents/{id}
      * Requirements: 21.6
@@ -186,6 +224,7 @@ public class AdminDocumentController {
                     .fileFormat(metadata.getFileFormat())
                     .fileSizeBytes(metadata.getFileSizeBytes())
                     .originalFilename(metadata.getOriginalFilename())
+                    .s3Key(metadata.getS3Key())
                     .build();
         }
 
@@ -201,5 +240,18 @@ public class AdminDocumentController {
                 .createdAt(document.getCreatedAt())
                 .updatedAt(document.getUpdatedAt())
                 .build();
+    }
+
+    private String getUsername(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() != null) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof UserDetails) {
+                return ((UserDetails) principal).getUsername();
+            } else {
+                return principal.toString();
+            }
+        }
+        return "system";
     }
 }
