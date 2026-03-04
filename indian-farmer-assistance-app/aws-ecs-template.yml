@@ -214,6 +214,10 @@ Resources:
         ContainerPort: 8080
         TargetGroupArn:
           Ref: ApiGatewayTargetGroup
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
     DependsOn: AlbListener
   UserServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
@@ -302,6 +306,10 @@ Resources:
           Fn::GetAtt:
           - UserServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   CropServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -387,6 +395,10 @@ Resources:
           Fn::GetAtt:
           - CropServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   LocationServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -466,6 +478,10 @@ Resources:
           Fn::GetAtt:
           - LocationServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   MandiServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -557,6 +573,10 @@ Resources:
           Fn::GetAtt:
           - MandiServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   SchemeServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -628,6 +648,10 @@ Resources:
           Fn::GetAtt:
           - SchemeServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   AdminServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -699,6 +723,10 @@ Resources:
           Fn::GetAtt:
           - AdminServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   IotServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -770,6 +798,10 @@ Resources:
           Fn::GetAtt:
           - IotServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   WeatherServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -845,6 +877,10 @@ Resources:
           Fn::GetAtt:
           - WeatherServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   YieldServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -916,6 +952,10 @@ Resources:
           Fn::GetAtt:
           - YieldServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   MlServiceTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -999,6 +1039,10 @@ Resources:
           Fn::GetAtt:
           - MlServiceDiscoveryService
           - Arn
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
   FrontendTaskDef:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -1067,6 +1111,10 @@ Resources:
         ContainerPort: 4200
         TargetGroupArn:
           Ref: FrontendTargetGroup
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
     DependsOn: AlbListener
   SecurityGroupIngressSelf:
     Type: AWS::EC2::SecurityGroupIngress
