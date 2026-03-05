@@ -41,6 +41,11 @@ spring:
 app:
   session-id: c05a946fe7c08b9859bbcc2813af5fd177f1a2c9ebcc657343605e380196a165
   table-prefix: sess_c05a946fe_
+  jwt:
+    secret: ${JWT_SECRET:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm}
+    expiration: ${JWT_EXPIRATION:86400000}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+    issuer: ${JWT_ISSUER:indian-farmer-assistance}
   document:
     max-size-mb: 50
     allowed-formats:
@@ -55,6 +60,15 @@ app:
     warn-log-days: 60
     info-log-days: 30
     debug-log-days: 7
+
+# AWS S3 Configuration
+aws:
+  s3:
+    bucket-name: ${AWS_S3_BUCKET_NAME:krishi-sahayak-docs}
+    region: ${AWS_REGION:us-east-1}
+    access-key: ${AWS_S3_ACCESS_KEY:}
+    secret-key: ${AWS_S3_SECRET_KEY:}
+    documents-path: ${AWS_S3_DOCUMENTS_PATH:documents/}
 
 # Actuator endpoints for monitoring
 management:

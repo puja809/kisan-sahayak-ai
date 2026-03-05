@@ -46,4 +46,7 @@ public class DocumentMetadataInfo {
 
     @Field("original_filename")
     private String originalFilename;
+
+    @Field("s3_key")
+    private String s3Key;
 }

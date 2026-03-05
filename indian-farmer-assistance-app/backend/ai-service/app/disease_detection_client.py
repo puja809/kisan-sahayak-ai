@@ -8,7 +8,7 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-AWS_API_DETECT_DISEASE_ENDPOINT = "https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/detect-disease"
+AWS_API_DETECT_DISEASE_ENDPOINT = os.getenv("AWS_API_DETECT_DISEASE_ENDPOINT", "https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/detect-disease")
 
 
 def _parse_disease_analysis(text: str) -> dict:

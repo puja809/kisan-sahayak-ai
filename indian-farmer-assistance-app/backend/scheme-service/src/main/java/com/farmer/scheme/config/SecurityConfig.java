@@ -19,49 +19,40 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // Swagger/OpenAPI endpoints
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**",
-                                "/swagger-resources", "/swagger-resources/**", "/webjars/**")
-                        .permitAll()
-                        // Public endpoints for scheme browsing
-                        .requestMatchers("/api/v1/schemes").permitAll()
-                        .requestMatchers("/api/v1/schemes/**").permitAll()
-                        // Admin endpoints require ADMIN role
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        // All other endpoints require authentication
-                        .anyRequest().authenticated());
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                // Swagger/OpenAPI endpoints
+                                                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs",
+                                                                "/v3/api-docs/**",
+                                                                "/swagger-resources", "/swagger-resources/**",
+                                                                "/webjars/**")
+                                                .permitAll()
+                                                // Public endpoints for scheme browsing
+                                                .requestMatchers("/api/v1/schemes").permitAll()
+                                                // MCP SSE endpoints
+                                                .requestMatchers("/sse/**", "/mcp/**").permitAll()
+                                                .requestMatchers("/api/v1/schemes/**").permitAll()
+                                                // Admin endpoints - auth is validated at API gateway level
+                                                .requestMatchers("/api/v1/admin/**").permitAll()
+                                                // All other endpoints require authentication
+                                                .anyRequest().authenticated());
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
-        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.setAllowedOrigins(java.util.Arrays.asList("http://localhost:4200", "http://localhost:80", "http://localhost", "http://localhost:3000"));
-        configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(java.util.List.of("*"));
-        configuration.setAllowCredentials(true);
-        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-
-    /**
-     * WebClient for inter-service communication.
-     * Used to call user-service for farmer information.
-     */
-    @Bean
-    public WebClient userServiceWebClient() {
-        return WebClient.builder()
-                .baseUrl("http://localhost:8081")
-                .build();
-    }
+        /**
+         * WebClient for inter-service communication.
+         * Used to call user-service for farmer information.
+         */
+        @Bean
+        public WebClient userServiceWebClient() {
+                return WebClient.builder()
+                                .baseUrl("http://localhost:8081")
+                                .build();
+        }
 }

@@ -29,8 +29,8 @@ public class KaegroCropSoilApiClient {
             log.info("Soil data fetched successfully");
             return response;
         } catch (Exception e) {
-            log.error("Error fetching soil data from Kaegro", e);
-            throw new RuntimeException("Failed to fetch soil data", e);
+            log.error("Error fetching soil data from Kaegro, returning null", e);
+            return null;
         }
     }
 }

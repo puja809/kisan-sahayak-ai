@@ -1,0 +1,153 @@
+<div class="mandi-container">
+      <div class="header-section">
+        <h2>Market & Supplies</h2>
+        <p>Stay updated with the latest agricultural commodity prices and local fertilizer suppliers.</p>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tabs">
+        <button class="tab-btn" [class.active]="activeTab === 'prices'" (click)="switchTab('prices')">Mandi Prices</button>
+        <button class="tab-btn" [class.active]="activeTab === 'fertilizers'" (click)="switchTab('fertilizers')">Fertilizer Suppliers</button>
+      </div>
+
+      <!-- TAB 1: Mandi Prices -->
+      <div *ngIf="activeTab === 'prices'" class="tab-content">
+        <div class="controls-section filters-grid">
+          <div class="form-group">
+            <label>State</label>
+            <select [(ngModel)]="searchFilters.state" (change)="onStateChange()" class="input-field">
+              <option value="">-- All States --</option>
+              <option *ngFor="let state of filterOptions.states" [value]="state">{{ state }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>District</label>
+            <select [(ngModel)]="searchFilters.district" (change)="onDistrictChange()" class="input-field" [disabled]="!searchFilters.state">
+              <option value="">-- All Districts --</option>
+              <option *ngFor="let district of filterOptions.districts" [value]="district">{{ district }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Market</label>
+            <select [(ngModel)]="searchFilters.market" (change)="fetchFilterCommodities()" class="input-field" [disabled]="!searchFilters.district">
+              <option value="">-- All Markets --</option>
+              <option *ngFor="let market of filterOptions.markets" [value]="market">{{ market }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Commodity</label>
+            <select [(ngModel)]="searchFilters.commodity" (change)="fetchFilterVarieties()" class="input-field">
+              <option value="">-- All Commodities --</option>
+              <option *ngFor="let comm of filterOptions.commodities" [value]="comm">{{ comm }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Variety</label>
+            <select [(ngModel)]="searchFilters.variety" (change)="fetchFilterGrades()" class="input-field" [disabled]="!searchFilters.commodity">
+              <option value="">-- All Varieties --</option>
+              <option *ngFor="let varietyItem of filterOptions.varieties" [value]="varietyItem">{{ varietyItem }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Grade</label>
+            <select [(ngModel)]="searchFilters.grade" class="input-field" [disabled]="!searchFilters.commodity">
+              <option value="">-- All Grades --</option>
+              <option *ngFor="let grade of filterOptions.grades" [value]="grade">{{ grade }}</option>
+            </select>
+          </div>
+          
+          <div class="form-group" style="display: flex; align-items: flex-end;">
+            <button class="btn-primary w-100" (click)="searchMarketData()" [disabled]="isLoadingPrices">
+              {{ isLoadingPrices ? 'Searching...' : 'Search Market Data' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="loader" *ngIf="isLoadingPrices">
+          <div class="spinner"></div>
+          <p>Fetching market data...</p>
+        </div>
+
+        <div class="error-message" *ngIf="errorMessagePrices">{{ errorMessagePrices }}</div>
+
+        <div class="prices-grid" *ngIf="searchResults.length > 0">
+          <div class="price-card" *ngFor="let result of searchResults">
+            <div class="card-body">
+              <h4 class="commodity-heading">{{ result.commodityName }} <span class="variety-badge" *ngIf="result.variety">{{ result.variety }}</span></h4>
+              <p class="location-info">📍 {{ result.mandiName }}, {{ result.district }}, {{ result.state }}</p>
+              <div class="price-details">
+                <p><strong>Modal Price:</strong> ₹{{ result.modalPrice }} / {{ result.unit || 'Quintal' }}</p>
+                <p class="price-range" *ngIf="result.minPrice && result.maxPrice"><strong>Range:</strong> ₹{{ result.minPrice }} - ₹{{ result.maxPrice }}</p>
+              </div>
+              <p class="date"><small>Reported: {{ result.priceDate }}</small></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-3 mb-4" *ngIf="hasMorePrices && searchResults.length > 0">
+          <button class="btn-secondary" (click)="loadMorePrices()" [disabled]="isLoadingPrices">
+            {{ isLoadingPrices ? 'Loading more...' : 'Load More' }}
+          </button>
+        </div>
+        
+        <div class="empty-state" *ngIf="!isLoadingPrices && searchResults.length === 0 && hasSearchedPrices && !errorMessagePrices">
+          <p>No market data found for the selected filters. Try adjusting your search criteria.</p>
+        </div>
+      </div>
+
+      <!-- TAB 2: Fertilizer Suppliers -->
+      <div *ngIf="activeTab === 'fertilizers'" class="tab-content">
+        <div class="controls-section">
+          <div class="form-group flex-row">
+             <div class="flex-1">
+               <label for="stateSelect">State</label>
+               <select id="stateSelect" [(ngModel)]="filterState" (change)="onFertilizerStateChange()" class="input-field">
+                 <option value="">-- All States --</option>
+                 <option *ngFor="let state of filterOptions.states" [value]="state">{{ state }}</option>
+               </select>
+             </div>
+             <div class="flex-1">
+               <label for="districtSelect">District</label>
+               <select id="districtSelect" [(ngModel)]="filterDistrict" class="input-field" [disabled]="!filterState">
+                 <option value="">-- All Districts --</option>
+                 <option *ngFor="let district of filterOptions.districts" [value]="district">{{ district }}</option>
+               </select>
+             </div>
+          </div>
+          <button class="btn-primary" (click)="fetchFertilizers()" [disabled]="!filterState || !filterDistrict || isLoadingFertilizers">
+            {{ isLoadingFertilizers ? 'Searching...' : 'Find Suppliers' }}
+          </button>
+        </div>
+
+        <div class="filter-pills" *ngIf="fertilizers.length > 0">
+           <button class="pill" [class.active]="supplierFilter === 'ALL'" (click)="setSupplierFilter('ALL')">All Types</button>
+           <button class="pill" [class.active]="supplierFilter === 'WHOLESALER'" (click)="setSupplierFilter('WHOLESALER')">Wholesalers</button>
+           <button class="pill" [class.active]="supplierFilter === 'RETAILER'" (click)="setSupplierFilter('RETAILER')">Retailers</button>
+        </div>
+
+        <div class="loader" *ngIf="isLoadingFertilizers">
+          <div class="spinner"></div>
+          <p>Finding fertilizer suppliers in {{ filterDistrict }}, {{ filterState }}...</p>
+        </div>
+
+        <div class="error-message" *ngIf="errorMessageFertilizers">{{ errorMessageFertilizers }}</div>
+
+        <div class="suppliers-list" *ngIf="!isLoadingFertilizers && getFilteredSuppliers().length > 0">
+          <div class="supplier-card" *ngFor="let supplier of getFilteredSuppliers()">
+            <div class="supplier-info">
+              <h4>{{ supplier.supplierName || 'Unnamed Supplier' }}</h4>
+              <p class="type-badge">{{ supplier.fertilizerType || 'General Fertilizer' }}</p>
+              <p class="location">📍 {{ supplier.district }}, {{ supplier.state }}</p>
+            </div>
+            <div class="supplier-stats">
+               <div class="stat-box" title="Wholesalers">📦 <strong>{{ supplier.noOfWholesalers || 0 }}</strong> <small>Wholesale</small></div>
+               <div class="stat-box" title="Retailers">🏬 <strong>{{ supplier.noOfRetailers || 0 }}</strong> <small>Retail</small></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="empty-state" *ngIf="!isLoadingFertilizers && getFilteredSuppliers().length === 0 && !errorMessageFertilizers && hasSearchedFertilizers">
+          <p>No fertilizer suppliers found in {{ filterDistrict }}, {{ filterState }} for the selected filter.</p>
+        </div>
+      </div>
+    </div>

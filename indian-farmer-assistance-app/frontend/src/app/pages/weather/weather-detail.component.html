@@ -1,0 +1,63 @@
+<div class="weather-container">
+      <div class="header">
+        <h1>Weather Forecast</h1>
+        <p class="location" *ngIf="currentUser">{{ currentUser.district }}, {{ currentUser.state }}</p>
+      </div>
+
+      <!-- 7-Day Forecast -->
+      <div class="card forecast-card">
+        <h2>7-Day Forecast</h2>
+        <div class="forecast-grid">
+          <div *ngFor="let day of forecast" class="forecast-day">
+            <p class="date">{{ day.date | date: 'EEE, MMM d' }}</p>
+            <div class="temp-range">
+              <span class="max">{{ day.maxTemp }}°</span>
+              <span class="min">{{ day.minTemp }}°</span>
+            </div>
+            <p class="rainfall">💧 {{ day.rainfall }}mm</p>
+            <p class="wind">💨 {{ day.windSpeed }} km/h</p>
+            <p class="humidity">💧 {{ day.humidity0830 }}%</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weather Alerts -->
+      <div class="card alerts-card" *ngIf="alerts.length > 0">
+        <h2>Weather Alerts</h2>
+        <div class="alerts-list">
+          <div *ngFor="let alert of alerts" class="alert-item" [class]="'severity-' + alert.severity.toLowerCase()">
+            <p><strong>{{ alert.severity }}</strong></p>
+            <p>{{ alert.description }}</p>
+            <p class="timestamp">{{ alert.timestamp | date: 'short' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nowcast Alerts -->
+      <div class="card nowcast-card" *ngIf="nowcastAlerts.length > 0">
+        <h2>Nowcast Alerts (0-3 hours)</h2>
+        <div class="nowcast-list">
+          <div *ngFor="let alert of nowcastAlerts" class="nowcast-item">
+            <p>{{ alert }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agromet Advisories -->
+      <div class="card advisory-card" *ngIf="agrometAdvisories.length > 0">
+        <h2>Agromet Advisories</h2>
+        <div class="advisory-list">
+          <div *ngFor="let advisory of agrometAdvisories" class="advisory-item">
+            <h3>{{ advisory.cropStage }}</h3>
+            <p>{{ advisory.advisory }}</p>
+            <p>Heat Stress Index: {{ advisory.heatStressIndex }}</p>
+            <p>ET₀: {{ advisory.evapotranspiration }} mm</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Offline Cache Notice -->
+      <div *ngIf="isOfflineData" class="offline-notice">
+        <p>📡 Displaying cached data from {{ cachedDataTime | date: 'short' }}</p>
+      </div>
+    </div>

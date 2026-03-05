@@ -1,0 +1,148 @@
+<div class="iot-dashboard-container">
+      <div class="header">
+        <h1>IoT Device Management</h1>
+        <button class="btn-primary" (click)="addDevice()">+ Add Device</button>
+      </div>
+
+      <div class="iot-grid">
+        <!-- Device List -->
+        <div class="card devices-card">
+          <h2>Connected Devices</h2>
+          <div *ngIf="devices.length > 0" class="devices-list">
+            <div *ngFor="let device of devices" class="device-item" [class.offline]="device.status === 'OFFLINE'">
+              <div class="device-header">
+                <h3>{{ device.deviceName }}</h3>
+                <span class="status-badge" [class]="'status-' + device.status.toLowerCase()">
+                  {{ device.status }}
+                </span>
+              </div>
+              <p class="device-id">ID: {{ device.deviceId }}</p>
+              <p class="device-type">Type: {{ device.deviceType }}</p>
+              <p class="last-seen">Last seen: {{ device.lastSeen | date: 'short' }}</p>
+              <div class="device-actions">
+                <button class="btn-small" (click)="viewDevice(device)">View</button>
+                <button class="btn-small" (click)="configureDevice(device)">Configure</button>
+                <button class="btn-small danger" (click)="removeDevice(device)">Remove</button>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="devices.length === 0" class="no-data">No devices connected</p>
+        </div>
+
+        <!-- Real-time Sensor Dashboard -->
+        <div class="card sensor-card" *ngIf="selectedDevice && currentReading">
+          <h2>{{ selectedDevice.deviceName }} - Real-time Readings</h2>
+          <div class="sensor-grid">
+            <div class="sensor-item">
+              <span class="label">Soil Moisture</span>
+              <span class="value">{{ currentReading.soilMoisture }}%</span>
+              <div class="progress-bar">
+                <div class="progress" [style.width.%]="currentReading.soilMoisture"></div>
+              </div>
+            </div>
+
+            <div class="sensor-item">
+              <span class="label">Temperature</span>
+              <span class="value">{{ currentReading.temperature }}°C</span>
+            </div>
+
+            <div class="sensor-item">
+              <span class="label">Humidity</span>
+              <span class="value">{{ currentReading.humidity }}%</span>
+              <div class="progress-bar">
+                <div class="progress" [style.width.%]="currentReading.humidity"></div>
+              </div>
+            </div>
+
+            <div class="sensor-item">
+              <span class="label">pH Level</span>
+              <span class="value">{{ currentReading.phLevel }}</span>
+            </div>
+
+            <div class="sensor-item">
+              <span class="label">EC Value</span>
+              <span class="value">{{ currentReading.ecValue }}</span>
+            </div>
+
+            <div class="sensor-item">
+              <span class="label">Nitrogen (N)</span>
+              <span class="value">{{ currentReading.npkNitrogen }} mg/kg</span>
+            </div>
+
+            <div class="sensor-item">
+              <span class="label">Phosphorus (P)</span>
+              <span class="value">{{ currentReading.npkPhosphorus }} mg/kg</span>
+            </div>
+
+            <div class="sensor-item">
+              <span class="label">Potassium (K)</span>
+              <span class="value">{{ currentReading.npkPotassium }} mg/kg</span>
+            </div>
+          </div>
+          <p class="reading-time">Last updated: {{ currentReading.timestamp | date: 'short' }}</p>
+        </div>
+
+        <!-- Alert Configuration -->
+        <div class="card alert-card" *ngIf="selectedDevice">
+          <h2>Alert Configuration</h2>
+          <div class="alert-config">
+            <div class="config-group">
+              <label>Soil Moisture Range (%)</label>
+              <div class="range-inputs">
+                <input type="number" [(ngModel)]="alertConfig.soilMoistureMin" placeholder="Min" />
+                <span>-</span>
+                <input type="number" [(ngModel)]="alertConfig.soilMoistureMax" placeholder="Max" />
+              </div>
+            </div>
+
+            <div class="config-group">
+              <label>Temperature Range (°C)</label>
+              <div class="range-inputs">
+                <input type="number" [(ngModel)]="alertConfig.temperatureMin" placeholder="Min" />
+                <span>-</span>
+                <input type="number" [(ngModel)]="alertConfig.temperatureMax" placeholder="Max" />
+              </div>
+            </div>
+
+            <div class="config-group">
+              <label>Humidity Range (%)</label>
+              <div class="range-inputs">
+                <input type="number" [(ngModel)]="alertConfig.humidityMin" placeholder="Min" />
+                <span>-</span>
+                <input type="number" [(ngModel)]="alertConfig.humidityMax" placeholder="Max" />
+              </div>
+            </div>
+
+            <button class="btn-primary" (click)="saveAlertConfig()">Save Configuration</button>
+          </div>
+        </div>
+
+        <!-- Historical Trends -->
+        <div class="card trends-card" *ngIf="selectedDevice && historicalData.length > 0">
+          <h2>30-Day Trends</h2>
+          <div class="trends-info">
+            <p>Soil Moisture: {{ getAverage('soilMoisture') }}% avg</p>
+            <p>Temperature: {{ getAverage('temperature') }}°C avg</p>
+            <p>Humidity: {{ getAverage('humidity') }}% avg</p>
+          </div>
+          <p class="chart-placeholder">Chart visualization would be displayed here</p>
+        </div>
+
+        <!-- Device Provisioning -->
+        <div class="card provisioning-card">
+          <h2>Add New Device</h2>
+          <div class="provisioning-form">
+            <input type="text" [(ngModel)]="newDeviceName" placeholder="Device Name" />
+            <select [(ngModel)]="newDeviceType">
+              <option value="">Select Device Type</option>
+              <option value="SOIL_SENSOR">Soil Sensor</option>
+              <option value="WEATHER_STATION">Weather Station</option>
+              <option value="MOISTURE_SENSOR">Moisture Sensor</option>
+            </select>
+            <button class="btn-primary" (click)="provisionDevice()" [disabled]="!newDeviceName || !newDeviceType">
+              Provision Device
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

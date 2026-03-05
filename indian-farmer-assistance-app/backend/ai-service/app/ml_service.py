@@ -2,8 +2,10 @@
 FastAPI service for ML model predictions
 Serves crop recommendation and rotation models
 """
-from fastapi import FastAPI, HTTPException, File, UploadFile, Query
+from fastapi import FastAPI, HTTPException, File, UploadFile, Query, Form
+from contextlib import asynccontextmanager
 from pydantic import BaseModel
+from typing import Optional
 import os
 import logging
 import asyncio
@@ -11,8 +13,11 @@ from crop_recommendation_model import CropRecommendationModel
 from crop_rotation_model import CropRotationModel
 from fertilizer_recommendation_model import FertilizerRecommendationModel
 from crop_name_mapper import map_crop_name
-from aws_voice_assistant_client import ask_question_text, ask_question_audio
+from aws_voice_assistant_client import ask_question_text, ask_question_audio, ask_question_text_stream, ask_question_audio_stream
+from fastapi.responses import StreamingResponse
+import json
 from disease_detection_client import detect_disease as detect_disease_from_aws
+from bedrock_mcp_agent import bedrock_mcp_agent # Import the new Bedrock MCP agent
 from dotenv import load_dotenv
 
 # Load environment variables from .env file (for local development)
@@ -31,7 +36,37 @@ except Exception as e:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="ML Crop Prediction Service", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load models and register with Eureka on startup"""
+    global crop_reco_model, crop_rotation_model, fertilizer_model
+    try:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        models_dir = os.path.join(base_path, 'models')
+        
+        logger.info("Loading crop recommendation model...")
+        crop_reco_model = CropRecommendationModel()
+        crop_reco_model.load(os.path.join(models_dir, 'crop_recommendation_model.pkl'))
+        logger.info("✓ Crop recommendation model loaded")
+        
+        logger.info("Loading crop rotation model...")
+        crop_rotation_model = CropRotationModel()
+        crop_rotation_model.load(os.path.join(models_dir, 'crop_rotation_model.pkl'))
+        logger.info("✓ Crop rotation model loaded")
+        
+        logger.info("Loading fertilizer recommendation model...")
+        fertilizer_model = FertilizerRecommendationModel()
+        fertilizer_model.load(os.path.join(models_dir, 'fertilizer_recommendation_model.pkl'))
+        logger.info("✓ Fertilizer recommendation model loaded")
+        
+    except Exception as e:
+        logger.error(f"Error loading models: {e}")
+        raise
+    
+    yield
+    # Cleanup logic can go here during shutdown
+
+app = FastAPI(title="ML Crop Prediction Service", version="1.0.0", lifespan=lifespan)
 
 # Global model instances
 crop_reco_model = None
@@ -69,6 +104,10 @@ class FertilizerRecommendationRequest(BaseModel):
 
 class VoiceAssistantRequest(BaseModel):
     question: str
+    language: str = "en"
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    city_name: Optional[str] = None
 
 class PredictionResponse(BaseModel):
     prediction: str
@@ -86,32 +125,6 @@ class DiseaseDetectionResponse(BaseModel):
     modelVersion: str = "1.0.0"
     raw_analysis: str = ""
 
-@app.on_event("startup")
-async def startup_event():
-    """Load models and register with Eureka on startup"""
-    global crop_reco_model, crop_rotation_model, fertilizer_model
-    try:
-        base_path = os.path.dirname(os.path.abspath(__file__))
-        models_dir = os.path.join(base_path, 'models')
-        
-        logger.info("Loading crop recommendation model...")
-        crop_reco_model = CropRecommendationModel()
-        crop_reco_model.load(os.path.join(models_dir, 'crop_recommendation_model.pkl'))
-        logger.info("✓ Crop recommendation model loaded")
-        
-        logger.info("Loading crop rotation model...")
-        crop_rotation_model = CropRotationModel()
-        crop_rotation_model.load(os.path.join(models_dir, 'crop_rotation_model.pkl'))
-        logger.info("✓ Crop rotation model loaded")
-        
-        logger.info("Loading fertilizer recommendation model...")
-        fertilizer_model = FertilizerRecommendationModel()
-        fertilizer_model.load(os.path.join(models_dir, 'fertilizer_recommendation_model.pkl'))
-        logger.info("✓ Fertilizer recommendation model loaded")
-        
-    except Exception as e:
-        logger.error(f"Error loading models: {e}")
-        raise
 
 @app.get("/health")
 async def health_check():
@@ -245,36 +258,65 @@ async def predict_fertilizer(request: FertilizerRecommendationRequest):
 @app.post("/api/ml/ask-question")
 async def ask_voice_question(request: VoiceAssistantRequest):
     """
-    Ask a question to the AWS Voice Assistant API
-    Proxies requests to the AWS Lambda-based question answering service
+    Ask a question to the Krishi Sahayak Assistant.
+    This routes the text through the Bedrock LangGraph MCP Agent which connects
+    to all local Spring Boot MCP servers.
     """
     try:
         if not request.question or not request.question.strip():
             raise HTTPException(status_code=400, detail="Question cannot be empty")
         
-        logger.info(f"Forwarding question to AWS Voice Assistant: {request.question[:50]}...")
+        logger.info(f"Received request on /api/ml/ask-question:")
+        logger.info(f" - Question (truncated): {request.question[:50]}...")
+        logger.info(f" - Language: {request.language}")
+        logger.info(f" - Location: lat={request.latitude}, lng={request.longitude}, city={request.city_name}")
         
-        # Call AWS Voice Assistant API
-        result = ask_question_text(request.question)
+        # Use Bedrock MCP agent
+        answer = await bedrock_mcp_agent.invoke(request.question, latitude=request.latitude, longitude=request.longitude, city_name=request.city_name)
         
-        if result.get('success'):
-            return {
-                "success": True,
-                "answer": result.get('answer'),
-                "status_code": result.get('status_code')
-            }
-        else:
-            logger.error(f"AWS API error: {result.get('error')}")
-            status_code = result.get('status_code')
-            raise HTTPException(
-                status_code=status_code if status_code else 500,
-                detail=result.get('error', 'Failed to get answer from AWS API')
-            )
+        return {
+            "success": True,
+            "answer": answer,
+            "status_code": 200
+        }
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in voice question endpoint: {e}")
+        logger.error(f"Error in ask-question endpoint (Bedrock MCP): {e}")
+        # Fallback to AWS Voice Assistant API if bedrock MCP fails
+        try:
+            logger.info("Falling back to AWS Voice Assistant API...")
+            result = ask_question_text(request.question)
+            if result.get('success'):
+                return {
+                    "success": True,
+                    "answer": result.get('answer'),
+                    "status_code": result.get('status_code')
+                }
+            raise Exception(result.get('error', 'Fallback API failed'))
+        except Exception as fallback_err:
+            logger.error(f"Fallback API also failed: {fallback_err}")
+            raise HTTPException(status_code=500, detail=f"Error generating answer: {str(e)}")
+
+@app.post("/api/ml/ask-question/stream")
+async def ask_voice_question_stream(request: VoiceAssistantRequest):
+    """
+    Stream a question to the Krishi Sahayak Assistant.
+    """
+    try:
+        if not request.question or not request.question.strip():
+            raise HTTPException(status_code=400, detail="Question cannot be empty")
+            
+        logger.info(f"Received request on /api/ml/ask-question/stream:")
+        logger.info(f" - Question (truncated): {request.question[:50]}...")
+        logger.info(f" - Language: {request.language}")
+        logger.info(f" - Location: lat={request.latitude}, lng={request.longitude}, city={request.city_name}")
+
+        # Route directly to the AWS Lambda which is now streaming
+        return StreamingResponse(ask_question_text_stream(request.question, request.language), media_type="text/event-stream")
+    except Exception as e:
+        logger.error(f"Error in ask-question stream endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/ml/disease-detect", response_model=DiseaseDetectionResponse)
@@ -368,6 +410,27 @@ async def ask_question_with_audio(audio: bytes = File(...)):
         raise
     except Exception as e:
         logger.error(f"Error in audio question endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ml/ask-question-audio/stream")
+async def ask_question_with_audio_stream(
+    audio: bytes = File(...),
+    language: str = Form("en")
+):
+    """
+    Process audio input and stream response from AWS Voice Assistant
+    """
+    try:
+        if not audio or len(audio) == 0:
+            raise HTTPException(status_code=400, detail="Audio data is required")
+        
+        # Convert audio to base64 for AWS API
+        import base64
+        base64_audio = base64.b64encode(audio).decode('utf-8')
+        
+        return StreamingResponse(ask_question_audio_stream(base64_audio, language), media_type="text/event-stream")
+    except Exception as e:
+        logger.error(f"Error in audio question stream endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

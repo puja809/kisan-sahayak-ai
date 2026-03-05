@@ -21,6 +21,14 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+# Spring AI MCP Server Configuration
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: weather-service
+        version: "1.0.0"
+
 # WeatherAPI Configuration
 weatherapi:
   base-url: https://api.weatherapi.com/v1

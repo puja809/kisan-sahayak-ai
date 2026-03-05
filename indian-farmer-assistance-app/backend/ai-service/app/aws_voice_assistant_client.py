@@ -17,8 +17,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # AWS API Configuration
-AWS_API_TEXT_ENDPOINT = "https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask"
-AWS_API_VOICE_ENDPOINT = "https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask-voice"
+AWS_API_TEXT_ENDPOINT = os.getenv("AWS_API_TEXT_ENDPOINT", "https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask")
+AWS_API_VOICE_ENDPOINT = os.getenv("AWS_API_VOICE_ENDPOINT", "https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask-voice")
+AWS_API_STREAM_TEXT_ENDPOINT = os.getenv("AWS_API_STREAM_TEXT_ENDPOINT", "https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask/stream")
+AWS_API_STREAM_VOICE_ENDPOINT = os.getenv("AWS_API_STREAM_VOICE_ENDPOINT", "https://5m2acu2lea.execute-api.us-east-1.amazonaws.com/prod/ask-voice/stream")
 REQUEST_TIMEOUT = 30  # seconds
 
 
@@ -97,6 +99,36 @@ def ask_question_text(question: str) -> Dict:
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return {"success": False, "error": f"Unexpected error: {str(e)}", "status_code": None}
+
+def ask_question_text_stream(question: str, language: str = "en"):
+    """
+    Send a text question to the AWS Voice Assistant API and yield an event stream.
+    """
+    if not question or not isinstance(question, str):
+        yield f"data: {json.dumps({'error': 'Invalid question'})}\n\n"
+        return
+        
+    headers = {"Content-Type": "application/json"}
+    payload = {"question": question.strip(), "language": language}
+    
+    try:
+        logger.info(f"Sending stream text question to AWS API: {question[:50]}...")
+        with requests.post(AWS_API_STREAM_TEXT_ENDPOINT, headers=headers, json=payload, timeout=60, stream=True) as response:
+            if response.status_code != 200:
+                yield f"data: {json.dumps({'error': f'HTTP {response.status_code} from AWS API'})}\n\n"
+                return
+            
+            for line in response.iter_lines():
+                if line:
+                    decoded = line.decode('utf-8')
+                    # AWS streamifyResponse might output plain JSON chunks or proper SSE based on the client setup
+                    if not decoded.startswith('data:'):
+                         yield f"data: {decoded}\n\n"
+                    else:
+                         yield f"{decoded}\n\n"
+    except Exception as e:
+        logger.error(f"Unexpected streaming error: {e}")
+        yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
 
 def ask_question_audio(audio_base64: str) -> Dict:
@@ -200,6 +232,36 @@ def ask_question_audio(audio_base64: str) -> Dict:
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return {"success": False, "error": f"Unexpected error: {str(e)}", "status_code": None}
+
+
+def ask_question_audio_stream(audio_base64: str, language: str = "en"):
+    """
+    Send audio to the AWS Voice Assistant API and yield an event stream.
+    """
+    if not audio_base64 or not isinstance(audio_base64, str):
+        yield f"data: {json.dumps({'error': 'Invalid audio base64'})}\n\n"
+        return
+        
+    headers = {"Content-Type": "application/json"}
+    payload = {"audio": audio_base64, "language": language}
+    
+    try:
+        logger.info(f"Sending stream voice question to AWS API ({len(audio_base64)} chars)...")
+        with requests.post(AWS_API_STREAM_VOICE_ENDPOINT, headers=headers, json=payload, timeout=60, stream=True) as response:
+            if response.status_code != 200:
+                yield f"data: {json.dumps({'error': f'HTTP {response.status_code} from AWS API'})}\n\n"
+                return
+            
+            for line in response.iter_lines():
+                if line:
+                    decoded = line.decode('utf-8')
+                    if not decoded.startswith('data:'):
+                         yield f"data: {decoded}\n\n"
+                    else:
+                         yield f"{decoded}\n\n"
+    except Exception as e:
+        logger.error(f"Unexpected streaming voice error: {e}")
+        yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
 
 # Keep backward compatible alias

@@ -43,5 +43,6 @@ public class DocumentResponse {
         private String fileFormat;
         private Long fileSizeBytes;
         private String originalFilename;
+        private String s3Key;
     }
 }

@@ -1,0 +1,94 @@
+<div class="mandi-container">
+      <div class="header">
+        <h1>Mandi Prices</h1>
+      </div>
+
+      <div class="mandi-grid">
+        <!-- Price Search -->
+        <div class="card search-card">
+          <h2>Search Prices</h2>
+          <div class="search-form">
+            <input type="text" [(ngModel)]="searchCommodity" placeholder="Enter commodity name" />
+            <button class="btn-primary" (click)="searchPrices()">Search</button>
+          </div>
+
+          <div *ngIf="searchResults.length > 0" class="search-results">
+            <div *ngFor="let result of searchResults" class="price-item">
+              <h3>{{ result.commodityName }} ({{ result.variety }})</h3>
+              <p>Mandi: {{ result.mandiName }}, {{ result.district }}</p>
+              <p>Modal Price: ₹{{ result.modalPrice }}/quintal</p>
+              <p>Range: ₹{{ result.minPrice }} - ₹{{ result.maxPrice }}</p>
+              <p>Arrival: {{ result.arrivalQuantity }} quintals</p>
+              <p class="date">{{ result.priceDate | date: 'short' }}</p>
+            </div>
+          </div>
+          <p *ngIf="searchResults.length === 0 && searched" class="no-data">No prices found</p>
+        </div>
+
+        <!-- Nearby Mandis -->
+        <div class="card mandis-card">
+          <h2>Nearby Mandis</h2>
+          <div *ngIf="nearbyMandis.length > 0" class="mandis-list">
+            <div *ngFor="let mandi of nearbyMandis" class="mandi-item">
+              <h3>{{ mandi.mandiName }}</h3>
+              <p>Distance: {{ mandi.distance }} km</p>
+              <p>Location: {{ mandi.district }}, {{ mandi.state }}</p>
+              <p>Hours: {{ mandi.operatingHours }}</p>
+              <p>Contact: {{ mandi.contactInfo }}</p>
+              <button class="btn-secondary" (click)="getDirections(mandi)">Get Directions</button>
+            </div>
+          </div>
+          <p *ngIf="nearbyMandis.length === 0" class="no-data">No nearby mandis found</p>
+        </div>
+
+        <!-- Price Trends -->
+        <div class="card trends-card">
+          <h2>30-Day Price Trends</h2>
+          <div *ngIf="priceTrends.length > 0" class="trends-info">
+            <p>Commodity: {{ selectedCommodity }}</p>
+            <p>Current Price: ₹{{ currentPrice }}/quintal</p>
+            <p>30-Day Avg: ₹{{ getAveragePrice() }}/quintal</p>
+            <p>Min: ₹{{ getMinPrice() }} | Max: ₹{{ getMaxPrice() }}</p>
+            <p class="chart-placeholder">Chart visualization would be displayed here</p>
+          </div>
+          <p *ngIf="priceTrends.length === 0" class="no-data">No trend data available</p>
+        </div>
+
+        <!-- MSP Comparison -->
+        <div class="card msp-card">
+          <h2>MSP Comparison</h2>
+          <div class="msp-info">
+            <p>MSP (Minimum Support Price) comparison with current market prices</p>
+            <div class="msp-item">
+              <p>Commodity: {{ selectedCommodity }}</p>
+              <p>MSP: ₹{{ mspPrice }}/quintal</p>
+              <p>Market Price: ₹{{ currentPrice }}/quintal</p>
+              <p [class]="currentPrice >= mspPrice ? 'above-msp' : 'below-msp'">
+                {{ currentPrice >= mspPrice ? '✓ Above MSP' : '✗ Below MSP' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Price Alerts -->
+        <div class="card alerts-card">
+          <h2>Price Alerts</h2>
+          <div class="alert-form">
+            <input type="text" [(ngModel)]="alertCommodity" placeholder="Commodity name" />
+            <input type="number" [(ngModel)]="alertPrice" placeholder="Target price" />
+            <button class="btn-primary" (click)="subscribeAlert()">Subscribe Alert</button>
+          </div>
+
+          <div *ngIf="myAlerts.length > 0" class="alerts-list">
+            <div *ngFor="let alert of myAlerts" class="alert-item">
+              <p>{{ alert.commodityName }}: ₹{{ alert.targetPrice }}/quintal</p>
+              <p class="status" [class]="alert.isActive ? 'active' : 'inactive'">
+                {{ alert.isActive ? 'Active' : 'Inactive' }}
+              </p>
+              <button class="btn-small" (click)="removeAlert(alert)">Remove</button>
+            </div>
+          </div>
+          <p *ngIf="myAlerts.length === 0" class="no-data">No alerts set</p>
+        </div>
+      </div>
+    </div>

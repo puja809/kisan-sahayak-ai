@@ -14,68 +14,64 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class CropRecommendationDashboardService {
-    
+
     private final KaegroCropSoilApiClient kaegroCropSoilApiClient;
     private final WeatherApiClient weatherApiClient;
     private final MLServiceClient mlServiceClient;
-    
+
     public CropRecommendationDashboardResponse getDashboardData(CropRecommendationDashboardRequest request) {
         log.info("Getting dashboard data for location: {}, {}", request.getLatitude(), request.getLongitude());
-        
+
         // Fetch soil data
         SoilDataResponse soilData = kaegroCropSoilApiClient.getSoilData(
-            request.getLatitude(),
-            request.getLongitude()
-        );
-        
+                request.getLatitude(),
+                request.getLongitude());
+
         // Fetch weather data
         WeatherDataResponse weatherData = weatherApiClient.getForecastWeather(
-            request.getLatitude(),
-            request.getLongitude(),
-            14
-        );
-        
+                request.getLatitude(),
+                request.getLongitude(),
+                14);
+
         // Extract weather parameters for ML models
         Double temperature = extractTemperature(weatherData);
         Double humidity = extractHumidity(weatherData);
         Double rainfall = extractRainfall(weatherData);
-        
+
         // Extract soil parameters with null checks
         Double soilPH = extractSoilPH(soilData);
         String soilType = extractSoilType(soilData);
-        
+
         // Get crop recommendation
-        CropRecommendationDashboardResponse.CropPrediction cropRecommendation = 
-            getCropRecommendation(soilData, temperature, humidity, rainfall, soilPH);
-        
+        CropRecommendationDashboardResponse.CropPrediction cropRecommendation = getCropRecommendation(soilData,
+                temperature, humidity, rainfall, soilPH);
+
         // Get crop rotation recommendation if previous crop is provided
         CropRecommendationDashboardResponse.CropPrediction cropRotation = null;
         if (request.getPreviousCrop() != null && !request.getPreviousCrop().isEmpty()) {
             cropRotation = getCropRotation(
-                request.getPreviousCrop(),
-                soilPH,
-                soilType,
-                temperature,
-                humidity,
-                rainfall,
-                request.getSeason()
-            );
+                    request.getPreviousCrop(),
+                    soilPH,
+                    soilType,
+                    temperature,
+                    humidity,
+                    rainfall,
+                    request.getSeason());
         }
-        
+
         // Get fertilizer recommendation
         FertilizerRecommendationResponse fertilizerRecommendation = null;
         if (cropRecommendation != null) {
             fertilizerRecommendation = getFertilizerRecommendation(
-                cropRecommendation.getPrediction(),
-                soilType,
-                soilPH,
-                temperature,
-                humidity,
-                rainfall,
-                request.getSeason()
-            );
+                    cropRecommendation.getPrediction(),
+                    soilType,
+                    soilPH,
+                    temperature,
+                    humidity,
+                    rainfall,
+                    request.getSeason());
         }
-        
+
         // Build response
         CropRecommendationDashboardResponse response = new CropRecommendationDashboardResponse();
         response.setCropRecommendation(cropRecommendation);
@@ -84,10 +80,10 @@ public class CropRecommendationDashboardService {
         response.setSoilData(soilData);
         response.setWeatherData(weatherData);
         response.setLocation(String.format("%.4f, %.4f", request.getLatitude(), request.getLongitude()));
-        
+
         return response;
     }
-    
+
     private CropRecommendationDashboardResponse.CropPrediction getCropRecommendation(
             SoilDataResponse soilData,
             Double temperature,
@@ -97,25 +93,24 @@ public class CropRecommendationDashboardService {
         try {
             // Extract NPK values from soil data with null checks
             Double nitrogen = 50.0; // Default value
-            if (soilData != null && soilData.getChemicalProperties() != null && 
-                soilData.getChemicalProperties().getNitrogenGKg() != null) {
+            if (soilData != null && soilData.getChemicalProperties() != null &&
+                    soilData.getChemicalProperties().getNitrogenGKg() != null) {
                 nitrogen = soilData.getChemicalProperties().getNitrogenGKg() * 100;
             }
             Double phosphorus = 50.0; // Default value
             Double potassium = 50.0; // Default value
-            
-            log.info("Calling ML service for crop prediction with N={}, P={}, K={}, temp={}, humidity={}, pH={}, rainfall={}", 
-                nitrogen, phosphorus, potassium, temperature, humidity, soilPH, rainfall);
-            
+
+            log.info(
+                    "Calling ML service for crop prediction with N={}, P={}, K={}, temp={}, humidity={}, pH={}, rainfall={}",
+                    nitrogen, phosphorus, potassium, temperature, humidity, soilPH, rainfall);
+
             // Call ML service for crop recommendation
             Map<String, Object> mlResponse = mlServiceClient.predictCrop(
-                nitrogen, phosphorus, potassium,
-                temperature, humidity, soilPH, rainfall
-            );
-            
+                    nitrogen, phosphorus, potassium,
+                    temperature, humidity, soilPH, rainfall);
+
             if (mlResponse != null) {
-                CropRecommendationDashboardResponse.CropPrediction prediction = 
-                    new CropRecommendationDashboardResponse.CropPrediction();
+                CropRecommendationDashboardResponse.CropPrediction prediction = new CropRecommendationDashboardResponse.CropPrediction();
                 prediction.setPrediction((String) mlResponse.get("prediction"));
                 prediction.setConfidence(((Number) mlResponse.get("confidence")).doubleValue());
                 prediction.setModelVersion((String) mlResponse.getOrDefault("modelVersion", "1.0.0"));
@@ -123,7 +118,7 @@ public class CropRecommendationDashboardService {
                 log.info("Crop prediction successful: {}", prediction.getPrediction());
                 return prediction;
             }
-            
+
             log.warn("ML service returned null response for crop prediction");
             return null;
         } catch (Exception e) {
@@ -131,7 +126,7 @@ public class CropRecommendationDashboardService {
             return null;
         }
     }
-    
+
     private CropRecommendationDashboardResponse.CropPrediction getCropRotation(
             String previousCrop,
             Double soilPH,
@@ -141,18 +136,17 @@ public class CropRecommendationDashboardService {
             Double rainfall,
             String season) {
         try {
-            log.info("Calling ML service for crop rotation with previousCrop={}, soilPH={}, soilType={}, temp={}, humidity={}, rainfall={}, season={}", 
-                previousCrop, soilPH, soilType, temperature, humidity, rainfall, season);
-            
+            log.info(
+                    "Calling ML service for crop rotation with previousCrop={}, soilPH={}, soilType={}, temp={}, humidity={}, rainfall={}, season={}",
+                    previousCrop, soilPH, soilType, temperature, humidity, rainfall, season);
+
             // Call ML service for crop rotation prediction
             Map<String, Object> mlResponse = mlServiceClient.predictCropRotation(
-                previousCrop, soilPH, soilType,
-                temperature, humidity, rainfall, season
-            );
-            
+                    previousCrop, soilPH, soilType,
+                    temperature, humidity, rainfall, season);
+
             if (mlResponse != null) {
-                CropRecommendationDashboardResponse.CropPrediction prediction = 
-                    new CropRecommendationDashboardResponse.CropPrediction();
+                CropRecommendationDashboardResponse.CropPrediction prediction = new CropRecommendationDashboardResponse.CropPrediction();
                 prediction.setPrediction((String) mlResponse.get("prediction"));
                 prediction.setConfidence(((Number) mlResponse.get("confidence")).doubleValue());
                 prediction.setModelVersion((String) mlResponse.getOrDefault("modelVersion", "1.0.0"));
@@ -160,7 +154,7 @@ public class CropRecommendationDashboardService {
                 log.info("Crop rotation prediction successful: {}", prediction.getPrediction());
                 return prediction;
             }
-            
+
             log.warn("ML service returned null response for crop rotation");
             return null;
         } catch (Exception e) {
@@ -168,7 +162,7 @@ public class CropRecommendationDashboardService {
             return null;
         }
     }
-    
+
     private FertilizerRecommendationResponse getFertilizerRecommendation(
             String crop,
             String soilType,
@@ -186,13 +180,15 @@ public class CropRecommendationDashboardService {
             request.setHumidity(humidity);
             request.setRainfall(rainfall);
             request.setSeason(season != null ? season : "Kharif");
-            
-            log.info("Calling ML service for fertilizer prediction with crop={}, soilType={}, soilPH={}, temp={}, humidity={}, rainfall={}, season={}", 
-                crop, soilType, soilPH, temperature, humidity, rainfall, request.getSeason());
-            
+
+            log.info(
+                    "Calling ML service for fertilizer prediction with crop={}, soilType={}, soilPH={}, temp={}, humidity={}, rainfall={}, season={}",
+                    crop, soilType, soilPH, temperature, humidity, rainfall, request.getSeason());
+
             FertilizerRecommendationResponse response = mlServiceClient.predictFertilizer(request);
             if (response != null) {
-                log.info("Fertilizer prediction successful: N={}, P={}, K={}", response.getN_dosage(), response.getP_dosage(), response.getK_dosage());
+                log.info("Fertilizer prediction successful: N={}, P={}, K={}", response.getN_dosage(),
+                        response.getP_dosage(), response.getK_dosage());
             } else {
                 log.warn("ML service returned null response for fertilizer prediction");
             }
@@ -202,33 +198,32 @@ public class CropRecommendationDashboardService {
             return null;
         }
     }
-    
+
     private Double extractTemperature(WeatherDataResponse weatherData) {
         if (weatherData == null || weatherData.getCurrent() == null) {
             return 26.5; // Default
         }
-        return weatherData.getCurrent().getTempC() != null ? 
-            weatherData.getCurrent().getTempC() : 26.5;
+        return weatherData.getCurrent().getTempC() != null ? weatherData.getCurrent().getTempC() : 26.5;
     }
-    
+
     private Double extractHumidity(WeatherDataResponse weatherData) {
         if (weatherData == null || weatherData.getCurrent() == null) {
             return 78.0; // Default
         }
-        return weatherData.getCurrent().getHumidity() != null ? 
-            weatherData.getCurrent().getHumidity() : 78.0;
+        return weatherData.getCurrent().getHumidity() != null ? weatherData.getCurrent().getHumidity() : 78.0;
     }
-    
+
     private Double extractRainfall(WeatherDataResponse weatherData) {
-        if (weatherData == null || weatherData.getForecast() == null || 
-            weatherData.getForecast().getForecastday() == null) {
+        if (weatherData == null || weatherData.getForecast() == null ||
+                weatherData.getForecast().getForecastday() == null) {
             return 210.0; // Default
         }
-        
+
         return weatherData.getForecast().getForecastday().stream()
-            .mapToDouble(fd -> fd.getDay().getTotalPrecipMm() != null ? 
-                fd.getDay().getTotalPrecipMm() : 0.0)
-            .sum();
+                .mapToDouble(fd -> (fd != null && fd.getDay() != null && fd.getDay().getTotalPrecipMm() != null)
+                        ? fd.getDay().getTotalPrecipMm()
+                        : 0.0)
+                .sum();
     }
 
     private Double extractSoilPH(SoilDataResponse soilData) {

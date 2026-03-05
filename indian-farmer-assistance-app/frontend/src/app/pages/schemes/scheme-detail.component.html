@@ -1,0 +1,104 @@
+<div class="scheme-container">
+      <div class="header">
+        <h1>Government Schemes</h1>
+        <div class="filters">
+          <select [(ngModel)]="selectedState" (change)="filterSchemes()">
+            <option value="">All States</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Telangana">Telangana</option>
+            <option value="Andhra Pradesh">Andhra Pradesh</option>
+            <option value="Haryana">Haryana</option>
+            <option value="Uttar Pradesh">Uttar Pradesh</option>
+            <option value="Punjab">Punjab</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="scheme-grid">
+        <!-- Personalized Recommendations -->
+        <div class="card recommendations-card">
+          <h2>Recommended for You</h2>
+          <div *ngIf="recommendations.length > 0" class="recommendations-list">
+            <div *ngFor="let rec of recommendations" class="recommendation-item">
+              <h3>{{ rec.scheme.schemeName }}</h3>
+              <p>Type: {{ rec.scheme.schemeType }}</p>
+              <p>Benefit: ₹{{ rec.scheme.benefitAmount }}</p>
+              <p>Eligibility Match: {{ (rec.eligibilityMatch * 100).toFixed(0) }}%</p>
+              <p class="confidence" [class]="'confidence-' + rec.confidenceLevel.toLowerCase()">
+                {{ rec.confidenceLevel }} Confidence
+              </p>
+              <button class="btn-primary" (click)="applyScheme(rec.scheme)">Apply Now</button>
+            </div>
+          </div>
+          <p *ngIf="recommendations.length === 0" class="no-data">No recommendations available</p>
+        </div>
+
+        <!-- Scheme Browser -->
+        <div class="card browser-card">
+          <h2>Browse All Schemes</h2>
+          <div *ngIf="allSchemes.length > 0" class="schemes-list">
+            <div *ngFor="let scheme of allSchemes" class="scheme-item">
+              <h3>{{ scheme.schemeName }}</h3>
+              <p>Code: {{ scheme.schemeCode }}</p>
+              <p>Type: {{ scheme.schemeType }}</p>
+              <p>State: {{ scheme.state }}</p>
+              <p>Benefit: ₹{{ scheme.benefitAmount }}</p>
+              <p class="deadline">Deadline: {{ scheme.applicationDeadline | date: 'short' }}</p>
+              <button class="btn-secondary" (click)="viewSchemeDetails(scheme)">View Details</button>
+            </div>
+          </div>
+          <p *ngIf="allSchemes.length === 0" class="no-data">No schemes available</p>
+        </div>
+
+        <!-- Eligibility Checker -->
+        <div class="card eligibility-card">
+          <h2>Eligibility Checker</h2>
+          <div class="eligibility-form">
+            <select [(ngModel)]="selectedScheme" (change)="checkEligibility()">
+              <option value="">Select a Scheme</option>
+              <option *ngFor="let scheme of allSchemes" [value]="scheme.id">
+                {{ scheme.schemeName }}
+              </option>
+            </select>
+            <div *ngIf="eligibilityResult" class="eligibility-result">
+              <p [class]="'result-' + eligibilityResult.eligible">
+                {{ eligibilityResult.eligible ? '✓ Eligible' : '✗ Not Eligible' }}
+              </p>
+              <p>Confidence: {{ eligibilityResult.confidence }}%</p>
+              <p>{{ eligibilityResult.reason }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Application Tracker -->
+        <div class="card tracker-card">
+          <h2>My Applications</h2>
+          <div *ngIf="myApplications.length > 0" class="applications-list">
+            <div *ngFor="let app of myApplications" class="application-item">
+              <h3>{{ app.schemeName }}</h3>
+              <p>Status: <span class="status" [class]="'status-' + app.status.toLowerCase()">
+                {{ app.status }}
+              </span></p>
+              <p>Applied: {{ app.applicationDate | date: 'short' }}</p>
+              <p>Deadline: {{ app.deadline | date: 'short' }}</p>
+              <p>Documents: {{ app.documents.length }} uploaded</p>
+              <button class="btn-secondary" (click)="uploadDocuments(app)">Upload Documents</button>
+            </div>
+          </div>
+          <p *ngIf="myApplications.length === 0" class="no-data">No applications yet</p>
+        </div>
+
+        <!-- Deadline Notifications -->
+        <div class="card deadline-card" *ngIf="upcomingDeadlines.length > 0">
+          <h2>Upcoming Deadlines</h2>
+          <div class="deadlines-list">
+            <div *ngFor="let deadline of upcomingDeadlines" class="deadline-item" [class]="'days-' + getDaysUntilDeadline(deadline.deadline)">
+              <h3>{{ deadline.schemeName }}</h3>
+              <p>Deadline: {{ deadline.deadline | date: 'short' }}</p>
+              <p class="days-left">{{ getDaysUntilDeadline(deadline.deadline) }} days left</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

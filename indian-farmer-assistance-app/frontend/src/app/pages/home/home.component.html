@@ -1,0 +1,76 @@
+<div class="home-container">
+      <section class="hero">
+        <h1>Welcome to Kisan Sahayak AI</h1>
+        <p>Your comprehensive platform for agricultural success</p>
+      </section>
+      
+      <!-- Weather Advisory Section -->
+      <section class="weather-advisory" *ngIf="weatherData" (click)="goToWeather()">
+        <div class="weather-header">
+          <span class="weather-icon">🌤️</span>
+          <h2>Weather Advisory</h2>
+        </div>
+        <div class="weather-location">
+          <span class="location-icon">📍</span>
+          {{ weatherData.location }}
+        </div>
+        <div class="weather-description">
+          {{ weatherData.description }}
+        </div>
+        <div class="weather-forecast" *ngIf="weatherData.forecast">
+          <p><strong>{{ weatherData.forecast.day }}:</strong> {{ weatherData.forecast.condition }}</p>
+          <p class="temperature">{{ weatherData.forecast.temp }}</p>
+        </div>
+        <a href="javascript:void(0)" class="read-more">Read More...</a>
+      </section>
+      
+      <section class="features">
+        <div class="feature-card" routerLink="/weather">
+          <div class="feature-icon">🌤️</div>
+          <h3>Weather Forecast</h3>
+          <p>7-day weather forecasts, alerts, and agromet advisories for your district</p>
+        </div>
+        
+        <div class="feature-card" routerLink="/crops">
+          <div class="feature-icon">🌾</div>
+          <h3>Crop Recommendations</h3>
+          <p>AI-powered crop suggestions based on your location and soil conditions</p>
+        </div>
+        
+        <div class="feature-card" routerLink="/schemes">
+          <div class="feature-icon">📋</div>
+          <h3>Government Schemes</h3>
+          <p>Discover and apply for central and state government schemes</p>
+        </div>
+        
+        <div class="feature-card" routerLink="/mandi">
+          <div class="feature-icon">💰</div>
+          <h3>Mandi Prices</h3>
+          <p>Real-time commodity prices from agricultural markets near you</p>
+        </div>
+
+        <div class="feature-card" routerLink="/voice">
+          <div class="feature-icon">🎤</div>
+          <h3>Voice Assistant</h3>
+          <p>Talk to our AI assistant in your preferred language for instant help</p>
+        </div>
+
+        <div class="feature-card" routerLink="/disease">
+          <div class="feature-icon">🦠</div>
+          <h3>Disease Detection</h3>
+          <p>Upload crop photos to identify diseases and get treatment suggestions</p>
+        </div>
+
+        <div class="feature-card" routerLink="/iot">
+          <div class="feature-icon">📡</div>
+          <h3>IoT Dashboard</h3>
+          <p>Monitor your smart farm sensors — soil moisture, temperature, and more</p>
+        </div>
+
+        <div class="feature-card" routerLink="/location">
+          <div class="feature-icon">📍</div>
+          <h3>Location Services</h3>
+          <p>Set your location to get localized weather, mandi, and scheme info</p>
+        </div>
+      </section>
+    </div>

@@ -308,15 +308,14 @@ export class GeolocationService {
     latitude: number,
     longitude: number
   ): Observable<string> {
-    const url = `https://photon.komoot.io/reverse?lat=${latitude}&lon=${longitude}&lang=en`;
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
     return this.http.get(url).pipe(
       map((response: any) => {
-        if (response && response.features && response.features.length > 0) {
-          const props = response.features[0].properties;
+        if (response && response.address) {
           const addressParts = [
-            props.city || props.county || props.district || props.locality,
-            props.state,
-            props.country
+            response.address.city || response.address.county || response.address.state_district || response.address.locality,
+            response.address.state,
+            response.address.country
           ].filter(Boolean);
           return addressParts.length > 0 ? addressParts.join(', ') : `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
         }

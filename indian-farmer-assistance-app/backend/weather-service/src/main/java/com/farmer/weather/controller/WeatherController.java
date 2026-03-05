@@ -40,17 +40,19 @@ public class WeatherController {
      * Validates: Requirements 1.1, 1.2
      * 
      * @param district District name
-     * @param state State name
+     * @param state    State name
      * @return 7-day forecast data
      */
     @GetMapping("/forecast/{district}")
     public Mono<ResponseEntity<SevenDayForecastDto>> getSevenDayForecast(
             @PathVariable String district,
-            @RequestParam(required = false, defaultValue = "") String state) {
-        logger.info("Request for 7-day forecast: district={}, state={}", district, state);
-        return weatherService.getSevenDayForecast(district, state)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+            @RequestParam(required = false, defaultValue = "") String state,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon) {
+        logger.info("Request for 7-day forecast: district={}, state={}, lat={}, lon={}", district, state, lat, lon);
+        return weatherService.getSevenDayForecast(district, state, lat, lon)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     /**
@@ -58,17 +60,19 @@ public class WeatherController {
      * Validates: Requirement 1.3
      * 
      * @param district District name
-     * @param state State name
+     * @param state    State name
      * @return Current weather data
      */
     @GetMapping("/current/{district}")
     public Mono<ResponseEntity<CurrentWeatherDto>> getCurrentWeather(
             @PathVariable String district,
-            @RequestParam(required = false, defaultValue = "") String state) {
-        logger.info("Request for current weather: district={}, state={}", district, state);
-        return weatherService.getCurrentWeather(district, state)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+            @RequestParam(required = false, defaultValue = "") String state,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon) {
+        logger.info("Request for current weather: district={}, state={}, lat={}, lon={}", district, state, lat, lon);
+        return weatherService.getCurrentWeather(district, state, lat, lon)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     /**
@@ -76,17 +80,19 @@ public class WeatherController {
      * Validates: Requirement 1.5
      * 
      * @param district District name
-     * @param state State name
+     * @param state    State name
      * @return Nowcast data
      */
     @GetMapping("/nowcast/{district}")
     public Mono<ResponseEntity<NowcastDto>> getNowcast(
             @PathVariable String district,
-            @RequestParam(required = false, defaultValue = "") String state) {
-        logger.info("Request for nowcast: district={}, state={}", district, state);
-        return weatherService.getNowcast(district, state)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+            @RequestParam(required = false, defaultValue = "") String state,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon) {
+        logger.info("Request for nowcast: district={}, state={}, lat={}, lon={}", district, state, lat, lon);
+        return weatherService.getNowcast(district, state, lat, lon)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     /**
@@ -94,7 +100,7 @@ public class WeatherController {
      * Validates: Requirement 1.4
      * 
      * @param district District name
-     * @param state State name
+     * @param state    State name
      * @return Weather alerts
      */
     @GetMapping("/alerts/{district}")
@@ -103,8 +109,8 @@ public class WeatherController {
             @RequestParam(required = false, defaultValue = "") String state) {
         logger.info("Request for weather alerts: district={}, state={}", district, state);
         return weatherService.getWeatherAlerts(district, state)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     /**
@@ -112,7 +118,7 @@ public class WeatherController {
      * Validates: Requirement 1.6
      * 
      * @param district District name
-     * @param state State name
+     * @param state    State name
      * @return Rainfall statistics
      */
     @GetMapping("/rainfall/{district}")
@@ -121,8 +127,8 @@ public class WeatherController {
             @RequestParam(required = false, defaultValue = "") String state) {
         logger.info("Request for rainfall stats: district={}, state={}", district, state);
         return weatherService.getRainfallStats(district, state)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     /**
@@ -130,17 +136,19 @@ public class WeatherController {
      * Validates: Requirement 1.8
      * 
      * @param district District name
-     * @param state State name
+     * @param state    State name
      * @return Agromet advisories
      */
     @GetMapping("/agromet/{district}")
     public Mono<ResponseEntity<AgrometAdvisoryDto>> getAgrometAdvisories(
             @PathVariable String district,
-            @RequestParam(required = false, defaultValue = "") String state) {
-        logger.info("Request for agromet advisories: district={}, state={}", district, state);
-        return weatherService.getAgrometAdvisories(district, state)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+            @RequestParam(required = false, defaultValue = "") String state,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon) {
+        logger.info("Request for agromet advisories: district={}, state={}, lat={}, lon={}", district, state, lat, lon);
+        return weatherService.getAgrometAdvisories(district, state, lat, lon)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     /**
@@ -148,7 +156,7 @@ public class WeatherController {
      * Validates: Requirement 1.7
      * 
      * @param district District name
-     * @param state State name
+     * @param state    State name
      * @return AWS/ARG data
      */
     @GetMapping("/aws-arg/{district}")
@@ -157,7 +165,7 @@ public class WeatherController {
             @RequestParam(required = false, defaultValue = "") String state) {
         logger.info("Request for AWS/ARG data: district={}, state={}", district, state);
         return weatherService.getAwsArgData(district, state)
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }

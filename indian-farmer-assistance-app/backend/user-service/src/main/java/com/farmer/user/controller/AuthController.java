@@ -92,7 +92,7 @@ public class AuthController {
      * Requirements: 11.1, 22.3
      */
     @PostMapping("/admin-login")
-    public ResponseEntity<AuthResponse> adminLogin(@RequestBody AdminLoginRequest request) {
+    public ResponseEntity<AuthResponse> adminLogin(@Valid @RequestBody AdminLoginRequest request) {
         log.info("Admin login request received with email: {}, phone: {}", request.getEmail(), request.getPhone());
 
         if (!request.isValid()) {

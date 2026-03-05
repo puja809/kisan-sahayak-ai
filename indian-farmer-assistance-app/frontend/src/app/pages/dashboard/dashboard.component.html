@@ -1,0 +1,106 @@
+<div class="dashboard-container">
+      <div class="header">
+        <h1>Dashboard</h1>
+        <div class="user-info" *ngIf="currentUser">
+          <p>Welcome, {{ currentUser.name }}</p>
+          <p class="farmer-id">Farmer ID: {{ currentUser.farmerId }}</p>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Profile Section -->
+        <div class="card profile-card">
+          <h2>Profile</h2>
+          <div *ngIf="currentUser" class="profile-details">
+            <p><strong>Name:</strong> {{ currentUser.name }}</p>
+            <p><strong>Phone:</strong> {{ currentUser.phone }}</p>
+            <p><strong>Location:</strong> {{ currentUser.district }}, {{ currentUser.state }}</p>
+            <p><strong>Language:</strong> {{ currentUser.preferredLanguage }}</p>
+          </div>
+        </div>
+
+        <!-- Current Crops -->
+        <div class="card crops-card">
+          <h2>Current Crops</h2>
+          <div *ngIf="crops.length > 0" class="crops-list">
+            <div *ngFor="let crop of crops" class="crop-item">
+              <h3>{{ crop.cropName }}</h3>
+              <p>Variety: {{ crop.variety }}</p>
+              <p>Area: {{ crop.area }} acres</p>
+              <p>Status: <span [class]="'status-' + crop.status.toLowerCase()">{{ crop.status }}</span></p>
+            </div>
+          </div>
+          <p *ngIf="crops.length === 0" class="no-data">No crops recorded yet</p>
+          <button class="btn-secondary" (click)="addCrop()">+ Add Crop</button>
+        </div>
+
+        <!-- Upcoming Activities -->
+        <div class="card activities-card">
+          <h2>Upcoming Activities</h2>
+          <div *ngIf="activities.length > 0" class="activities-list">
+            <div *ngFor="let activity of activities" class="activity-item">
+              <p><strong>{{ activity.type }}</strong></p>
+              <p>{{ activity.description }}</p>
+              <p class="due-date">Due: {{ activity.dueDate | date: 'short' }}</p>
+            </div>
+          </div>
+          <p *ngIf="activities.length === 0" class="no-data">No upcoming activities</p>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="card financial-card">
+          <h2>Financial Summary</h2>
+          <div *ngIf="financialSummary" class="financial-details">
+            <div class="financial-item">
+              <span>Input Costs:</span>
+              <span class="amount">₹{{ financialSummary.totalInputCosts }}</span>
+            </div>
+            <div class="financial-item">
+              <span>Estimated Revenue:</span>
+              <span class="amount">₹{{ financialSummary.estimatedRevenue }}</span>
+            </div>
+            <div class="financial-item profit">
+              <span>Profit:</span>
+              <span class="amount">₹{{ financialSummary.profit }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Yield Predictions -->
+        <div class="card yield-card">
+          <h2>Yield Predictions</h2>
+          <div *ngIf="yieldPredictions.length > 0" class="yield-list">
+            <div *ngFor="let prediction of yieldPredictions" class="yield-item">
+              <h3>{{ prediction.cropName }}</h3>
+              <p>Expected: {{ prediction.expectedYield }} quintals</p>
+              <p>Range: {{ prediction.minYield }} - {{ prediction.maxYield }}</p>
+              <p *ngIf="prediction.variance" class="variance">Variance: {{ prediction.variance }}%</p>
+            </div>
+          </div>
+          <p *ngIf="yieldPredictions.length === 0" class="no-data">No yield predictions available</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card actions-card">
+          <h2>Quick Actions</h2>
+          <div class="actions-grid">
+            <button class="action-btn" (click)="addCrop()">
+              <span class="icon">🌾</span>
+              <span>Add Crop</span>
+            </button>
+            <button class="action-btn" (click)="recordHarvest()">
+              <span class="icon">📊</span>
+              <span>Record Harvest</span>
+            </button>
+            <button class="action-btn" (click)="checkWeather()">
+              <span class="icon">🌤️</span>
+              <span>Check Weather</span>
+            </button>
+            <button class="action-btn" (click)="viewSchemes()">
+              <span class="icon">📋</span>
+              <span>View Schemes</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

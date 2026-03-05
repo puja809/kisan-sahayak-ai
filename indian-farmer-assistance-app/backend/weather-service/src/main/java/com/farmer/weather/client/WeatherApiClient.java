@@ -25,18 +25,20 @@ public class WeatherApiClient {
     private final String apiKey;
 
     public WeatherApiClient(WebClient.Builder webClientBuilder,
-                            @Value("${weatherapi.base-url:https://api.weatherapi.com/v1}") String baseUrl,
-                            @Value("${weatherapi.api-key}") String apiKey) {
+            @Value("${weatherapi.base-url:https://api.weatherapi.com/v1}") String baseUrl,
+            @Value("${weatherapi.api-key}") String apiKey) {
         this.webClient = webClientBuilder.baseUrl(baseUrl).build();
         this.apiKey = apiKey;
     }
 
-    public Mono<SevenDayForecastDto> getSevenDayForecast(String district, String state) {
+    public Mono<SevenDayForecastDto> getSevenDayForecast(String district, String state, Double lat, Double lon) {
+        String q = (lat != null && lon != null) ? lat + "," + lon
+                : (state != null && !state.isEmpty() ? district + "," + state : district);
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/forecast.json")
                         .queryParam("key", apiKey)
-                        .queryParam("q", district + "," + state)
+                        .queryParam("q", q)
                         .queryParam("days", 7)
                         .queryParam("aqi", "no")
                         .queryParam("alerts", "no")
@@ -44,29 +46,35 @@ public class WeatherApiClient {
                 .retrieve()
                 .bodyToMono(WeatherApiResponse.class)
                 .map(response -> mapToSevenDayForecastDto(response, district, state))
-                .doOnError(e -> logger.error("Error fetching 7-day forecast for {}, {}: {}", district, state, e.getMessage()));
+                .doOnError(e -> logger.error("Error fetching 7-day forecast for {}, {}: {}", district, state,
+                        e.getMessage()));
     }
 
-    public Mono<CurrentWeatherDto> getCurrentWeather(String district, String state) {
+    public Mono<CurrentWeatherDto> getCurrentWeather(String district, String state, Double lat, Double lon) {
+        String q = (lat != null && lon != null) ? lat + "," + lon
+                : (state != null && !state.isEmpty() ? district + "," + state : district);
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/current.json")
                         .queryParam("key", apiKey)
-                        .queryParam("q", district + "," + state)
+                        .queryParam("q", q)
                         .queryParam("aqi", "no")
                         .build())
                 .retrieve()
                 .bodyToMono(WeatherApiResponse.class)
                 .map(response -> mapToCurrentWeatherDto(response, district, state))
-                .doOnError(e -> logger.error("Error fetching current weather for {}, {}: {}", district, state, e.getMessage()));
+                .doOnError(e -> logger.error("Error fetching current weather for {}, {}: {}", district, state,
+                        e.getMessage()));
     }
 
-    public Mono<NowcastDto> getNowcast(String district, String state) {
+    public Mono<NowcastDto> getNowcast(String district, String state, Double lat, Double lon) {
+        String q = (lat != null && lon != null) ? lat + "," + lon
+                : (state != null && !state.isEmpty() ? district + "," + state : district);
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/forecast.json")
                         .queryParam("key", apiKey)
-                        .queryParam("q", district + "," + state)
+                        .queryParam("q", q)
                         .queryParam("days", 1)
                         .queryParam("aqi", "no")
                         .queryParam("alerts", "no")
@@ -97,7 +105,7 @@ public class WeatherApiClient {
         return Mono.empty();
     }
 
-    public Mono<AgrometAdvisoryDto> getAgrometAdvisories(String district, String state) {
+    public Mono<AgrometAdvisoryDto> getAgrometAdvisories(String district, String state, Double lat, Double lon) {
         return Mono.empty();
     }
 
@@ -126,7 +134,7 @@ public class WeatherApiClient {
     private ForecastDayDto mapToForecastDayDto(WeatherApiResponse.ForecastDay fd) {
         ForecastDayDto dto = new ForecastDayDto();
         dto.setDate(LocalDate.parse(fd.getDate()));
-        
+
         if (fd.getDay() != null) {
             dto.setMaxTempCelsius(fd.getDay().getMaxtempC());
             dto.setMinTempCelsius(fd.getDay().getMintempC());
@@ -134,16 +142,16 @@ public class WeatherApiClient {
             dto.setWindSpeedKmph(fd.getDay().getMaxwindKph());
             dto.setHumidity0830(fd.getDay().getAvghumidity());
             dto.setHumidity1730(fd.getDay().getAvghumidity());
-            dto.setCloudCoverage(0); 
+            dto.setCloudCoverage(0);
         }
-        
+
         if (fd.getAstro() != null) {
             dto.setSunriseTime(fd.getAstro().getSunrise());
             dto.setSunsetTime(fd.getAstro().getSunset());
             dto.setMoonriseTime(fd.getAstro().getMoonrise());
             dto.setMoonsetTime(fd.getAstro().getMoonset());
         }
-        
+
         return dto;
     }
 
@@ -152,7 +160,7 @@ public class WeatherApiClient {
         dto.setDistrict(district);
         dto.setState(state);
         dto.setObservationTime(LocalDateTime.now());
-        
+
         if (response.getCurrent() != null) {
             dto.setTemperatureCelsius(response.getCurrent().getTempC());
             dto.setHumidity(Double.valueOf(response.getCurrent().getHumidity()));
@@ -175,19 +183,19 @@ public class WeatherApiClient {
         dto.setState(state);
         dto.setIssuedAt(LocalDateTime.now());
         dto.setValidUntil(LocalDateTime.now().plusHours(3));
-        
+
         if (response.getCurrent() != null && response.getCurrent().getCondition() != null) {
             dto.setOverallSituation(response.getCurrent().getCondition().getText());
         }
-        
+
         // Probability of precipitation from forecast day 0 if available
         if (response.getForecast() != null && !response.getForecast().getForecastday().isEmpty()) {
-             WeatherApiResponse.ForecastDay today = response.getForecast().getForecastday().get(0);
-             if (today.getDay() != null) {
-                 dto.setProbabilityOfPrecipitation((double) today.getDay().getDailyChanceOfRain());
-             }
+            WeatherApiResponse.ForecastDay today = response.getForecast().getForecastday().get(0);
+            if (today.getDay() != null) {
+                dto.setProbabilityOfPrecipitation((double) today.getDay().getDailyChanceOfRain());
+            }
         }
-        
+
         return dto;
     }
 
@@ -196,7 +204,7 @@ public class WeatherApiClient {
         dto.setDistrict(district);
         dto.setState(state);
         dto.setIssuedAt(LocalDateTime.now());
-        
+
         // WeatherAPI alerts mapping would go here if we had the AlertDto structure
         // For now returning empty alerts list
         dto.setAlerts(Collections.emptyList());
