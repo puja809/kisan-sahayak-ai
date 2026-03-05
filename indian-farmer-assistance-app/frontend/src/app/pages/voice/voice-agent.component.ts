@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { VoiceAssistantService } from '../../services/voice-assistant.service';
 import { LanguageService, Language } from '../../services/language.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 interface ConversationMessage {
   timestamp: Date;
@@ -12,6 +13,7 @@ interface ConversationMessage {
   userAudioPath?: string;
   systemAudioPath?: string;
   systemAudioBase64?: string;
+  safeSystemResponse?: SafeHtml;
 }
 
 @Component({
@@ -21,8 +23,9 @@ interface ConversationMessage {
   templateUrl: './voice-agent.component.html',
   styleUrls: ['./voice-agent.component.css'],
 })
-export class VoiceAgentComponent implements OnInit {
-  selectedLanguage = 'en';
+export class VoiceAgentComponent implements OnInit, AfterViewChecked {
+  @ViewChild('chatContainer') private chatContainer!: ElementRef;
+  selectedLanguage = 'English';
   languages: Language[] = [];
   inputMode: 'text' | 'voice' = 'text';
   conversationHistory: ConversationMessage[] = [];
@@ -42,7 +45,8 @@ export class VoiceAgentComponent implements OnInit {
   constructor(
     private toastr: ToastrService,
     private voiceAssistantService: VoiceAssistantService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private sanitizer: DomSanitizer
   ) { }
 
   ngOnInit(): void {
@@ -52,6 +56,16 @@ export class VoiceAgentComponent implements OnInit {
       next: (response) => { this.languages = response.languages; },
       error: () => { /* fallback already handled inside LanguageService */ }
     });
+  }
+
+  ngAfterViewChecked(): void {
+    this.scrollToBottom();
+  }
+
+  private scrollToBottom(): void {
+    try {
+      this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
+    } catch (err) { }
   }
 
   private acquireUserLocation(): void {
@@ -78,9 +92,12 @@ export class VoiceAgentComponent implements OnInit {
     console.log('Language changed to:', this.selectedLanguage);
   }
 
-  switchMode(mode: 'text' | 'voice'): void {
+  async switchMode(mode: 'text' | 'voice'): Promise<void> {
     this.inputMode = mode;
     this.textInput = '';
+    if (mode === 'voice' && !this.isRecording) {
+      await this.startRecording();
+    }
   }
 
   async toggleRecording(): Promise<void> {
@@ -151,11 +168,13 @@ export class VoiceAgentComponent implements OnInit {
       next: (response) => {
         this.lastRecordingUrl = null;
 
-        if (response.success && response.text) {
+        if (response.success && (response.text || (response as any).answer)) {
           if (response.transcribed_text) {
             this.conversationHistory[msgIndex].userText = response.transcribed_text;
           }
-          this.conversationHistory[msgIndex].systemResponse = response.text;
+          const rawResponse = (response.text || (response as any).answer);
+          this.conversationHistory[msgIndex].systemResponse = rawResponse;
+          this.conversationHistory[msgIndex].safeSystemResponse = this.sanitizer.bypassSecurityTrustHtml(this.formatSystemResponse(rawResponse));
           this.isProcessing = false;
 
           if (response.audio) {
@@ -260,7 +279,9 @@ export class VoiceAgentComponent implements OnInit {
       next: (response) => {
         this.isProcessing = false;
         if (response.success && response.answer) {
-          this.conversationHistory[msgIndex].systemResponse = response.answer;
+          const rawResponse = response.answer;
+          this.conversationHistory[msgIndex].systemResponse = rawResponse;
+          this.conversationHistory[msgIndex].safeSystemResponse = this.sanitizer.bypassSecurityTrustHtml(this.formatSystemResponse(rawResponse));
           this.saveConversationHistory();
           this.toastr.success('Answer generated successfully');
         } else {
@@ -301,10 +322,52 @@ export class VoiceAgentComponent implements OnInit {
     const saved = localStorage.getItem('krishi_rag_history');
     if (saved) {
       try {
-        this.conversationHistory = JSON.parse(saved);
+        const history: ConversationMessage[] = JSON.parse(saved);
+        this.conversationHistory = history.map(msg => ({
+          ...msg,
+          safeSystemResponse: msg.systemResponse ? this.sanitizer.bypassSecurityTrustHtml(this.formatSystemResponse(msg.systemResponse)) : undefined
+        }));
       } catch (e) {
         console.error('Failed to parse history', e);
       }
     }
+  }
+
+  private formatSystemResponse(text: string): string {
+    if (!text) return '';
+
+    // 1. Convert Markdown bold (**text**) to HTML (<b>text</b>)
+    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+    // 2. Bold specific agricultural labels if not already bolded
+    const labelsToBold = [
+      "Previous Crop:",
+      "Current Season:",
+      "Recommended Crop:"
+    ];
+
+    labelsToBold.forEach(label => {
+      // Find label that is NOT already inside <b> or <strong>
+      const regex = new RegExp(`(?<!<b>|<strong>)${label}`, 'g');
+      formatted = formatted.replace(regex, `<b>${label}</b>`);
+    });
+
+    // 3. Add newline before numbered items like "1. ", "2. ", etc.
+    formatted = formatted.replace(/(\s)(\d+\.)/g, '\n$2');
+
+    // 4. Add newline before common concluding advice/sentences
+    const helpSentences = [
+      "This rotation helps",
+      "Ensure to follow",
+      "For more details",
+      "Should you have any"
+    ];
+
+    helpSentences.forEach(sentence => {
+      const regex = new RegExp(`(\\s)(${sentence})`, 'g');
+      formatted = formatted.replace(regex, '\n$2');
+    });
+
+    return formatted.trim();
   }
 }

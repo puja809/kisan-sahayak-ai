@@ -32,14 +32,14 @@
             <tbody>
               <tr *ngFor="let doc of documents">
                 <td>
-                  <div class="doc-title">{{ doc.title || (doc.metadata?.s3Key?.split('/')?.pop()) }}</div>
+                  <div class="doc-title">{{ doc.title }}</div>
                 </td>
-                <td><span class="badge-format">{{ doc.metadata?.fileFormat || 'FILE' }}</span></td>
-                <td>{{ doc.metadata?.fileSizeBytes | number }} bytes</td>
+                <td><span class="badge-format">{{ doc.metadata.fileFormat || 'FILE' }}</span></td>
+                <td>{{ doc.metadata.fileSizeBytes | number }} bytes</td>
                 <td>
                   <div class="uploaded-by">
-                    <div class="avatar-sm">{{ (doc.metadata?.uploadedBy || 'U')[0] }}</div>
-                    {{ doc.metadata?.uploadedBy || 'System' }}
+                    <div class="avatar-sm">{{ (doc.metadata.uploadedBy || 'U')[0] }}</div>
+                    {{ doc.metadata.uploadedBy || 'System' }}
                   </div>
                 </td>
                 <td>{{ doc.createdAt | date:'short' }}</td>

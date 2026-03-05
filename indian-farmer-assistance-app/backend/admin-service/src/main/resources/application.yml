@@ -13,7 +13,6 @@ spring:
 # Custom application configuration
 app:
   session-id: c05a946fe7c08b9859bbcc2813af5fd177f1a2c9ebcc657343605e380196a165
-  table-prefix: sess_c05a946fe_
   jwt:
     secret: ${JWT_SECRET:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm}
     expiration: ${JWT_EXPIRATION:86400000}

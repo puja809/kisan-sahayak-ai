@@ -104,7 +104,7 @@ class FertilizerRecommendationRequest(BaseModel):
 
 class VoiceAssistantRequest(BaseModel):
     question: str
-    language: str = "en"
+    language: str = "English"
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     city_name: Optional[str] = None
@@ -159,7 +159,7 @@ async def get_supported_languages():
     """
     return {
         "languages": SUPPORTED_LANGUAGES,
-        "default": "en"
+        "default": "English"
     }
 
 @app.post("/api/ml/predict-crop", response_model=PredictionResponse)

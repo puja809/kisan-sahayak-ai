@@ -62,7 +62,7 @@ export class AuthService {
    * User login with email and password
    */
   userLogin(request: UserLoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/user-login`, request).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
       tap(response => this.handleAuthResponse(response)),
       catchError(error => {
         console.error('User login failed:', error);
@@ -117,10 +117,13 @@ export class AuthService {
       };
       localStorage.setItem(this.userKey, JSON.stringify(user));
       this.currentUserSubject.next(user);
+      console.log('User session saved to localStorage:', user.email);
     }
   }
 
   logout(): void {
+    console.warn('AuthService: logout() called. Clearing session.');
+    console.trace(); // Log stack trace to see what triggered logout
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     this.currentUserSubject.next(null);
@@ -145,9 +148,15 @@ export class AuthService {
 
   private checkTokenValidity(): void {
     const token = this.getToken();
-    if (token) {
-      // In a real app, you might want a verify-token endpoint
-      // For now, we'll just check if token exists
+    const user = this.getCachedUser();
+
+    if (token && user) {
+      console.log('AuthService: Token found for user:', user.email);
+    } else if (token || user) {
+      console.warn('AuthService: Inconsistent session state. Token:', !!token, 'User:', !!user);
+      // If we have a token but no user, or vice versa, it might cause issues
+    } else {
+      console.log('AuthService: No active session found.');
     }
   }
 

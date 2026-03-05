@@ -119,7 +119,12 @@ public class DocumentService {
                             .build();
                     HeadObjectResponse headResponse = s3Client.headObject(headRequest);
 
-                    String title = headResponse.metadata().getOrDefault("title", "Untitled");
+                    String title = headResponse.metadata().get("title");
+                    if (title == null || title.isBlank() || "Untitled".equals(title)) {
+                        // Extract filename from S3 key as fallback
+                        String key = s3Object.key();
+                        title = key.substring(key.lastIndexOf('/') + 1);
+                    }
                     String uploadedBy = headResponse.metadata().getOrDefault("uploadedBy", "unknown");
 
                     return DocumentResponse.builder()

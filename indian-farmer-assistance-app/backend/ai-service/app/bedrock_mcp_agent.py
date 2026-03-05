@@ -144,7 +144,7 @@ class BedrockAgentWithMCP:
             "If a user asks a question, intelligently determine which tools to use to find the answer.\n"
             "Answer directly and helpfully based on the tool results. Do not mention the tools to the user.\n"
             "Do NOT include any <thinking> tags or internal reasoning in your response. Only output the final answer.\n"
-            "Translate the response into the same language as the user's prompt if requested implicitly.\n"
+            "Translate the response into the same language as the user's prompt if requested implicitly or if a specific language is provided in the context.\n"
         )
 
         # Inject location context if available
