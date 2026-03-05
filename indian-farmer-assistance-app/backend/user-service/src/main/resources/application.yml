@@ -34,22 +34,13 @@ spring:
 
 # Custom application properties
 app:
-  table-prefix: ${database.table_prefix:sess_c05a946fe_}
   jwt:
     secret: ${JWT_SECRET:indian-farmer-assistance-app-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm}
     expiration: ${JWT_EXPIRATION:86400000}
     refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
     issuer: ${JWT_ISSUER:indian-farmer-assistance}
   super-admin-token: ${SUPER_ADMIN_TOKEN:super-admin-secret-token-change-in-production}
-  agristack:
-    base-url: ${agristack.base_url:https://api.agristack.gov.in}
-    ufsi-endpoint: ${agristack.ufsi.endpoint:/ufsi/v1}
-    farmer-registry-endpoint: ${agristack.farmer_registry.endpoint:/farmer-registry/v1}
-    geo-map-registry-endpoint: ${agristack.geo_map_registry.endpoint:/geo-map-registry/v1}
-    crop-sown-registry-endpoint: ${agristack.crop_sown_registry.endpoint:/crop-sown-registry/v1}
-    timeout: ${agristack.timeout:30000}
-    api-key: ${USER_AGRISTACK_API_KEY:}
-
+# Logging Configuration
 logging:
   level:
     root: INFO

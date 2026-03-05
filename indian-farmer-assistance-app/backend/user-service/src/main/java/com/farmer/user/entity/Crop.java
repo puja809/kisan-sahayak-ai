@@ -4,17 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Crop entity representing a crop planted on a farm.
- * Maps to the crops table with session-specific table prefix for data isolation.
- * 
- * Requirements: 11A.4, 11A.5, 11A.6
+ * Crop entity representing a crop grown by a user.
  */
 @Entity
-@Table(name = "sess_c05a946fe_crops")
+@Table(name = "user_crops")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,8 +22,8 @@ public class Crop {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "farm_id", nullable = false)
-    private Farm farm;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(name = "crop_name", nullable = false, length = 100)
     private String cropName;
@@ -101,88 +96,33 @@ public class Crop {
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "crop", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<FertilizerApplication> fertilizerApplications = new ArrayList<>();
-
-    /**
-     * Crop seasons in Indian agriculture.
-     * Requirements: 11A.4
-     */
     public enum Season {
-        KHARIF,    // Monsoon season (June-October)
-        RABI,      // Winter season (October-March)
-        ZAID       // Summer season (March-June)
+        KHARIF, RABI, ZAID
     }
 
-    /**
-     * Crop status for tracking growth cycle.
-     * Requirements: 11A.4
-     */
     public enum CropStatus {
-        SOWN,
-        GROWING,
-        HARVESTED,
-        FAILED
+        SOWN, GROWING, HARVESTED, FAILED
     }
 
-    /**
-     * Lifecycle callback to update timestamp and calculate total input cost.
-     * Requirements: 11A.4
-     */
     @PrePersist
     @PreUpdate
     public void onSaveOrUpdate() {
         this.updatedAt = LocalDateTime.now();
-
         Double total = 0.0;
-        if (seedCost != null) total += seedCost;
-        if (fertilizerCost != null) total += fertilizerCost;
-        if (pesticideCost != null) total += pesticideCost;
-        if (laborCost != null) total += laborCost;
-        if (otherCost != null) total += otherCost;
+        if (seedCost != null)
+            total += seedCost;
+        if (fertilizerCost != null)
+            total += fertilizerCost;
+        if (pesticideCost != null)
+            total += pesticideCost;
+        if (laborCost != null)
+            total += laborCost;
+        if (otherCost != null)
+            total += otherCost;
         this.totalInputCost = total;
-    }
 
-    /**
-     * Calculate total input cost from all cost components.
-     * Requirements: 11A.4
-     */
-    public void calculateTotalInputCost() {
-        Double total = 0.0;
-        if (seedCost != null) total += seedCost;
-        if (fertilizerCost != null) total += fertilizerCost;
-        if (pesticideCost != null) total += pesticideCost;
-        if (laborCost != null) total += laborCost;
-        if (otherCost != null) total += otherCost;
-        this.totalInputCost = total;
-    }
-
-    /**
-     * Calculate total revenue from yield and selling price.
-     * Requirements: 11A.5
-     */
-    public void calculateTotalRevenue() {
         if (totalYieldQuintals != null && sellingPricePerQuintal != null) {
             this.totalRevenue = totalYieldQuintals * sellingPricePerQuintal;
         }
-    }
-
-    /**
-     * Add a fertilizer application to this crop.
-     */
-    public void addFertilizerApplication(FertilizerApplication application) {
-        fertilizerApplications.add(application);
-        application.setCrop(this);
-    }
-
-    /**
-     * Get profit/loss for this crop.
-     */
-    public Double getProfitLoss() {
-        if (totalRevenue == null || totalInputCost == null) {
-            return null;
-        }
-        return totalRevenue - totalInputCost;
     }
 }

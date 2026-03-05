@@ -12,17 +12,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-farmer_password}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-    - ${GATEWAY_SERVICE_PORT:-8080}:8080
+      - ${GATEWAY_SERVICE_PORT:-8080}:8080
     networks:
       farmer-network:
         aliases:
-        - api-gateway
+          - api-gateway
     healthcheck:
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8080/actuator/health
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8080/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -47,17 +47,17 @@ services:
       USER_AGRISTACK_API_KEY: ${USER_AGRISTACK_API_KEY:-}
       AGRISTACK_BASE_URL: ${AGRISTACK_BASE_URL:-https://api.agristack.gov.in}
     ports:
-    - ${USER_SERVICE_PORT:-8099}:8099
+      - ${USER_SERVICE_PORT:-8099}:8099
     networks:
       farmer-network:
         aliases:
-        - user-service
+          - user-service
     healthcheck:
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8099/actuator/health
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8099/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -81,19 +81,19 @@ services:
       WEATHER_API_URL: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
       KAEGRO_API_KEY: ${KAEGRO_API_KEY:-}
     ports:
-    - ${CROP_SERVICE_PORT:-8096}:8096
+      - ${CROP_SERVICE_PORT:-8096}:8096
     depends_on:
-    - ml-service
+      - ml-service
     networks:
       farmer-network:
         aliases:
-        - crop-service
+          - crop-service
     healthcheck:
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8096/actuator/health
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8096/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -114,17 +114,17 @@ services:
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
     ports:
-    - ${LOCATION_SERVICE_PORT:-8095}:8095
+      - ${LOCATION_SERVICE_PORT:-8095}:8095
     networks:
       farmer-network:
         aliases:
-        - location-service
+          - location-service
     healthcheck:
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8095/actuator/health
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8095/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -151,17 +151,17 @@ services:
       MANDI_DATAGOV_FERTILIZER_API_KEY: ${MANDI_DATAGOV_FERTILIZER_API_KEY:-}
       MANDI_DATAGOV_FERTILIZER_API_URL: ${MANDI_DATAGOV_FERTILIZER_API_URL:-https://api.data.gov.in/resource/56f40018-fd03-4010-94a3-f34ca7b43f7c}
     ports:
-    - ${MANDI_SERVICE_PORT:-8093}:8093
+      - ${MANDI_SERVICE_PORT:-8093}:8093
     networks:
       farmer-network:
         aliases:
-        - mandi-service
+          - mandi-service
     healthcheck:
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8093/actuator/health
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8093/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -178,17 +178,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SCHEME_DB_PASSWORD:-farmer_password}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-    - ${SCHEME_SERVICE_PORT:-8097}:8097
+      - ${SCHEME_SERVICE_PORT:-8097}:8097
     networks:
       farmer-network:
         aliases:
-        - scheme-service
+          - scheme-service
     healthcheck:
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8097/actuator/health
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8097/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -205,44 +205,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${ADMIN_DB_PASSWORD:-farmer_password}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-    - ${ADMIN_SERVICE_PORT:-8091}:8091
+      - ${ADMIN_SERVICE_PORT:-8091}:8091
     networks:
       farmer-network:
         aliases:
-        - admin-service
+          - admin-service
     healthcheck:
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8091/actuator/health
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-  iot-service:
-    build:
-      context: ./backend
-      dockerfile: iot-service/Dockerfile
-    container_name: farmer-iot-service
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: ${IOT_DB_URL:-jdbc:postgresql://<gcp-postgres-ip>:5432/farmer_db}
-      SPRING_DATASOURCE_USERNAME: ${IOT_DB_USERNAME:-farmer}
-      SPRING_DATASOURCE_PASSWORD: ${IOT_DB_PASSWORD:-farmer_password}
-      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-    ports:
-    - ${IOT_SERVICE_PORT:-8094}:8094
-    networks:
-      farmer-network:
-        aliases:
-        - iot-service
-    healthcheck:
-      test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8094/actuator/health
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8091/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -261,17 +234,17 @@ services:
       WEATHER_API_KEY: ${WEATHER_API_KEY:-}
       WEATHER_API_URL: ${WEATHER_API_URL:-https://api.weatherapi.com/v1}
     ports:
-    - ${WEATHER_SERVICE_PORT:-8100}:8100
+      - ${WEATHER_SERVICE_PORT:-8100}:8100
     networks:
       farmer-network:
         aliases:
-        - weather-service
+          - weather-service
     healthcheck:
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8100/actuator/health
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8100/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -288,17 +261,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${YIELD_DB_PASSWORD:-farmer_password}
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
     ports:
-    - ${YIELD_SERVICE_PORT:-8101}:8101
+      - ${YIELD_SERVICE_PORT:-8101}:8101
     networks:
       farmer-network:
         aliases:
-        - yield-service
+          - yield-service
     healthcheck:
       test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8101/actuator/health
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8101/actuator/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -312,19 +285,19 @@ services:
       PYTHONUNBUFFERED: 1
       INSTANCE_HOST: ml-service
     ports:
-    - 8001:8001
+      - 8001:8001
     volumes:
-    - ./backend/ai-service/app/models:/app/app/models
+      - ./backend/ai-service/app/models:/app/app/models
     networks:
       farmer-network:
         aliases:
-        - ml-service
+          - ml-service
     healthcheck:
       test:
-      - CMD
-      - python
-      - -c
-      - import requests; requests.get('http://localhost:8001/health')
+        - CMD
+        - python
+        - -c
+        - import requests; requests.get('http://localhost:8001/health')
       interval: 30s
       timeout: 10s
       retries: 3
@@ -337,20 +310,20 @@ services:
     environment:
       API_URL: ${API_URL:-http://localhost:8080}
     ports:
-    - 80:4200
-    - 4200:4200
+      - 80:4200
+      - 4200:4200
     depends_on:
-    - api-gateway
+      - api-gateway
     networks:
-    - farmer-network
+      - farmer-network
     healthcheck:
       test:
-      - CMD
-      - wget
-      - --quiet
-      - --tries=1
-      - --spider
-      - http://localhost:4200/
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://localhost:4200/
       interval: 30s
       timeout: 10s
       retries: 3

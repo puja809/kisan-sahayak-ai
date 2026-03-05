@@ -1,106 +1,217 @@
 <div class="dashboard-container">
-      <div class="header">
-        <h1>Dashboard</h1>
-        <div class="user-info" *ngIf="currentUser">
-          <p>Welcome, {{ currentUser.name }}</p>
-          <p class="farmer-id">Farmer ID: {{ currentUser.farmerId }}</p>
-        </div>
+  <div class="header">
+    <h1>Dashboard</h1>
+    <div class="user-info" *ngIf="currentUser">
+      <p>Welcome, {{ currentUser.name }}</p>
+      <p class="farmer-id" *ngIf="currentUser.farmerId">Farmer ID: {{ currentUser.farmerId }}</p>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- Profile Section -->
+    <div class="card profile-card">
+      <div class="card-header">
+        <h2>Profile Summary</h2>
       </div>
-
-      <div class="dashboard-grid">
-        <!-- Profile Section -->
-        <div class="card profile-card">
-          <h2>Profile</h2>
-          <div *ngIf="currentUser" class="profile-details">
-            <p><strong>Name:</strong> {{ currentUser.name }}</p>
-            <p><strong>Phone:</strong> {{ currentUser.phone }}</p>
-            <p><strong>Location:</strong> {{ currentUser.district }}, {{ currentUser.state }}</p>
-            <p><strong>Language:</strong> {{ currentUser.preferredLanguage }}</p>
-          </div>
+      <div *ngIf="currentUser" class="profile-details">
+        <div class="info-row">
+          <span class="label">Name:</span>
+          <span class="value">{{ currentUser.name }}</span>
         </div>
-
-        <!-- Current Crops -->
-        <div class="card crops-card">
-          <h2>Current Crops</h2>
-          <div *ngIf="crops.length > 0" class="crops-list">
-            <div *ngFor="let crop of crops" class="crop-item">
-              <h3>{{ crop.cropName }}</h3>
-              <p>Variety: {{ crop.variety }}</p>
-              <p>Area: {{ crop.area }} acres</p>
-              <p>Status: <span [class]="'status-' + crop.status.toLowerCase()">{{ crop.status }}</span></p>
-            </div>
-          </div>
-          <p *ngIf="crops.length === 0" class="no-data">No crops recorded yet</p>
-          <button class="btn-secondary" (click)="addCrop()">+ Add Crop</button>
+        <div class="info-row">
+          <span class="label">Email:</span>
+          <span class="value">{{ currentUser.email }}</span>
         </div>
-
-        <!-- Upcoming Activities -->
-        <div class="card activities-card">
-          <h2>Upcoming Activities</h2>
-          <div *ngIf="activities.length > 0" class="activities-list">
-            <div *ngFor="let activity of activities" class="activity-item">
-              <p><strong>{{ activity.type }}</strong></p>
-              <p>{{ activity.description }}</p>
-              <p class="due-date">Due: {{ activity.dueDate | date: 'short' }}</p>
-            </div>
-          </div>
-          <p *ngIf="activities.length === 0" class="no-data">No upcoming activities</p>
+        <div class="info-row" *ngIf="currentUser.phone">
+          <span class="label">Phone:</span>
+          <span class="value">{{ currentUser.phone }}</span>
         </div>
-
-        <!-- Financial Summary -->
-        <div class="card financial-card">
-          <h2>Financial Summary</h2>
-          <div *ngIf="financialSummary" class="financial-details">
-            <div class="financial-item">
-              <span>Input Costs:</span>
-              <span class="amount">₹{{ financialSummary.totalInputCosts }}</span>
-            </div>
-            <div class="financial-item">
-              <span>Estimated Revenue:</span>
-              <span class="amount">₹{{ financialSummary.estimatedRevenue }}</span>
-            </div>
-            <div class="financial-item profit">
-              <span>Profit:</span>
-              <span class="amount">₹{{ financialSummary.profit }}</span>
-            </div>
-          </div>
+        <div class="info-row" *ngIf="currentUser.district || currentUser.state">
+          <span class="label">Location:</span>
+          <span class="value">{{ currentUser.district }}{{ currentUser.district && currentUser.state ? ', ' : '' }}{{
+            currentUser.state }}</span>
         </div>
-
-        <!-- Yield Predictions -->
-        <div class="card yield-card">
-          <h2>Yield Predictions</h2>
-          <div *ngIf="yieldPredictions.length > 0" class="yield-list">
-            <div *ngFor="let prediction of yieldPredictions" class="yield-item">
-              <h3>{{ prediction.cropName }}</h3>
-              <p>Expected: {{ prediction.expectedYield }} quintals</p>
-              <p>Range: {{ prediction.minYield }} - {{ prediction.maxYield }}</p>
-              <p *ngIf="prediction.variance" class="variance">Variance: {{ prediction.variance }}%</p>
-            </div>
-          </div>
-          <p *ngIf="yieldPredictions.length === 0" class="no-data">No yield predictions available</p>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card actions-card">
-          <h2>Quick Actions</h2>
-          <div class="actions-grid">
-            <button class="action-btn" (click)="addCrop()">
-              <span class="icon">🌾</span>
-              <span>Add Crop</span>
-            </button>
-            <button class="action-btn" (click)="recordHarvest()">
-              <span class="icon">📊</span>
-              <span>Record Harvest</span>
-            </button>
-            <button class="action-btn" (click)="checkWeather()">
-              <span class="icon">🌤️</span>
-              <span>Check Weather</span>
-            </button>
-            <button class="action-btn" (click)="viewSchemes()">
-              <span class="icon">📋</span>
-              <span>View Schemes</span>
-            </button>
-          </div>
+        <div class="info-row">
+          <span class="label">Language:</span>
+          <span class="value">{{ currentUser.preferredLanguage }}</span>
         </div>
       </div>
     </div>
+
+    <!-- Current Crops -->
+    <div class="card crops-card">
+      <div class="card-header">
+        <h2>My Crops</h2>
+        <button class="btn-premium-add" (click)="addCrop()">
+          <span class="icon">+</span>
+          <span class="text">Add New Crop</span>
+        </button>
+      </div>
+      <div *ngIf="crops.length > 0" class="crops-list">
+        <div *ngFor="let crop of crops" class="crop-item" (click)="editCrop(crop)" title="Click to edit">
+          <div class="crop-icon">🌾</div>
+          <div class="crop-info">
+            <div class="crop-main-info">
+              <h3>{{ crop.cropName }}</h3>
+              <span [class]="'status-badge ' + crop.status.toLowerCase()">{{ crop.status }}</span>
+            </div>
+            <div class="crop-sub-info">
+              <p class="variety">{{ crop.cropVariety }}</p>
+              <p class="area">{{ crop.areaAcres }} acres</p>
+            </div>
+            <div class="crop-meta-grid">
+              <div class="meta-item">
+                <span class="meta-label">Sown:</span>
+                <span class="meta-value">{{ crop.sowingDate }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Season:</span>
+                <span class="meta-value">{{ crop.season }}</span>
+              </div>
+              <div class="meta-item investment">
+                <span class="meta-label">Investment:</span>
+                <span class="meta-value">₹{{ crop.totalInputCost | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="crops.length === 0" class="no-data-container">
+        <p class="no-data">No crops recorded yet. Start by adding your first crop.</p>
+        <button class="btn-primary-sm" (click)="addCrop()">Add Your First Crop</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Add Crop Modal -->
+  <div class="modal-overlay" *ngIf="showAddCropModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>{{ editingCropId ? 'Update Crop' : 'Add New Crop' }}</h2>
+        <button class="btn-close" (click)="closeModal()">×</button>
+      </div>
+      <form (ngSubmit)="submitCrop()">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Crop Name <span class="required">*</span></label>
+            <div class="dropdown-container">
+              <input type="text" [(ngModel)]="newCrop.cropName" name="cropName" (input)="onCropSearch(newCrop.cropName)"
+                (focus)="showCropDropdown = true" placeholder="Search Crop (e.g. Wheat)" autocomplete="off" required>
+              <div class="search-icon">🔍</div>
+              <div class="dropdown-menu" *ngIf="showCropDropdown && filteredCrops.length > 0">
+                <div class="dropdown-item" *ngFor="let crop of filteredCrops" (click)="selectCrop(crop)">
+                  {{ crop }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Variety</label>
+            <div class="dropdown-container">
+              <input type="text" [(ngModel)]="newCrop.cropVariety" name="cropVariety"
+                (input)="onVarietySearch(newCrop.cropVariety)" (focus)="showVarietyDropdown = true"
+                placeholder="Search Variety" autocomplete="off">
+              <div class="search-icon">🔍</div>
+              <div class="dropdown-menu" *ngIf="showVarietyDropdown && filteredVarieties.length > 0">
+                <div class="dropdown-item" *ngFor="let variety of filteredVarieties" (click)="selectVariety(variety)">
+                  {{ variety }}
+                </div>
+              </div>
+              <div class="dropdown-menu"
+                *ngIf="showVarietyDropdown && filteredVarieties.length === 0 && newCrop.cropName">
+                <div class="dropdown-item no-results">No varieties found for {{ newCrop.cropName }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Sowing Date <span class="required">*</span></label>
+            <input type="date" [(ngModel)]="newCrop.sowingDate" name="sowingDate" required>
+          </div>
+          <div class="form-group">
+            <label>Area (Acres) <span class="required">*</span></label>
+            <input type="number" [(ngModel)]="newCrop.areaAcres" name="areaAcres" step="0.1" min="0.1" required>
+          </div>
+          <div class="form-group">
+            <label>Season <span class="required">*</span></label>
+            <select [(ngModel)]="newCrop.season" name="season" required>
+              <option *ngFor="let s of seasons" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Estimated Costs (Optional)</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Seed Cost (₹)</label>
+              <input type="number" [(ngModel)]="newCrop.seedCost" name="seedCost" min="0">
+            </div>
+            <div class="form-group">
+              <label>Fertilizer Cost (₹)</label>
+              <input type="number" [(ngModel)]="newCrop.fertilizerCost" name="fertilizerCost" min="0">
+            </div>
+            <div class="form-group">
+              <label>Pesticide Cost (₹)</label>
+              <input type="number" [(ngModel)]="newCrop.pesticideCost" name="pesticideCost" min="0">
+            </div>
+            <div class="form-group">
+              <label>Labor Cost (₹)</label>
+              <input type="number" [(ngModel)]="newCrop.laborCost" name="laborCost" min="0">
+            </div>
+            <div class="form-group">
+              <label>Other Cost (₹)</label>
+              <input type="number" [(ngModel)]="newCrop.otherCost" name="otherCost" min="0">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Harvest & Revenue (Optional)</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Actual Harvest Date</label>
+              <input type="date" [(ngModel)]="newCrop.actualHarvestDate" name="actualHarvestDate">
+            </div>
+            <div class="form-group">
+              <label>Total Yield (Quintals)</label>
+              <input type="number" [(ngModel)]="newCrop.totalYieldQuintals" name="totalYieldQuintals" step="0.1"
+                min="0">
+            </div>
+            <div class="form-group">
+              <label>Quality Grade</label>
+              <input type="text" [(ngModel)]="newCrop.qualityGrade" name="qualityGrade" placeholder="e.g. Grade A">
+            </div>
+            <div class="form-group">
+              <label>Selling Price (per Quintal)</label>
+              <input type="number" [(ngModel)]="newCrop.sellingPricePerQuintal" name="sellingPricePerQuintal" min="0">
+            </div>
+            <div class="form-group">
+              <label>Mandi Name</label>
+              <input type="text" [(ngModel)]="newCrop.mandiName" name="mandiName" placeholder="e.g. Azadpur Mandi">
+            </div>
+            <div class="form-group">
+              <label>Total Revenue (₹)</label>
+              <input type="number" [(ngModel)]="newCrop.totalRevenue" name="totalRevenue" min="0">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Notes</label>
+          <textarea [(ngModel)]="newCrop.notes" name="notes" placeholder="Any additional details..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+          <button class="btn-submit" (click)="submitCrop()" [disabled]="isSubmitting">
+            <div class="spinner" *ngIf="isSubmitting"></div>
+            {{ isSubmitting ? 'Saving...' : (editingCropId ? 'Update Crop' : 'Save Crop') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

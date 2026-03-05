@@ -28,17 +28,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Document validation failed", ex.getMessage());
     }
 
-    @ExceptionHandler(DocumentNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleDocumentNotFoundException(DocumentNotFoundException ex) {
-        log.error("Document not found: {}", ex.getMessage());
-        return buildErrorResponse(HttpStatus.NOT_FOUND, "Document not found", ex.getMessage());
-    }
-
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
         log.error("File size exceeded: {}", ex.getMessage());
-        return buildErrorResponse(HttpStatus.PAYLOAD_TOO_LARGE, "File too large", 
-            "The uploaded file exceeds the maximum allowed size of 50MB");
+        return buildErrorResponse(HttpStatus.PAYLOAD_TOO_LARGE, "File too large",
+                "The uploaded file exceeds the maximum allowed size of 50MB");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -49,21 +43,21 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("timestamp", LocalDateTime.now());
         response.put("status", HttpStatus.BAD_REQUEST.value());
         response.put("error", "Validation Failed");
         response.put("errors", errors);
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDeniedException(AccessDeniedException ex) {
         log.error("Access denied: {}", ex.getMessage());
-        return buildErrorResponse(HttpStatus.FORBIDDEN, "Access Denied", 
-            "You do not have permission to perform this action");
+        return buildErrorResponse(HttpStatus.FORBIDDEN, "Access Denied",
+                "You do not have permission to perform this action");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -75,8 +69,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", 
-            "An unexpected error occurred. Please try again later.");
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error",
+                "An unexpected error occurred. Please try again later.");
     }
 
     private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String error, String message) {

@@ -5,24 +5,26 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * Admin Service Application for document management, scheme administration, and analytics.
- * Requirements: 21.1, 21.2, 21.3, 21.4, 21.5, 21.6, 21.7, 21.8, 21.9, 21.10, 21.11
+ * Admin Service Application for document management, scheme administration, and
+ * analytics.
+ * Requirements: 21.1, 21.2, 21.3, 21.4, 21.5, 21.6, 21.7, 21.8, 21.9, 21.10,
+ * 21.11
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+        DataSourceAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class,
+        MongoAutoConfiguration.class
+})
 @EnableScheduling
 
-@OpenAPIDefinition(
-    info = @Info(
-        title = "Admin Service API",
-        version = "1.0.0",
-        description = "Admin document management, scheme administration, and analytics service",
-        contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")
-    )
-)
+@OpenAPIDefinition(info = @Info(title = "Admin Service API", version = "1.0.0", description = "Admin document management, scheme administration, and analytics service", contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")))
 public class AdminServiceApplication {
 
     public static void main(String[] args) {

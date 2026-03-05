@@ -60,12 +60,6 @@ export const routes: Routes = [
     title: 'Disease Detection',
   },
   {
-    path: 'iot',
-    loadComponent: () => import('./pages/iot/iot-dashboard.component').then(m => m.IoTDashboardComponent),
-    canActivate: [AuthGuard],
-    title: 'IoT Devices',
-  },
-  {
     path: 'admin',
     loadComponent: () => import('./pages/admin/admin-dashboard.component').then(m => m.AdminDashboardComponent),
     canActivate: [AdminGuard],

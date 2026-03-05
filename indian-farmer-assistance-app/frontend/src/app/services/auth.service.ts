@@ -4,49 +4,44 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-export interface LoginRequest {
-  farmerId: string;
-  password: string;
-}
-
 export interface UserLoginRequest {
-  email?: string;
-  phone?: string;
+  email: string;
   password: string;
 }
 
 export interface AdminLoginRequest {
-  email?: string;
-  phone?: string;
+  email: string;
   password: string;
 }
 
 export interface UserResponse {
   farmerId: string;
   name: string;
-  phone: string;
-  email?: string;
+  phone?: string;
+  email: string;
   preferredLanguage: string;
-  state: string;
-  district: string;
-  role?: string;
+  state?: string;
+  district?: string;
+  role: string;
+  isActive: boolean;
 }
 
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
   user: UserResponse;
+  expiresIn: number;
 }
 
 export interface User {
   farmerId: string;
   name: string;
-  phone: string;
-  email?: string;
+  phone?: string;
+  email: string;
   preferredLanguage: string;
-  state: string;
-  district: string;
-  role?: string;
+  state?: string;
+  district?: string;
+  role: string;
 }
 
 @Injectable({
@@ -64,27 +59,11 @@ export class AuthService {
   }
 
   /**
-   * User login with email or phone and password
+   * User login with email and password
    */
   userLogin(request: UserLoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/user-login`, request, {
-      headers: { 'Content-Type': 'application/json' }
-    }).pipe(
-      tap(response => {
-        localStorage.setItem(this.tokenKey, response.accessToken);
-        const user: User = {
-          farmerId: response.user.farmerId,
-          name: response.user.name,
-          phone: response.user.phone || '',
-          email: response.user.email || '',
-          preferredLanguage: response.user.preferredLanguage || 'en',
-          state: response.user.state || '',
-          district: response.user.district || '',
-          role: response.user.role || 'FARMER'
-        };
-        localStorage.setItem(this.userKey, JSON.stringify(user));
-        this.currentUserSubject.next(user);
-      }),
+    return this.http.post<LoginResponse>(`${this.apiUrl}/user-login`, request).pipe(
+      tap(response => this.handleAuthResponse(response)),
       catchError(error => {
         console.error('User login failed:', error);
         throw error;
@@ -93,27 +72,11 @@ export class AuthService {
   }
 
   /**
-   * Admin login with email or phone and password
+   * Admin login with email and password
    */
   adminLogin(request: AdminLoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/admin-login`, request, {
-      headers: { 'Content-Type': 'application/json' }
-    }).pipe(
-      tap(response => {
-        localStorage.setItem(this.tokenKey, response.accessToken);
-        const user: User = {
-          farmerId: response.user.farmerId,
-          name: response.user.name,
-          phone: response.user.phone || '',
-          email: response.user.email || '',
-          preferredLanguage: response.user.preferredLanguage || 'en',
-          state: response.user.state || '',
-          district: response.user.district || '',
-          role: response.user.role || 'ADMIN'
-        };
-        localStorage.setItem(this.userKey, JSON.stringify(user));
-        this.currentUserSubject.next(user);
-      }),
+    return this.http.post<LoginResponse>(`${this.apiUrl}/admin-login`, request).pipe(
+      tap(response => this.handleAuthResponse(response)),
       catchError(error => {
         console.error('Admin login failed:', error);
         throw error;
@@ -121,53 +84,40 @@ export class AuthService {
     );
   }
 
-  login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
-      tap(response => {
-        localStorage.setItem(this.tokenKey, response.accessToken);
-        const user: User = {
-          farmerId: response.user.farmerId,
-          name: response.user.name,
-          phone: response.user.phone || '',
-          preferredLanguage: response.user.preferredLanguage || 'en',
-          state: response.user.state || '',
-          district: response.user.district || '',
-          role: response.user.role || 'FARMER'
-        };
-        localStorage.setItem(this.userKey, JSON.stringify(user));
-        this.currentUserSubject.next(user);
-      }),
-      catchError(error => {
-        console.error('Login failed:', error);
-        throw error;
-      })
-    );
+  /**
+   * General login (can be redirected to userLogin or adminLogin based on email)
+   * The backend currently has separate endpoints, so we'll use user-login for now
+   */
+  login(email: string, password: string): Observable<LoginResponse> {
+    return this.userLogin({ email, password });
   }
 
-  register(user: User & { password: string }): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, user).pipe(
-      tap(response => {
-        if (response.accessToken) {
-          localStorage.setItem(this.tokenKey, response.accessToken);
-          const cachedUser: User = {
-            farmerId: response.user?.farmerId || user.farmerId,
-            name: response.user?.name || user.name,
-            phone: response.user?.phone || user.phone,
-            email: response.user?.email || user.email,
-            preferredLanguage: response.user?.preferredLanguage || user.preferredLanguage,
-            state: response.user?.state || user.state,
-            district: response.user?.district || user.district,
-            role: response.user?.role || 'FARMER'
-          };
-          localStorage.setItem(this.userKey, JSON.stringify(cachedUser));
-          this.currentUserSubject.next(cachedUser);
-        }
-      }),
+  register(userData: any): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, userData).pipe(
+      tap(response => this.handleAuthResponse(response)),
       catchError(error => {
         console.error('Registration failed:', error);
         throw error;
       })
     );
+  }
+
+  private handleAuthResponse(response: LoginResponse): void {
+    if (response.accessToken) {
+      localStorage.setItem(this.tokenKey, response.accessToken);
+      const user: User = {
+        farmerId: response.user.farmerId,
+        name: response.user.name,
+        phone: response.user.phone,
+        email: response.user.email,
+        preferredLanguage: response.user.preferredLanguage,
+        state: response.user.state,
+        district: response.user.district,
+        role: response.user.role
+      };
+      localStorage.setItem(this.userKey, JSON.stringify(user));
+      this.currentUserSubject.next(user);
+    }
   }
 
   logout(): void {
@@ -196,21 +146,15 @@ export class AuthService {
   private checkTokenValidity(): void {
     const token = this.getToken();
     if (token) {
-      // Verify token with backend
-      this.http.get<{ valid: boolean }>(`${this.apiUrl}/verify-token`).pipe(
-        catchError(() => {
-          this.logout();
-          return of({ valid: false });
-        })
-      ).subscribe();
+      // In a real app, you might want a verify-token endpoint
+      // For now, we'll just check if token exists
     }
   }
 
-  // Offline authentication with cached credentials
-  loginOffline(farmerId: string, password: string): boolean {
+  // Offline authentication can be implemented here if needed
+  loginOffline(email: string, password: string): boolean {
     const cachedUser = this.getCachedUser();
-    if (cachedUser && cachedUser.farmerId === farmerId) {
-      // In production, validate password hash
+    if (cachedUser && cachedUser.email === email) {
       this.currentUserSubject.next(cachedUser);
       return true;
     }

@@ -2,100 +2,259 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
-
-interface Crop {
-  id: number;
-  cropName: string;
-  variety: string;
-  sowingDate: string;
-  expectedHarvestDate: string;
-  area: number;
-  status: string;
-}
-
-interface Activity {
-  id: number;
-  type: string;
-  description: string;
-  dueDate: string;
-  priority: string;
-}
-
-interface FinancialSummary {
-  totalInputCosts: number;
-  estimatedRevenue: number;
-  profit: number;
-}
-
-interface YieldPrediction {
-  cropId: number;
-  cropName: string;
-  minYield: number;
-  expectedYield: number;
-  maxYield: number;
-  variance: number;
-}
+import { ProfileService, CropResponse, CropRequest, Season, CropStatus } from '../../services/profile.service';
+import { MandiService } from '../../services/mandi.service';
+import { FormsModule } from '@angular/forms';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'],})
+  styleUrls: ['./dashboard.component.css'],
+})
 export class DashboardComponent implements OnInit {
   currentUser: User | null = null;
-  crops: Crop[] = [];
-  activities: Activity[] = [];
-  financialSummary: FinancialSummary | null = null;
-  yieldPredictions: YieldPrediction[] = [];
+  crops: CropResponse[] = [];
+
+  // Modal state
+  showAddCropModal = false;
+  isSubmitting = false;
+
+  // Crop Form
+  editingCropId: number | null = null;
+  newCrop: CropRequest = this.resetCropForm();
+
+  // Searchable Dropdowns
+  allCrops: string[] = [];
+  filteredCrops: string[] = [];
+  allVarieties: string[] = [];
+  filteredVarieties: string[] = [];
+  showCropDropdown = false;
+  showVarietyDropdown = false;
+
+  cropsSearchSubject = new Subject<string>();
+  varietiesSearchSubject = new Subject<string>();
+
+  seasons = Object.values(Season);
 
   constructor(
     private authService: AuthService,
-    private http: HttpClient
-  ) {}
+    private profileService: ProfileService,
+    private mandiService: MandiService
+  ) {
+    // Setup search debouncing
+    this.cropsSearchSubject.pipe(
+      debounceTime(200),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.filterCrops(term);
+    });
+
+    this.varietiesSearchSubject.pipe(
+      debounceTime(200),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.filterVarieties(term);
+    });
+  }
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
     this.loadDashboardData();
+    this.fetchMandiCrops();
   }
 
   private loadDashboardData(): void {
     if (!this.currentUser) return;
 
-    // Load crops
-    this.http.get<Crop[]>('/api/v1/users/profile/crops').subscribe({
+    // Load crops directly from profile
+    this.profileService.getCrops().subscribe({
       next: (data) => this.crops = data,
       error: (error) => console.error('Failed to load crops:', error)
     });
+  }
 
-    // Load dashboard data
-    this.http.get<any>('/api/v1/users/profile/dashboard').subscribe({
-      next: (data) => {
-        this.activities = data.upcomingActivities || [];
-        this.financialSummary = data.financialSummary;
-        this.yieldPredictions = data.yieldPredictions || [];
+  private resetCropForm(): CropRequest {
+    return {
+      cropName: '',
+      cropVariety: '',
+      sowingDate: new Date().toISOString().split('T')[0],
+      areaAcres: 1,
+      season: Season.KHARIF,
+      status: CropStatus.SOWN,
+      seedCost: undefined,
+      fertilizerCost: undefined,
+      pesticideCost: undefined,
+      laborCost: undefined,
+      otherCost: undefined,
+      totalYieldQuintals: undefined,
+      qualityGrade: undefined,
+      sellingPricePerQuintal: undefined,
+      mandiName: undefined,
+      totalRevenue: undefined,
+      actualHarvestDate: undefined,
+      notes: undefined
+    };
+  }
+
+  // Mandi Integration Methods
+  private fetchMandiCrops(): void {
+    this.mandiService.getFilterCommodities().subscribe({
+      next: (crops) => {
+        this.allCrops = crops;
+        this.filteredCrops = [...crops];
       },
-      error: (error) => console.error('Failed to load dashboard data:', error)
+      error: (err) => console.error('Failed to fetch crops from Mandi:', err)
     });
   }
 
+  onCropSearch(term: string | undefined): void {
+    const searchTerm = term || '';
+    this.showCropDropdown = true;
+    this.cropsSearchSubject.next(searchTerm);
+    if (!searchTerm) {
+      this.allVarieties = [];
+      this.filteredVarieties = [];
+    }
+  }
+
+  private filterCrops(term: string): void {
+    if (!term) {
+      this.filteredCrops = [...this.allCrops];
+    } else {
+      this.filteredCrops = this.allCrops.filter(c =>
+        c.toLowerCase().includes(term.toLowerCase())
+      );
+    }
+  }
+
+  selectCrop(crop: string): void {
+    this.newCrop.cropName = crop;
+    this.showCropDropdown = false;
+    this.fetchVarieties(crop);
+  }
+
+  private fetchVarieties(crop: string): void {
+    this.mandiService.getFilterVarieties(crop).subscribe({
+      next: (varieties) => {
+        this.allVarieties = varieties;
+        this.filteredVarieties = [...varieties];
+      },
+      error: (err) => console.error('Failed to fetch varieties:', err)
+    });
+  }
+
+  onVarietySearch(term: string | undefined): void {
+    const searchTerm = term || '';
+    this.showVarietyDropdown = true;
+    this.varietiesSearchSubject.next(searchTerm);
+  }
+
+  private filterVarieties(term: string): void {
+    if (!term) {
+      this.filteredVarieties = [...this.allVarieties];
+    } else {
+      this.filteredVarieties = this.allVarieties.filter(v =>
+        v.toLowerCase().includes(term.toLowerCase())
+      );
+    }
+  }
+
+  selectVariety(variety: string): void {
+    this.newCrop.cropVariety = variety;
+    this.showVarietyDropdown = false;
+  }
+
   addCrop(): void {
-    // Navigate to crop form
-    console.log('Add crop');
+    this.editingCropId = null;
+    this.newCrop = this.resetCropForm();
+    this.showAddCropModal = true;
+  }
+
+  editCrop(crop: CropResponse): void {
+    this.editingCropId = crop.id;
+    this.newCrop = {
+      cropName: crop.cropName,
+      cropVariety: crop.cropVariety,
+      sowingDate: crop.sowingDate,
+      expectedHarvestDate: crop.expectedHarvestDate,
+      areaAcres: crop.areaAcres,
+      season: crop.season as Season,
+      status: crop.status as CropStatus,
+      seedCost: crop.seedCost,
+      fertilizerCost: crop.fertilizerCost,
+      pesticideCost: crop.pesticideCost,
+      laborCost: crop.laborCost,
+      otherCost: crop.otherCost,
+      totalYieldQuintals: crop.totalYieldQuintals,
+      qualityGrade: crop.qualityGrade,
+      sellingPricePerQuintal: crop.sellingPricePerQuintal,
+      mandiName: crop.mandiName,
+      totalRevenue: crop.totalRevenue,
+      actualHarvestDate: crop.actualHarvestDate,
+      notes: crop.notes
+    };
+    this.showAddCropModal = true;
+  }
+
+  closeModal(): void {
+    this.showAddCropModal = false;
+  }
+
+  submitCrop(): void {
+    if (!this.newCrop.cropName || !this.newCrop.sowingDate || !this.newCrop.areaAcres) {
+      alert('Please fill all required fields');
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    if (this.editingCropId) {
+      this.profileService.updateCrop(this.editingCropId, this.newCrop).subscribe({
+        next: (response) => {
+          const index = this.crops.findIndex(c => c.id === this.editingCropId);
+          if (index !== -1) {
+            this.crops[index] = response;
+          }
+          this.finalizeSubmit();
+        },
+        error: (error) => this.handleError('Failed to update crop', error)
+      });
+    } else {
+      this.profileService.addCrop(this.newCrop).subscribe({
+        next: (response) => {
+          this.crops.unshift(response);
+          this.finalizeSubmit();
+        },
+        error: (error) => this.handleError('Failed to add crop', error)
+      });
+    }
+  }
+
+  private finalizeSubmit(): void {
+    this.showAddCropModal = false;
+    this.isSubmitting = false;
+    this.newCrop = this.resetCropForm();
+    this.editingCropId = null;
+  }
+
+  private handleError(message: string, error: any): void {
+    console.error(message, error);
+    alert(`${message}. Please try again.`);
+    this.isSubmitting = false;
   }
 
   recordHarvest(): void {
-    // Navigate to harvest recording
     console.log('Record harvest');
   }
 
   checkWeather(): void {
-    // Navigate to weather page
     console.log('Check weather');
   }
 
   viewSchemes(): void {
-    // Navigate to schemes page
     console.log('View schemes');
   }
 }

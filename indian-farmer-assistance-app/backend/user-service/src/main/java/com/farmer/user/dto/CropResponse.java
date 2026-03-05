@@ -1,27 +1,22 @@
 package com.farmer.user.dto;
 
 import com.farmer.user.entity.Crop;
-import lombok.*;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
-/**
- * DTO for crop response.
- * Requirements: 11A.4, 11A.5
- */
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class CropResponse {
 
     private Long id;
-    private Long farmId;
-    private String farmParcelNumber;
+    private Long userId;
     private String cropName;
     private String cropVariety;
     private LocalDate sowingDate;
@@ -41,20 +36,14 @@ public class CropResponse {
     private Double sellingPricePerQuintal;
     private String mandiName;
     private Double totalRevenue;
-    private Double profitLoss;
     private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<FertilizerApplicationResponse> fertilizerApplications;
 
-    /**
-     * Convert Crop entity to CropResponse DTO.
-     */
     public static CropResponse fromEntity(Crop crop) {
-        CropResponseBuilder builder = CropResponse.builder()
+        return CropResponse.builder()
                 .id(crop.getId())
-                .farmId(crop.getFarm().getId())
-                .farmParcelNumber(crop.getFarm().getParcelNumber())
+                .userId(crop.getUser().getId())
                 .cropName(crop.getCropName())
                 .cropVariety(crop.getCropVariety())
                 .sowingDate(crop.getSowingDate())
@@ -74,17 +63,9 @@ public class CropResponse {
                 .sellingPricePerQuintal(crop.getSellingPricePerQuintal())
                 .mandiName(crop.getMandiName())
                 .totalRevenue(crop.getTotalRevenue())
-                .profitLoss(crop.getProfitLoss())
                 .notes(crop.getNotes())
                 .createdAt(crop.getCreatedAt())
-                .updatedAt(crop.getUpdatedAt());
-
-        if (crop.getFertilizerApplications() != null) {
-            builder.fertilizerApplications(crop.getFertilizerApplications().stream()
-                    .map(FertilizerApplicationResponse::fromEntity)
-                    .collect(Collectors.toList()));
-        }
-
-        return builder.build();
+                .updatedAt(crop.getUpdatedAt())
+                .build();
     }
 }

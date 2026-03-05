@@ -1,39 +1,23 @@
 package com.farmer.admin.controller;
 
 import com.farmer.admin.dto.DocumentResponse;
-import com.farmer.admin.dto.DocumentUpdateRequest;
-import com.farmer.admin.dto.DocumentUploadRequest;
-import com.farmer.admin.entity.Document;
-import com.farmer.admin.entity.DocumentMetadataInfo;
-import com.farmer.admin.entity.DocumentVersion;
-import com.farmer.admin.exception.DocumentNotFoundException;
-import com.farmer.admin.exception.DocumentValidationException;
-import com.farmer.admin.service.AuditService;
 import com.farmer.admin.service.DocumentService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * REST controller for admin document management operations.
- * Requirements: 21.2, 21.5, 21.6, 21.7, 21.11
+ * REST controller for admin document management operations using S3.
  */
 @RestController
 @RequestMapping("/api/v1/admin/documents")
@@ -43,215 +27,39 @@ import java.util.stream.Collectors;
 public class AdminDocumentController {
 
     private final DocumentService documentService;
-    private final AuditService auditService;
 
-    /**
-     * Upload a new document.
-     * POST /api/v1/admin/documents/upload
-     * Requirements: 21.2
-     */
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DocumentResponse> uploadDocument(
+    public ResponseEntity<String> uploadDocument(
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
-            @RequestParam("category") String category,
-            @RequestParam(value = "description", required = false) String description,
-            @RequestParam(value = "contentLanguage", required = false) String contentLanguage,
-            @RequestParam(value = "state", required = false) String state,
-            @RequestParam(value = "applicableCrops", required = false) String applicableCrops,
-            @RequestParam(value = "tags", required = false) String tags,
-            @RequestParam(value = "source", required = false) String source,
-            @RequestParam(value = "changeReason", required = false) String changeReason,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        log.info("POST /api/v1/admin/documents/upload - Title: {}, Category: {}", title, category);
-
-        DocumentUploadRequest request = DocumentUploadRequest.builder()
-                .title(title)
-                .category(category)
-                .description(description)
-                .contentLanguage(contentLanguage)
-                .state(state)
-                .applicableCrops(applicableCrops != null ? List.of(applicableCrops.split(",")) : null)
-                .tags(tags != null ? List.of(tags.split(",")) : null)
-                .source(source)
-                .changeReason(changeReason)
-                .build();
-
-        Document document = documentService.uploadDocument(file, request, userDetails.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(document));
+        log.info("POST /api/v1/admin/documents/upload - Title: {}", title);
+        String s3Key = documentService.uploadDocument(file, title, userDetails.getUsername());
+        return ResponseEntity.status(HttpStatus.CREATED).body(s3Key);
     }
 
-    /**
-     * Get all documents.
-     * GET /api/v1/admin/documents
-     * Requirements: 21.5
-     */
     @GetMapping
     public ResponseEntity<List<DocumentResponse>> getAllDocuments() {
-        log.debug("GET /api/v1/admin/documents - Fetching all documents");
-        List<Document> documents = documentService.getAllDocuments();
-        return ResponseEntity.ok(documents.stream().map(this::toResponse).collect(Collectors.toList()));
+        log.debug("GET /api/v1/admin/documents - Fetching all documents from S3");
+        return ResponseEntity.ok(documentService.getAllDocuments());
     }
 
-    /**
-     * Get document by ID.
-     * GET /api/v1/admin/documents/{id}
-     * Requirements: 21.5
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<DocumentResponse> getDocument(@PathVariable String id) {
-        log.debug("GET /api/v1/admin/documents/{} - Fetching document", id);
-        Document document = documentService.getDocument(id);
-        return ResponseEntity.ok(toResponse(document));
-    }
-
-    /**
-     * Get documents by category.
-     * GET /api/v1/admin/documents/category/{category}
-     * Requirements: 21.5
-     */
-    @GetMapping("/category/{category}")
-    public ResponseEntity<List<DocumentResponse>> getDocumentsByCategory(@PathVariable String category) {
-        log.debug("GET /api/v1/admin/documents/category/{} - Fetching documents by category", category);
-        List<Document> documents = documentService.getDocumentsByCategory(category);
-        return ResponseEntity.ok(documents.stream().map(this::toResponse).collect(Collectors.toList()));
-    }
-
-    /**
-     * Get pre-signed download URL for a document.
-     * Requirements: 21.5, 21.6
-     */
-    @GetMapping("/{id}/url")
-    @Operation(summary = "Get document download URL", description = "Retrieves a pre-signed S3 URL for downloading the document")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "URL retrieved successfully"),
-            @ApiResponse(responseCode = "404", description = "Document not found")
-    })
+    @GetMapping("/url")
+    @Operation(summary = "Get document download URL")
     public ResponseEntity<String> getDocumentDownloadUrl(
-            @Parameter(description = "Document ID") @PathVariable String id,
-            @Parameter(description = "URL expiration time in minutes (default 60)") @RequestParam(defaultValue = "60") int expirationMinutes,
-            HttpServletRequest request) {
+            @RequestParam("s3Key") String s3Key,
+            @RequestParam(defaultValue = "60") int expirationMinutes) {
 
-        String adminId = getUsername(request);
-        log.info("Document URL requested by: {} for ID: {}", adminId, id);
-
-        try {
-            String url = documentService.getPresignedUrl(id, expirationMinutes);
-            return ResponseEntity.ok(url);
-        } catch (DocumentNotFoundException e) {
-            log.warn("Document not found: {}", id);
-            return ResponseEntity.notFound().build();
-        } catch (DocumentValidationException e) {
-            log.warn("Document URL generation failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        log.info("Document URL requested for S3 Key: {}", s3Key);
+        String url = documentService.getPresignedUrl(s3Key, expirationMinutes);
+        return ResponseEntity.ok(url);
     }
 
-    /**
-     * Update a document.
-     * PUT /api/v1/admin/documents/{id}
-     * Requirements: 21.6
-     */
-    @PutMapping("/{id}")
-    public ResponseEntity<DocumentResponse> updateDocument(
-            @PathVariable String id,
-            @RequestBody DocumentUpdateRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        log.info("PUT /api/v1/admin/documents/{} - Updating document", id);
-        Document document = documentService.updateDocument(id, request, userDetails.getUsername());
-        return ResponseEntity.ok(toResponse(document));
-    }
-
-    /**
-     * Soft delete a document.
-     * DELETE /api/v1/admin/documents/{id}
-     * Requirements: 21.7
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDocument(
-            @PathVariable String id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        log.info("DELETE /api/v1/admin/documents/{} - Deleting document", id);
-        documentService.deleteDocument(id, userDetails.getUsername());
+    @DeleteMapping
+    public ResponseEntity<Void> deleteDocument(@RequestParam("s3Key") String s3Key) {
+        log.info("DELETE /api/v1/admin/documents - Deleting document from S3: {}", s3Key);
+        documentService.deleteDocument(s3Key);
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * Restore a soft-deleted document.
-     * POST /api/v1/admin/documents/{id}/restore
-     * Requirements: 21.6
-     */
-    @PostMapping("/{id}/restore")
-    public ResponseEntity<DocumentResponse> restoreDocument(
-            @PathVariable String id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        log.info("POST /api/v1/admin/documents/{}/restore - Restoring document", id);
-        Document document = documentService.restoreDocument(id, userDetails.getUsername());
-        return ResponseEntity.ok(toResponse(document));
-    }
-
-    /**
-     * Get document version history.
-     * GET /api/v1/admin/documents/{id}/versions
-     * Requirements: 21.6
-     */
-    @GetMapping("/{id}/versions")
-    public ResponseEntity<List<DocumentVersion>> getDocumentVersions(@PathVariable String id) {
-        log.debug("GET /api/v1/admin/documents/{}/versions - Fetching version history", id);
-        List<DocumentVersion> versions = documentService.getDocumentVersionHistory(id);
-        return ResponseEntity.ok(versions);
-    }
-
-    /**
-     * Convert Document entity to DocumentResponse DTO.
-     */
-    private DocumentResponse toResponse(Document document) {
-        DocumentResponse.DocumentMetadataDto metadataDto = null;
-        if (document.getMetadata() != null) {
-            DocumentMetadataInfo metadata = document.getMetadata();
-            metadataDto = DocumentResponse.DocumentMetadataDto.builder()
-                    .source(metadata.getSource())
-                    .uploadDate(metadata.getUploadDate())
-                    .uploadedBy(metadata.getUploadedBy())
-                    .version(metadata.getVersion())
-                    .state(metadata.getState())
-                    .applicableCrops(metadata.getApplicableCrops())
-                    .tags(metadata.getTags())
-                    .fileFormat(metadata.getFileFormat())
-                    .fileSizeBytes(metadata.getFileSizeBytes())
-                    .originalFilename(metadata.getOriginalFilename())
-                    .s3Key(metadata.getS3Key())
-                    .build();
-        }
-
-        return DocumentResponse.builder()
-                .id(document.getId())
-                .documentId(document.getDocumentId())
-                .title(document.getTitle())
-                .category(document.getCategory())
-                .content(document.getContent())
-                .contentLanguage(document.getContentLanguage())
-                .metadata(metadataDto)
-                .isActive(document.getIsActive())
-                .createdAt(document.getCreatedAt())
-                .updatedAt(document.getUpdatedAt())
-                .build();
-    }
-
-    private String getUsername(HttpServletRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() != null) {
-            Object principal = authentication.getPrincipal();
-            if (principal instanceof UserDetails) {
-                return ((UserDetails) principal).getUsername();
-            } else {
-                return principal.toString();
-            }
-        }
-        return "system";
     }
 }
