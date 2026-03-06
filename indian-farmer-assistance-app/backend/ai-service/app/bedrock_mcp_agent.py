@@ -129,7 +129,7 @@ class BedrockAgentWithMCP:
             logger.warning(f"Reverse geocoding failed: {e}")
             return None
 
-    async def invoke(self, question: str, chat_history: List[Dict[str, str]] = None, latitude: float = None, longitude: float = None, city_name: str = None) -> str:
+    async def invoke(self, question: str, chat_history: List[Dict[str, str]] = None, latitude: float = None, longitude: float = None, city_name: str = None, language: str = "English") -> str:
         """Invokes the agent to answer the question, using loaded tools."""
         if not self._connected:
             await self.initialize()
@@ -145,6 +145,7 @@ class BedrockAgentWithMCP:
             "Answer directly and helpfully based on the tool results. Do not mention the tools to the user.\n"
             "Do NOT include any <thinking> tags or internal reasoning in your response. Only output the final answer.\n"
             "Translate the response into the same language as the user's prompt if requested implicitly or if a specific language is provided in the context.\n"
+            f"The user has requested the response in: {language}. ALWAYS respond in {language}.\n"
         )
 
         # Inject location context if available

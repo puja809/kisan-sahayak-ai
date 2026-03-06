@@ -272,7 +272,13 @@ async def ask_voice_question(request: VoiceAssistantRequest):
         logger.info(f" - Location: lat={request.latitude}, lng={request.longitude}, city={request.city_name}")
         
         # Use Bedrock MCP agent
-        answer = await bedrock_mcp_agent.invoke(request.question, latitude=request.latitude, longitude=request.longitude, city_name=request.city_name)
+        answer = await bedrock_mcp_agent.invoke(
+            request.question, 
+            latitude=request.latitude, 
+            longitude=request.longitude, 
+            city_name=request.city_name,
+            language=request.language
+        )
         
         return {
             "success": True,
