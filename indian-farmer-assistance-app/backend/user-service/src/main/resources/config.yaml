@@ -8,7 +8,6 @@ database:
   username: "root"
   password: "password"
   name: "indian_farmer_db"
-  table_prefix: "sess_c05a946fe_"
   pool:
     maximum_size: 10
     minimum_idle: 5
@@ -21,7 +20,6 @@ redis:
   host: "localhost"
   port: 6379
   password: ""
-  key_prefix: "sess:c05a946fe:"
   session:
     ttl: 86400  # 24 hours in seconds
 

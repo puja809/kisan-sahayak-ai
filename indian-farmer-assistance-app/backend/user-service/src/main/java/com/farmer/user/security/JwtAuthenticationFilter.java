@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -17,7 +16,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -44,26 +42,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(jwt) && jwtService.validateToken(jwt)) {
                 String farmerId = jwtService.extractFarmerId(jwt);
-                String role = jwtService.extractRole(jwt);
 
                 Optional<User> userOptional = userRepository.findByFarmerId(farmerId);
 
                 if (userOptional.isPresent() && userOptional.get().getIsActive()) {
                     User user = userOptional.get();
 
-                    // Create authentication token
+                    // Create authentication token using User which now implements UserDetails
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             user,
                             null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
-                    );
+                            user.getAuthorities());
 
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                     // Set authentication in security context
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    log.debug("Authenticated user: {} with role: {}", farmerId, role);
+                    log.debug("Authenticated user: {} with role: {}", farmerId, user.getRole());
                 } else {
                     log.warn("User not found or inactive: {}", farmerId);
                 }

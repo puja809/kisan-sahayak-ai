@@ -2,22 +2,25 @@ package com.farmer.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * User entity representing a farmer in the system.
- * Maps to the users table with session-specific table prefix for data isolation.
- * 
- * Requirements: 11.1, 11A.1, 22.1
  */
 @Entity
-@Table(name = "sess_c05a946fe_users")
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,29 +29,26 @@ public class User {
     @Column(name = "farmer_id", unique = true, nullable = false, length = 50)
     private String farmerId;
 
-    @Column(name = "aadhaar_hash", unique = true, nullable = false, length = 64)
-    private String aadhaarHash;
+    @Column(name = "email", unique = true, nullable = false, length = 100)
+    private String email;
 
-    @Column(name = "password", length = 255)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "phone", unique = true, nullable = false, length = 15)
+    @Column(name = "phone", length = 15)
     private String phone;
-
-    @Column(name = "email", length = 100)
-    private String email;
 
     @Column(name = "preferred_language", length = 10)
     @Builder.Default
     private String preferredLanguage = "en";
 
-    @Column(name = "state", nullable = false, length = 50)
+    @Column(name = "state", length = 50)
     private String state;
 
-    @Column(name = "district", nullable = false, length = 50)
+    @Column(name = "district", length = 50)
     private String district;
 
     @Column(name = "village", length = 100)
@@ -83,9 +83,6 @@ public class User {
     @Builder.Default
     private Boolean isActive = true;
 
-    @Column(name = "agristack_farmer_id", length = 100)
-    private String agristackFarmerId;
-
     @Column(name = "total_landholding_acres")
     private Double totalLandholdingAcres;
 
@@ -103,10 +100,36 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /**
-     * User roles for role-based access control.
-     * Requirements: 22.1
-     */
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
+    }
+
+    @Override
+    public String getUsername() {
+        return farmerId; // Or email, but farmerId is used as sub in JWT
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return isActive;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return isActive;
+    }
+
     public enum Role {
         FARMER,
         ADMIN

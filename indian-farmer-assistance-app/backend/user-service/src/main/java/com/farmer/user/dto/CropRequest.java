@@ -4,23 +4,18 @@ import com.farmer.user.entity.Crop;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.*;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-/**
- * DTO for creating or updating a crop.
- * Requirements: 11A.4, 11A.5
- */
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class CropRequest {
-
-    @NotNull(message = "Farm ID is required")
-    private Long farmId;
 
     @NotBlank(message = "Crop name is required")
     private String cropName;
@@ -32,33 +27,25 @@ public class CropRequest {
 
     private LocalDate expectedHarvestDate;
 
-    private LocalDate actualHarvestDate;
-
     @NotNull(message = "Area is required")
     @Positive(message = "Area must be positive")
     private Double areaAcres;
 
+    @NotNull(message = "Season is required")
     private Crop.Season season;
 
     private Crop.CropStatus status;
 
     private Double seedCost;
-
     private Double fertilizerCost;
-
     private Double pesticideCost;
-
     private Double laborCost;
-
     private Double otherCost;
-
     private Double totalYieldQuintals;
-
     private String qualityGrade;
-
     private Double sellingPricePerQuintal;
-
     private String mandiName;
-
+    private Double totalRevenue;
+    private LocalDate actualHarvestDate;
     private String notes;
 }

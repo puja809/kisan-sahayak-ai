@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  * Requirements: 22.2, 22.7
  */
 @Entity
-@Table(name = "sess_c05a946fe_role_modification_audit")
+@Table(name = "role_modification_audits")
 @Getter
 @Setter
 @NoArgsConstructor

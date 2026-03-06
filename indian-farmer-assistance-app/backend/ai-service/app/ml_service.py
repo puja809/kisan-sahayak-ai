@@ -104,7 +104,7 @@ class FertilizerRecommendationRequest(BaseModel):
 
 class VoiceAssistantRequest(BaseModel):
     question: str
-    language: str = "en"
+    language: str = "English"
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     city_name: Optional[str] = None
@@ -159,7 +159,7 @@ async def get_supported_languages():
     """
     return {
         "languages": SUPPORTED_LANGUAGES,
-        "default": "en"
+        "default": "English"
     }
 
 @app.post("/api/ml/predict-crop", response_model=PredictionResponse)
@@ -272,7 +272,13 @@ async def ask_voice_question(request: VoiceAssistantRequest):
         logger.info(f" - Location: lat={request.latitude}, lng={request.longitude}, city={request.city_name}")
         
         # Use Bedrock MCP agent
-        answer = await bedrock_mcp_agent.invoke(request.question, latitude=request.latitude, longitude=request.longitude, city_name=request.city_name)
+        answer = await bedrock_mcp_agent.invoke(
+            request.question, 
+            latitude=request.latitude, 
+            longitude=request.longitude, 
+            city_name=request.city_name,
+            language=request.language
+        )
         
         return {
             "success": True,
@@ -287,7 +293,7 @@ async def ask_voice_question(request: VoiceAssistantRequest):
         # Fallback to AWS Voice Assistant API if bedrock MCP fails
         try:
             logger.info("Falling back to AWS Voice Assistant API...")
-            result = ask_question_text(request.question)
+            result = ask_question_text(request.question, language=request.language)
             if result.get('success'):
                 return {
                     "success": True,
@@ -358,7 +364,10 @@ async def detect_disease_endpoint(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/ml/ask-question-audio")
-async def ask_question_with_audio(audio: bytes = File(...)):
+async def ask_question_with_audio(
+    audio: bytes = File(...),
+    language: str = Form("English")
+):
     """
     Process audio input and get response from AWS Voice Assistant
     1. Receives audio from UI
@@ -370,14 +379,14 @@ async def ask_question_with_audio(audio: bytes = File(...)):
         if not audio or len(audio) == 0:
             raise HTTPException(status_code=400, detail="Audio data is required")
         
-        logger.info(f"Processing audio input: {len(audio)} bytes")
+        logger.info(f"Processing audio input: {len(audio)} bytes, language: {language}")
         
         # Convert audio to base64 for AWS API
         import base64
         base64_audio = base64.b64encode(audio).decode('utf-8')
         
         # Call AWS Voice Assistant API with audio
-        result = ask_question_audio(base64_audio)
+        result = ask_question_audio(base64_audio, language=language)
         
         if result.get('success'):
             # Extract response from AWS

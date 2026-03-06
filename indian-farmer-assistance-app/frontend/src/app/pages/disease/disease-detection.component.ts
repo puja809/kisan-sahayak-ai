@@ -10,7 +10,8 @@ import { LanguageService, Language } from '../../services/language.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './disease-detection.component.html',
-  styleUrls: ['./disease-detection.component.css'],})
+  styleUrls: ['./disease-detection.component.css'],
+})
 export class DiseaseDetectionComponent implements OnInit {
   selectedFile: File | null = null;
   previewUrl: string | null = null;
@@ -18,7 +19,7 @@ export class DiseaseDetectionComponent implements OnInit {
   isUploading = false;
   isAnalyzing = false;
   detectionResult: DiseaseDetectionResult | null = null;
-  selectedLanguage = 'en';
+  selectedLanguage = 'English';
   languages: Language[] = [];
 
   constructor(

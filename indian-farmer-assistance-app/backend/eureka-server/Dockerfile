@@ -14,7 +14,6 @@ COPY location-service ./location-service
 COPY mandi-service ./mandi-service
 COPY scheme-service ./scheme-service
 COPY admin-service ./admin-service
-COPY iot-service ./iot-service
 COPY weather-service ./weather-service
 COPY yield-service ./yield-service
 COPY eureka-server ./eureka-server

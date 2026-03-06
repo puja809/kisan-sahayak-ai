@@ -1,58 +1,39 @@
 package com.farmer.admin.service;
 
-import com.farmer.admin.dto.DocumentUploadRequest;
-import com.farmer.admin.dto.DocumentUpdateRequest;
-import com.farmer.admin.entity.Document;
-import com.farmer.admin.entity.DocumentMetadataInfo;
-import com.farmer.admin.entity.DocumentVersion;
-import com.farmer.admin.exception.DocumentNotFoundException;
+import com.farmer.admin.dto.DocumentResponse;
 import com.farmer.admin.exception.DocumentValidationException;
-import com.farmer.admin.repository.DocumentRepository;
-import com.farmer.admin.repository.DocumentVersionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.Duration;
 
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Service for document management including upload, validation, embedding, and
- * storage.
- * Requirements: 21.2, 21.3, 21.4, 21.5, 21.6, 21.7
+ * Service for document management using AWS S3 directly.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class DocumentService {
 
-    private final DocumentRepository documentRepository;
-    private final DocumentVersionRepository documentVersionRepository;
-    private final MongoTemplate mongoTemplate;
-    private final AuditService auditService;
     private final S3Client s3Client;
 
     @Value("${aws.s3.bucket-name:krishi-sahayak-docs}")
@@ -64,191 +45,47 @@ public class DocumentService {
     @Value("${app.document.max-size-mb:50}")
     private int maxSizeMb;
 
-    @Value("${app.document.retention-days:30}")
-    private int retentionDays;
-
     private static final List<String> ALLOWED_FORMATS = Arrays.asList("PDF", "DOCX", "TXT");
     private static final long MAX_SIZE_BYTES = 50L * 1024 * 1024; // 50MB
 
-    @PostConstruct
-    public void initIndexes() {
-        try {
-            mongoTemplate.indexOps(Document.class)
-                    .ensureIndex(new Index().on("category", org.springframework.data.domain.Sort.Direction.ASC));
-            mongoTemplate.indexOps(Document.class)
-                    .ensureIndex(
-                            new Index().on("metadata.uploadedBy", org.springframework.data.domain.Sort.Direction.ASC));
-            mongoTemplate.indexOps(Document.class)
-                    .ensureIndex(new Index().on("isActive", org.springframework.data.domain.Sort.Direction.ASC));
-            log.info("MongoDB indexes created for Document collection");
-        } catch (Exception e) {
-            log.warn("Could not create MongoDB indexes: {}", e.getMessage());
-        }
-    }
+    public String uploadDocument(MultipartFile file, String title, String adminId) {
+        log.info("Uploading document: {} by admin: {}", title, adminId);
 
-    /**
-     * Upload and validate a document.
-     * Requirements: 21.2
-     */
-    public Document uploadDocument(MultipartFile file, DocumentUploadRequest request, String adminId) {
-        log.info("Uploading document: {} by admin: {}", request.getTitle(), adminId);
-
-        // Validate file
         validateDocument(file);
-
-        // Extract text content
-        String content = extractTextContent(file);
-
-        // Generate document ID
         String documentId = UUID.randomUUID().toString();
-
-        // Upload to S3
         String s3Key = documentsPath + documentId + "/" + file.getOriginalFilename();
+
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(s3Key)
                     .contentType(file.getContentType())
+                    .metadata(Map.of(
+                            "title", title,
+                            "uploadedBy", adminId,
+                            "uploadDate", LocalDateTime.now().toString()))
                     .build();
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-            log.info("Successfully uploaded document to S3: {}", s3Key);
+            return s3Key;
         } catch (IOException e) {
             throw new DocumentValidationException("Failed to read file for S3 upload", e);
-        } catch (Exception e) {
-            log.error("Failed to upload document to S3: {}", e.getMessage());
-            throw new RuntimeException("Could not upload to S3", e);
         }
-
-        // Create document
-        Document document = Document.builder()
-                .documentId(documentId)
-                .title(request.getTitle())
-                .category(request.getCategory())
-                .content(content)
-                .contentLanguage(request.getContentLanguage() != null ? request.getContentLanguage() : "en")
-                .metadata(DocumentMetadataInfo.builder()
-                        .source(request.getSource())
-                        .uploadDate(LocalDateTime.now())
-                        .uploadedBy(adminId)
-                        .version(1)
-                        .state(request.getState())
-                        .applicableCrops(request.getApplicableCrops())
-                        .tags(request.getTags())
-                        .fileFormat(getFileExtension(file.getOriginalFilename()))
-                        .fileSizeBytes(file.getSize())
-                        .originalFilename(file.getOriginalFilename())
-                        .s3Key(s3Key)
-                        .build())
-                .isActive(true)
-                .isDeleted(false)
-                .build();
-
-        // Save document
-        Document savedDocument = documentRepository.save(document);
-
-        // Create version history
-        createVersionHistory(savedDocument, "CREATED", adminId, request.getChangeReason());
-
-        // Audit log
-        auditService.logDocumentAction("DOCUMENT_UPLOAD", savedDocument.getId(), null, savedDocument, adminId);
-
-        log.info("Document uploaded successfully: {}", documentId);
-        return savedDocument;
     }
 
-    /**
-     * Validate document format and size.
-     * Requirements: 21.2
-     */
     public void validateDocument(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new DocumentValidationException("File is required");
         }
-
-        String filename = file.getOriginalFilename();
-        if (filename == null || filename.isEmpty()) {
-            throw new DocumentValidationException("Filename is required");
-        }
-
-        // Check file size
         if (file.getSize() > MAX_SIZE_BYTES) {
-            throw new DocumentValidationException(
-                    String.format("File size %d bytes exceeds maximum allowed size of %d bytes (50MB)",
-                            file.getSize(), MAX_SIZE_BYTES));
+            throw new DocumentValidationException("File size exceeds 50MB limit");
         }
-
-        // Check file format
-        String extension = getFileExtension(filename).toUpperCase();
-        if (!ALLOWED_FORMATS.contains(extension)) {
-            throw new DocumentValidationException(
-                    String.format("Invalid file format '%s'. Allowed formats: %s", extension, ALLOWED_FORMATS));
-        }
-
-        log.debug("Document validation passed for: {}", filename);
-    }
-
-    /**
-     * Extract text content from document.
-     * Requirements: 21.2
-     */
-    public String extractTextContent(MultipartFile file) {
         String extension = getFileExtension(file.getOriginalFilename()).toUpperCase();
-
-        try (InputStream inputStream = file.getInputStream()) {
-            return switch (extension) {
-                case "PDF" -> extractPdfText(inputStream);
-                case "DOCX" -> extractDocxText(inputStream);
-                case "TXT" -> extractTextFromInputStream(inputStream);
-                default -> throw new DocumentValidationException("Unsupported file format: " + extension);
-            };
-        } catch (IOException e) {
-            log.error("Error extracting text content: {}", e.getMessage());
-            throw new DocumentValidationException("Failed to extract text content: " + e.getMessage(), e);
+        if (!ALLOWED_FORMATS.contains(extension)) {
+            throw new DocumentValidationException("Invalid file format. Allowed: " + ALLOWED_FORMATS);
         }
     }
 
-    private String extractPdfText(InputStream inputStream) throws IOException {
-        try (PDDocument document = PDDocument.load(inputStream)) {
-            PDFTextStripper stripper = new PDFTextStripper();
-            return stripper.getText(document);
-        }
-    }
-
-    private String extractDocxText(InputStream inputStream) throws IOException {
-        StringBuilder text = new StringBuilder();
-        try (XWPFDocument document = new XWPFDocument(inputStream)) {
-            List<XWPFParagraph> paragraphs = document.getParagraphs();
-            for (XWPFParagraph paragraph : paragraphs) {
-                text.append(paragraph.getText()).append("\n");
-            }
-        }
-        return text.toString();
-    }
-
-    private String extractTextFromInputStream(InputStream inputStream) throws IOException {
-        return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-    }
-
-    /**
-     * Get document by ID.
-     * Requirements: 21.5
-     */
-    public Document getDocument(String documentId) {
-        Document doc = documentRepository.findByDocumentId(documentId)
-                .orElseThrow(() -> new DocumentNotFoundException(documentId));
-        return doc;
-    }
-
-    /**
-     * Get a presigned URL to download the document direct from S3.
-     */
-    public String getPresignedUrl(String documentId, int expirationMinutes) {
-        Document document = getDocument(documentId);
-        String s3Key = document.getMetadata().getS3Key();
-        if (s3Key == null || s3Key.isEmpty()) {
-            throw new DocumentValidationException("Document missing S3 Key");
-        }
-
+    public String getPresignedUrl(String s3Key, int expirationMinutes) {
         try (S3Presigner presigner = S3Presigner.builder().region(s3Client.serviceClientConfiguration().region())
                 .build()) {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
@@ -261,246 +98,62 @@ public class DocumentService {
                     .getObjectRequest(getObjectRequest)
                     .build();
 
-            PresignedGetObjectRequest presignedGetObjectRequest = presigner.presignGetObject(getObjectPresignRequest);
-            return presignedGetObjectRequest.url().toString();
-        } catch (Exception e) {
-            log.error("Failed to generate presigned URL: {}", e.getMessage());
-            throw new RuntimeException("Could not generate download URL");
+            return presigner.presignGetObject(getObjectPresignRequest).url().toString();
         }
     }
 
-    /**
-     * Get all active documents.
-     * Requirements: 21.5
-     */
-    public List<Document> getAllDocuments() {
-        return documentRepository.findByIsActiveTrue();
-    }
-
-    /**
-     * Get documents by category.
-     * Requirements: 21.5
-     */
-    public List<Document> getDocumentsByCategory(String category) {
-        return documentRepository.findByCategoryAndIsActiveTrue(category);
-    }
-
-    /**
-     * Update document.
-     * Requirements: 21.6
-     */
-    public Document updateDocument(String documentId, DocumentUpdateRequest request, String adminId) {
-        log.info("Updating document: {} by admin: {}", documentId, adminId);
-
-        Document document = getDocument(documentId);
-        Document oldDocument = cloneDocument(document);
-
-        // Update fields
-        if (request.getTitle() != null) {
-            document.setTitle(request.getTitle());
-        }
-        if (request.getCategory() != null) {
-            document.setCategory(request.getCategory());
-        }
-        if (request.getContent() != null) {
-            document.setContent(request.getContent());
-        }
-        if (request.getContentLanguage() != null) {
-            document.setContentLanguage(request.getContentLanguage());
-        }
-
-        // Update metadata
-        DocumentMetadataInfo metadata = document.getMetadata();
-        if (metadata == null) {
-            metadata = new DocumentMetadataInfo();
-            document.setMetadata(metadata);
-        }
-        if (request.getState() != null) {
-            metadata.setState(request.getState());
-        }
-        if (request.getApplicableCrops() != null) {
-            metadata.setApplicableCrops(request.getApplicableCrops());
-        }
-        if (request.getTags() != null) {
-            metadata.setTags(request.getTags());
-        }
-        metadata.setVersion(metadata.getVersion() + 1);
-
-        document.setUpdatedAt(LocalDateTime.now());
-        Document savedDocument = documentRepository.save(document);
-
-        // Create version history
-        createVersionHistory(savedDocument, "UPDATED", adminId, request.getChangeReason());
-
-        // Audit log
-        auditService.logDocumentAction("DOCUMENT_UPDATE", savedDocument.getId(), oldDocument, savedDocument, adminId);
-
-        log.info("Document updated successfully: {}", documentId);
-        return savedDocument;
-    }
-
-    /**
-     * Soft delete document with 30-day retention.
-     * Requirements: 21.7
-     */
-    public void deleteDocument(String documentId, String adminId) {
-        log.info("Soft deleting document: {} by admin: {}", documentId, adminId);
-
-        Document document = getDocument(documentId);
-        Document oldDocument = cloneDocument(document);
-
-        document.setIsDeleted(true);
-        document.setDeletedAt(LocalDateTime.now());
-        document.setIsActive(false);
-        document.setUpdatedAt(LocalDateTime.now());
-
-        documentRepository.save(document);
-
-        // Create version history
-        createVersionHistory(document, "DELETED", adminId, "Soft delete with 30-day retention");
-
-        // Audit log
-        auditService.logDocumentAction("DOCUMENT_DELETE", document.getId(), oldDocument, document, adminId);
-
-        log.info("Document soft deleted: {}", documentId);
-    }
-
-    /**
-     * Permanently delete documents past retention period.
-     * Requirements: 21.7
-     */
-    public void permanentDeleteOldDocuments() {
-        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(retentionDays);
-        List<Document> oldDocuments = documentRepository.findDocumentsForPermanentDeletion(cutoffDate);
-
-        for (Document document : oldDocuments) {
-            documentRepository.delete(document);
-            log.info("Permanently deleted document metadata: {}", document.getDocumentId());
-
-            String s3Key = document.getMetadata() != null ? document.getMetadata().getS3Key() : null;
-            if (s3Key != null && !s3Key.isEmpty()) {
-                try {
-                    s3Client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(s3Key).build());
-                    log.info("Permanently deleted document from S3: {}", s3Key);
-                } catch (Exception e) {
-                    log.error("Failed to delete document from S3 (Key: {}). Error: {}", s3Key, e.getMessage());
-                }
-            }
-        }
-
-        log.info("Permanent deletion completed. Deleted {} documents", oldDocuments.size());
-    }
-
-    /**
-     * Restore soft-deleted document.
-     * Requirements: 21.6
-     */
-    public Document restoreDocument(String documentId, String adminId) {
-        log.info("Restoring document: {} by admin: {}", documentId, adminId);
-
-        Document document = getDocument(documentId);
-        Document oldDocument = cloneDocument(document);
-
-        if (!document.getIsDeleted()) {
-            throw new DocumentValidationException("Document is not deleted");
-        }
-
-        document.setIsDeleted(false);
-        document.setDeletedAt(null);
-        document.setIsActive(true);
-        document.setUpdatedAt(LocalDateTime.now());
-
-        Document savedDocument = documentRepository.save(document);
-
-        // Create version history
-        createVersionHistory(savedDocument, "RESTORED", adminId, "Restored from soft delete");
-
-        // Audit log
-        auditService.logDocumentAction("DOCUMENT_RESTORE", savedDocument.getId(), oldDocument, savedDocument, adminId);
-
-        log.info("Document restored successfully: {}", documentId);
-        return savedDocument;
-    }
-
-    /**
-     * Get document version history.
-     * Requirements: 21.6
-     */
-    public List<DocumentVersion> getDocumentVersionHistory(String documentId) {
-        return documentVersionRepository.findByDocumentIdOrderByVersionDesc(documentId);
-    }
-
-    /**
-     * Create version history entry.
-     */
-    private void createVersionHistory(Document document, String changeType, String changedBy, String changeReason) {
-        DocumentVersion version = DocumentVersion.builder()
-                .documentId(document.getDocumentId())
-                .version(document.getMetadata().getVersion())
-                .title(document.getTitle())
-                .content(document.getContent())
-                .contentHash(hashContent(document.getContent()))
-                .category(document.getCategory())
-                .metadata(serializeMetadata(document.getMetadata()))
-                .changeType(changeType)
-                .changedBy(changedBy)
-                .changeReason(changeReason)
+    public List<DocumentResponse> getAllDocuments() {
+        ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+                .bucket(bucketName)
+                .prefix(documentsPath)
                 .build();
 
-        documentVersionRepository.save(version);
+        ListObjectsV2Response listResponse = s3Client.listObjectsV2(listRequest);
+
+        return listResponse.contents().stream()
+                .filter(s3Object -> !s3Object.key().endsWith("/")) // Filter out folders
+                .map(s3Object -> {
+                    HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(s3Object.key())
+                            .build();
+                    HeadObjectResponse headResponse = s3Client.headObject(headRequest);
+
+                    String title = headResponse.metadata().get("title");
+                    if (title == null || title.isBlank() || "Untitled".equals(title)) {
+                        // Extract filename from S3 key as fallback
+                        String key = s3Object.key();
+                        title = key.substring(key.lastIndexOf('/') + 1);
+                    }
+                    String uploadedBy = headResponse.metadata().getOrDefault("uploadedBy", "unknown");
+
+                    return DocumentResponse.builder()
+                            .id(s3Object.key())
+                            .title(title)
+                            .createdAt(s3Object.lastModified().atZone(ZoneId.systemDefault()).toLocalDateTime())
+                            .metadata(DocumentResponse.DocumentMetadataDto.builder()
+                                    .s3Key(s3Object.key())
+                                    .fileSizeBytes(s3Object.size())
+                                    .uploadedBy(uploadedBy)
+                                    .fileFormat(getFileExtension(s3Object.key()))
+                                    .build())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
-    private Document cloneDocument(Document document) {
-        return Document.builder()
-                .id(document.getId())
-                .documentId(document.getDocumentId())
-                .title(document.getTitle())
-                .category(document.getCategory())
-                .content(document.getContent())
-                .contentLanguage(document.getContentLanguage())
-                .metadata(document.getMetadata())
-                .isActive(document.getIsActive())
-                .isDeleted(document.getIsDeleted())
-                .createdAt(document.getCreatedAt())
-                .updatedAt(document.getUpdatedAt())
+    public void deleteDocument(String s3Key) {
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(s3Key)
                 .build();
+        s3Client.deleteObject(deleteObjectRequest);
     }
 
     private String getFileExtension(String filename) {
-        if (filename == null) {
+        if (filename == null)
             return "";
-        }
-        int lastDotIndex = filename.lastIndexOf('.');
-        if (lastDotIndex > 0) {
-            return filename.substring(lastDotIndex + 1);
-        }
-        return "";
-    }
-
-    private String hashContent(String content) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(content.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1)
-                    hexString.append('0');
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            return "";
-        }
-    }
-
-    private String serializeMetadata(DocumentMetadataInfo metadata) {
-        if (metadata == null)
-            return "{}";
-        return String.format(
-                "{\"source\":\"%s\",\"state\":\"%s\",\"version\":%d}",
-                metadata.getSource() != null ? metadata.getSource() : "",
-                metadata.getState() != null ? metadata.getState() : "",
-                metadata.getVersion() != null ? metadata.getVersion() : 1);
+        int dot = filename.lastIndexOf('.');
+        return dot > 0 ? filename.substring(dot + 1) : "";
     }
 }

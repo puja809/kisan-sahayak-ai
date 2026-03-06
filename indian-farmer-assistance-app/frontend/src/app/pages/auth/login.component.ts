@@ -10,7 +10,8 @@ import { ToastrService } from 'ngx-toastr';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],})
+  styleUrls: ['./login.component.css'],
+})
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
@@ -24,42 +25,9 @@ export class LoginComponent implements OnInit {
     private toastr: ToastrService
   ) {
     this.loginForm = this.fb.group({
-      loginType: ['email', Validators.required],
-      email: [''],
-      phone: [''],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
-    }, { validators: this.identifierValidator });
-  }
-
-  /**
-   * Custom validator to ensure either email or phone is provided based on loginType
-   */
-  identifierValidator(group: FormGroup): { [key: string]: any } | null {
-    const loginType = group.get('loginType')?.value;
-    const email = group.get('email')?.value;
-    const phone = group.get('phone')?.value;
-
-    if (loginType === 'email') {
-      if (!email || email.trim() === '') {
-        return { 'emailRequired': true };
-      }
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return { 'invalidEmail': true };
-      }
-    } else if (loginType === 'phone') {
-      if (!phone || phone.trim() === '') {
-        return { 'phoneRequired': true };
-      }
-      // Validate phone format
-      const phoneRegex = /^[6-9]\d{9}$/;
-      if (!phoneRegex.test(phone)) {
-        return { 'invalidPhone': true };
-      }
-    }
-
-    return null;
+    });
   }
 
   ngOnInit(): void {
@@ -69,23 +37,18 @@ export class LoginComponent implements OnInit {
 
   toggleAdminLogin(): void {
     this.isAdminLogin = !this.isAdminLogin;
-    this.loginForm.reset({ loginType: 'email' });
+    this.loginForm.reset();
   }
 
   onSubmit(): void {
     if (this.loginForm.invalid) {
-      this.toastr.error('Please fill in all required fields correctly');
       return;
     }
 
     this.isLoading = true;
-    const { loginType, email, phone, password } = this.loginForm.value;
+    const { email, password } = this.loginForm.value;
 
-    const credentials = {
-      email: loginType === 'email' ? email : undefined,
-      phone: loginType === 'phone' ? phone : undefined,
-      password
-    };
+    const credentials = { email, password };
 
     if (this.isAdminLogin) {
       this.authService.adminLogin(credentials).subscribe({
@@ -115,9 +78,8 @@ export class LoginComponent implements OnInit {
   }
 
   loginOffline(): void {
-    const { email, phone, password } = this.loginForm.value;
-    const identifier = email || phone;
-    if (this.authService.loginOffline(identifier, password)) {
+    const { email, password } = this.loginForm.value;
+    if (this.authService.loginOffline(email, password)) {
       this.toastr.success('Offline login successful!');
       this.router.navigate(['/']);
     } else {
@@ -129,4 +91,3 @@ export class LoginComponent implements OnInit {
     this.router.navigate(['/register']);
   }
 }
-

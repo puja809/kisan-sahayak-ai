@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 
 /**
  * DTO for user profile response.
- * Requirements: 11A.1, 11A.2, 11A.3
  */
 @Data
 @Builder
@@ -34,15 +33,11 @@ public class UserResponse {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
-    private String agristackFarmerId;
     private Double totalLandholdingAcres;
     private String soilType;
     private String irrigationType;
     private String agroEcologicalZone;
 
-    /**
-     * Convert User entity to UserResponse DTO.
-     */
     public static UserResponse fromEntity(User user) {
         return UserResponse.builder()
                 .id(user.getId())
@@ -61,7 +56,6 @@ public class UserResponse {
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .lastLogin(user.getLastLogin())
-                .agristackFarmerId(user.getAgristackFarmerId())
                 .totalLandholdingAcres(user.getTotalLandholdingAcres())
                 .soilType(user.getSoilType())
                 .irrigationType(user.getIrrigationType())

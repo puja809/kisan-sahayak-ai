@@ -9,19 +9,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 /**
  * Main application class for the User Service.
- * Handles farmer authentication, profile management, and AgriStack integration.
+ * Handles farmer authentication and profile management.
  */
 @SpringBootApplication
 @EnableConfigurationProperties
 
-@OpenAPIDefinition(
-    info = @Info(
-        title = "User Service API",
-        version = "1.0.0",
-        description = "User authentication and profile management service for Indian Farmer Assistance",
-        contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")
-    )
-)
+@OpenAPIDefinition(info = @Info(title = "User Service API", version = "1.0.0", description = "User authentication and profile management service for Indian Farmer Assistance", contact = @Contact(name = "Farmer Assistance Team", email = "support@farmer-assistance.in")))
 public class UserServiceApplication {
 
     public static void main(String[] args) {

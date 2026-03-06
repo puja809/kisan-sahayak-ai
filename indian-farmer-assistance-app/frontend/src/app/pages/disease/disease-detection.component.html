@@ -1,104 +1,104 @@
 <div class="disease-detection-container">
-      <div class="header">
-        <h1>🌿 Disease Detection</h1>
-        <p>Upload crop images to identify diseases and get treatment recommendations</p>
+  <div class="header">
+    <h1>🌿 Disease Detection</h1>
+    <p>Upload crop images to identify diseases and get treatment recommendations</p>
+  </div>
+
+  <div class="detection-grid">
+    <!-- Image Upload Section -->
+    <div class="card upload-card">
+      <h2>Upload Image</h2>
+
+      <!-- Language Selector -->
+      <div class="language-selector">
+        <label for="languageSelect">Response Language:</label>
+        <select id="languageSelect" [(ngModel)]="selectedLanguage" class="lang-select">
+          <option *ngFor="let lang of languages" [value]="lang.name">
+            {{ lang.nativeName }} ({{ lang.name }})
+          </option>
+        </select>
       </div>
 
-      <div class="detection-grid">
-        <!-- Image Upload Section -->
-        <div class="card upload-card">
-          <h2>Upload Image</h2>
-
-          <!-- Language Selector -->
-          <div class="language-selector">
-            <label for="languageSelect">Response Language:</label>
-            <select id="languageSelect" [(ngModel)]="selectedLanguage" class="lang-select">
-              <option *ngFor="let lang of languages" [value]="lang.code">
-                {{ lang.nativeName }} ({{ lang.name }})
-              </option>
-            </select>
-          </div>
-
-          <div class="upload-area" (click)="fileInput.click()" [class.dragover]="isDragOver"
-               (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
-            <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
-            <div class="upload-content">
-              <span class="icon">📸</span>
-              <p>Click to upload or drag and drop</p>
-              <p class="hint">PNG, JPG, WebP up to 10MB</p>
-            </div>
-          </div>
-
-          <!-- Image Preview -->
-          <div *ngIf="previewUrl" class="image-preview-box">
-            <img [src]="previewUrl" alt="Crop image preview" class="image-preview" />
-          </div>
-
-          <div *ngIf="selectedFile" class="file-preview">
-            <p><strong>Selected:</strong> {{ selectedFile.name }}</p>
-            <button class="btn-primary" (click)="uploadImage()" [disabled]="isUploading">
-              {{ isUploading ? 'Analyzing...' : 'Analyze Image' }}
-            </button>
-          </div>
-
-          <div *ngIf="isAnalyzing" class="analyzing-indicator">
-            <p>🔬 Analyzing crop image with AI...</p>
-            <div class="progress-bar">
-              <div class="progress"></div>
-            </div>
-          </div>
+      <div class="upload-area" (click)="fileInput.click()" [class.dragover]="isDragOver" (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+        <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+        <div class="upload-content">
+          <span class="icon">📸</span>
+          <p>Click to upload or drag and drop</p>
+          <p class="hint">PNG, JPG, WebP up to 10MB</p>
         </div>
+      </div>
 
-        <!-- Detection Results -->
-        <div class="card results-card" *ngIf="detectionResult">
-          <h2>Detection Results</h2>
-          <div class="result-content">
-            <div class="disease-info">
-              <h3>{{ detectionResult.disease || 'Analysis Complete' }}</h3>
-              <p class="crop-name"><strong>Crop:</strong> {{ detectionResult.crop || 'See analysis below' }}</p>
+      <!-- Image Preview -->
+      <div *ngIf="previewUrl" class="image-preview-box">
+        <img [src]="previewUrl" alt="Crop image preview" class="image-preview" />
+      </div>
 
-              <div class="confidence-score" *ngIf="detectionResult.confidence > 0">
-                <span>Confidence:</span>
-                <span class="score" [class]="'score-' + getConfidenceLevel(detectionResult.confidence)">
-                  {{ (detectionResult.confidence * 100).toFixed(1) }}%
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div *ngIf="selectedFile" class="file-preview">
+        <p><strong>Selected:</strong> {{ selectedFile.name }}</p>
+        <button class="btn-primary" (click)="uploadImage()" [disabled]="isUploading">
+          {{ isUploading ? 'Analyzing...' : 'Analyze Image' }}
+        </button>
+      </div>
 
-        <!-- Symptoms -->
-        <div class="card symptoms-card" *ngIf="detectionResult?.symptoms">
-          <h2>🩺 Symptoms</h2>
-          <p>{{ detectionResult!.symptoms }}</p>
-        </div>
-
-        <!-- Treatment -->
-        <div class="card treatment-card" *ngIf="detectionResult?.treatment">
-          <h2>💊 Treatment</h2>
-          <p>{{ detectionResult!.treatment }}</p>
-        </div>
-
-        <!-- Prevention -->
-        <div class="card prevention-card" *ngIf="detectionResult?.prevention">
-          <h2>🛡️ Prevention</h2>
-          <p>{{ detectionResult!.prevention }}</p>
-        </div>
-
-        <!-- Raw Analysis Fallback (shown when structured parsing has gaps) -->
-        <div class="card raw-card"
-             *ngIf="detectionResult?.raw_analysis && (!detectionResult?.disease || !detectionResult?.symptoms)">
-          <h2>📋 Full Analysis</h2>
-          <p class="raw-analysis">{{ detectionResult!.raw_analysis }}</p>
-        </div>
-
-        <!-- KVK Expert Links -->
-        <div class="card expert-card" *ngIf="detectionResult">
-          <h2>👨‍🌾 Expert Consultation</h2>
-          <p>For detailed guidance, contact your nearest KVK (Krishi Vigyan Kendra):</p>
-          <button class="btn-secondary" (click)="findNearbyKVK()">
-            Find Nearby KVK
-          </button>
+      <div *ngIf="isAnalyzing" class="analyzing-indicator">
+        <p>🔬 Analyzing crop image with AI...</p>
+        <div class="progress-bar">
+          <div class="progress"></div>
         </div>
       </div>
     </div>
+
+    <!-- Detection Results -->
+    <div class="card results-card" *ngIf="detectionResult">
+      <h2>Detection Results</h2>
+      <div class="result-content">
+        <div class="disease-info">
+          <h3>{{ detectionResult.disease || 'Analysis Complete' }}</h3>
+          <p class="crop-name"><strong>Crop:</strong> {{ detectionResult.crop || 'See analysis below' }}</p>
+
+          <div class="confidence-score" *ngIf="detectionResult.confidence > 0">
+            <span>Confidence:</span>
+            <span class="score" [class]="'score-' + getConfidenceLevel(detectionResult.confidence)">
+              {{ (detectionResult.confidence * 100).toFixed(1) }}%
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Symptoms -->
+    <div class="card symptoms-card" *ngIf="detectionResult?.symptoms">
+      <h2>🩺 Symptoms</h2>
+      <p>{{ detectionResult!.symptoms }}</p>
+    </div>
+
+    <!-- Treatment -->
+    <div class="card treatment-card" *ngIf="detectionResult?.treatment">
+      <h2>💊 Treatment</h2>
+      <p>{{ detectionResult!.treatment }}</p>
+    </div>
+
+    <!-- Prevention -->
+    <div class="card prevention-card" *ngIf="detectionResult?.prevention">
+      <h2>🛡️ Prevention</h2>
+      <p>{{ detectionResult!.prevention }}</p>
+    </div>
+
+    <!-- Raw Analysis Fallback (shown when structured parsing has gaps) -->
+    <div class="card raw-card"
+      *ngIf="detectionResult?.raw_analysis && (!detectionResult?.disease || !detectionResult?.symptoms)">
+      <h2>📋 Full Analysis</h2>
+      <p class="raw-analysis">{{ detectionResult!.raw_analysis }}</p>
+    </div>
+
+    <!-- KVK Expert Links -->
+    <div class="card expert-card" *ngIf="detectionResult">
+      <h2>👨‍🌾 Expert Consultation</h2>
+      <p>For detailed guidance, contact your nearest KVK (Krishi Vigyan Kendra):</p>
+      <button class="btn-secondary" (click)="findNearbyKVK()">
+        Find Nearby KVK
+      </button>
+    </div>
+  </div>
+</div>
