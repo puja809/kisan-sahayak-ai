@@ -24,12 +24,13 @@ AWS_API_STREAM_VOICE_ENDPOINT = os.getenv("AWS_API_STREAM_VOICE_ENDPOINT", "http
 REQUEST_TIMEOUT = 30  # seconds
 
 
-def ask_question_text(question: str) -> Dict:
+def ask_question_text(question: str, language: str = "English") -> Dict:
     """
     Send a text question to the AWS Voice Assistant API and get an answer.
     
     Args:
         question (str): The question to ask the voice assistant
+        language (str): The language name (e.g., "English", "Hindi", "Bengali")
         
     Returns:
         Dict: Response containing the answer or error details
@@ -44,7 +45,10 @@ def ask_question_text(question: str) -> Dict:
         }
     
     headers = {"Content-Type": "application/json"}
-    payload = {"question": question.strip()}
+    payload = {
+        "question": question.strip(),
+        "language": language
+    }
     
     try:
         logger.info(f"Sending text question to AWS API: {question[:50]}...")
@@ -100,7 +104,7 @@ def ask_question_text(question: str) -> Dict:
         logger.error(f"Unexpected error: {e}")
         return {"success": False, "error": f"Unexpected error: {str(e)}", "status_code": None}
 
-def ask_question_text_stream(question: str, language: str = "en"):
+def ask_question_text_stream(question: str, language: str = "English"):
     """
     Send a text question to the AWS Voice Assistant API and yield an event stream.
     """
@@ -131,13 +135,14 @@ def ask_question_text_stream(question: str, language: str = "en"):
         yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
 
-def ask_question_audio(audio_base64: str) -> Dict:
+def ask_question_audio(audio_base64: str, language: str = "English") -> Dict:
     """
     Send audio to the AWS Voice Assistant API and get transcribed answer with audio response.
     AWS returns: transcribed_text, text (answer), audio (MP3 base64), language
     
     Args:
         audio_base64 (str): Base64 encoded audio data
+        language (str): The language name (e.g., "English", "Hindi", "Bengali")
         
     Returns:
         Dict: Response containing transcribed text, answer, and audio response
@@ -152,7 +157,10 @@ def ask_question_audio(audio_base64: str) -> Dict:
         }
     
     headers = {"Content-Type": "application/json"}
-    payload = {"audio": audio_base64}
+    payload = {
+        "audio": audio_base64,
+        "language": language
+    }
     
     try:
         logger.info(f"Sending audio to AWS Voice API ({len(audio_base64)} base64 chars)...")
@@ -234,7 +242,7 @@ def ask_question_audio(audio_base64: str) -> Dict:
         return {"success": False, "error": f"Unexpected error: {str(e)}", "status_code": None}
 
 
-def ask_question_audio_stream(audio_base64: str, language: str = "en"):
+def ask_question_audio_stream(audio_base64: str, language: str = "English"):
     """
     Send audio to the AWS Voice Assistant API and yield an event stream.
     """

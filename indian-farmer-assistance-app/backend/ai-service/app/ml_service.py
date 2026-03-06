@@ -287,7 +287,7 @@ async def ask_voice_question(request: VoiceAssistantRequest):
         # Fallback to AWS Voice Assistant API if bedrock MCP fails
         try:
             logger.info("Falling back to AWS Voice Assistant API...")
-            result = ask_question_text(request.question)
+            result = ask_question_text(request.question, language=request.language)
             if result.get('success'):
                 return {
                     "success": True,
@@ -358,7 +358,10 @@ async def detect_disease_endpoint(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/ml/ask-question-audio")
-async def ask_question_with_audio(audio: bytes = File(...)):
+async def ask_question_with_audio(
+    audio: bytes = File(...),
+    language: str = Form("English")
+):
     """
     Process audio input and get response from AWS Voice Assistant
     1. Receives audio from UI
@@ -370,14 +373,14 @@ async def ask_question_with_audio(audio: bytes = File(...)):
         if not audio or len(audio) == 0:
             raise HTTPException(status_code=400, detail="Audio data is required")
         
-        logger.info(f"Processing audio input: {len(audio)} bytes")
+        logger.info(f"Processing audio input: {len(audio)} bytes, language: {language}")
         
         # Convert audio to base64 for AWS API
         import base64
         base64_audio = base64.b64encode(audio).decode('utf-8')
         
         # Call AWS Voice Assistant API with audio
-        result = ask_question_audio(base64_audio)
+        result = ask_question_audio(base64_audio, language=language)
         
         if result.get('success'):
             # Extract response from AWS
