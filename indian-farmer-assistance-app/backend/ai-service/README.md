@@ -1,6 +1,6 @@
-# AI Service - Crop Prediction Models
+# AI Service - Crop Prediction & Smart Assistant
 
-This service provides ML-based crop recommendation and rotation predictions using trained Random Forest models.
+This service provides ML-based crop recommendations, rotation predictions, and a **Bedrock MCP Agent** that integrates with all microservices to provide intelligent agricultural assistance.
 
 ## Structure
 
@@ -9,13 +9,15 @@ ai-service/
 ├── app/
 │   ├── crop_recommendation_model.py    # Crop recommendation model class
 │   ├── crop_rotation_model.py          # Crop rotation model class
-│   ├── ml_service.py                   # FastAPI service
-│   ├── train_models.py                 # Training script
-│   ├── test_models.py                  # Testing script
-│   ├── __init__.py
-│   └── models/
+│   ├── fertilizer_recommendation_model.py # Fertilizer model class
+│   ├── ml_service.py                   # FastAPI service (main entry)
+│   ├── bedrock_mcp_agent.py            # Bedrock LangGraph MCP Agent
+│   ├── aws_voice_assistant_client.py   # Client for Lambda Voice API
+│   ├── disease_detection_client.py     # Client for Lambda Disease API
+│   ├── models/                         # Serialized ML models
 │       ├── crop_recommendation_model.pkl
-│       └── crop_rotation_model.pkl
+│       ├── crop_rotation_model.pkl
+│       └── fertilizer_recommendation_model.pkl
 ├── tests/
 ├── requirements.txt
 ├── Dockerfile.ml
@@ -73,20 +75,30 @@ Content-Type: application/json
 }
 ```
 
-### Crop Rotation
+### Smart Assistant (Bedrock MCP)
 ```
-POST /api/ml/predict-rotation
+POST /api/ml/ask-question
 Content-Type: application/json
 
 {
-  "previousCrop": "Wheat",
-  "soilPH": 7.2,
-  "soilType": "loamy",
-  "temperature": 25.3,
-  "humidity": 82.58,
-  "rainfall": 118.95,
-  "season": "Kharif"
+  "question": "What is the current price of Wheat in Bhopal?",
+  "language": "Hindi",
+  "latitude": 23.2599,
+  "longitude": 77.4126
 }
+```
+
+### Disease Detection (Proxy to Lambda)
+```
+POST /api/ml/disease-detect?language=Hindi&session_id=123
+Content-Type: multipart/form-data
+
+image: [binary_data]
+```
+
+### Supported Languages
+```
+GET /api/ml/languages
 ```
 
 ## Models

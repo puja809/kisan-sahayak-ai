@@ -16,8 +16,9 @@ The AI Service is a Python-based FastAPI service that provides machine learning 
 - Fertilizer dosage recommendations
 - Voice assistant (text and audio)
 - Disease detection from images
-- Multilingual support (10+ Indian languages)
-- MCP (Model Context Protocol) integration with AWS Bedrock
+- High-fidelity multilingual support (10 major Indian languages)
+- **Bedrock MCP Agent**: LangGraph-based agent with multi-service tool calling
+- Sourcing location data via reverse geocoding
 
 ## API Endpoints
 
@@ -323,10 +324,10 @@ class AwsVoiceAssistantClient:
 ```
 
 **Integration**:
-- Uses AWS Bedrock LLM (Claude 3 Sonnet)
-- LangChain for prompt management
-- MCP (Model Context Protocol) for tool integration
-- Supports streaming responses
+- Uses AWS Bedrock LLM (Llama 3 / Nova Pro)
+- **LangGraph** for robust tool-use and conversation state
+- **MCP (Model Context Protocol)** for dynamic integration with Spring Boot microservices
+- Supports streaming responses and session-based chat history
 
 ### Disease Detection Client
 ```python
@@ -354,10 +355,10 @@ class CropNameMapper:
 ## External Integrations
 
 ### AWS Bedrock
-- **Model**: Claude 3 Sonnet
-- **Purpose**: LLM-based question answering
-- **Features**: Streaming, context awareness, multilingual
-- **Integration**: Via LangChain
+- **Model**: Llama-3-8B / Nova Pro
+- **Purpose**: LLM-based intelligent assistance & tool calling
+- **Features**: Streaming, location awareness, multilingual script/voice enforcement
+- **Integration**: Via LangGraph & LangChain AWS
 
 ### AWS Lambda
 - **Function**: Disease detection
@@ -366,9 +367,9 @@ class CropNameMapper:
 - **Response**: Disease name, confidence, treatment
 
 ### Bhashini API
-- **Purpose**: Multilingual support
-- **Languages**: Hindi, Marathi, Tamil, Telugu, Kannada, Malayalam, Gujarati, Punjabi, Bengali, Odia
-- **Features**: Text translation, language detection
+- **Purpose**: Multilingual coordination
+- **Languages**: Hindi, Bengali, Telugu, Marathi, Tamil, Gujarati, Punjabi, Kannada, Malayalam, English
+- **Features**: Script-correct output, localized Polly voices, automatic translation
 
 ### MCP (Model Context Protocol)
 - **Purpose**: Tool integration with AI agents

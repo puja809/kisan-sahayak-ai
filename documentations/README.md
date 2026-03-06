@@ -72,9 +72,10 @@ The Indian Farmer Assistance App is a comprehensive microservices-based platform
 
 ### AI/ML
 - **Framework**: FastAPI
+- **Smart Agent**: **Bedrock MCP Agent** (LangGraph + Tool Calling)
 - **Language**: Python 3.11+
 - **ML Libraries**: scikit-learn, pandas, numpy
-- **LLM**: AWS Bedrock (Claude 3 Sonnet)
+- **LLM**: AWS Bedrock (Llama 3 / Nova Pro)
 - **RAG**: Bedrock Knowledge Base
 
 ### Infrastructure
@@ -106,8 +107,8 @@ The Indian Farmer Assistance App is a comprehensive microservices-based platform
 
 | Service | Port | Purpose |
 |---------|------|---------|
-| AI Service | 8001 | ML models and predictions |
-| Lambda RAG | - | Voice assistant and disease detection |
+| AI Service | 8001 | ML models & Bedrock MCP Agent |
+| Lambda RAG | - | Multi-region Voice & Disease Detection |
 
 ## 🔐 Security Features
 
@@ -121,11 +122,12 @@ The Indian Farmer Assistance App is a comprehensive microservices-based platform
 ## 📈 Key Metrics
 
 - **Services**: 11 Java + 1 Python + 1 Lambda
-- **Supported Languages**: 10+ Indian languages
-- **API Endpoints**: 100+
+- **Yield Prediction**: 5+ regional models
+- **Supported Languages**: 10 major Indian languages (High-fidelity Script & Voice)
+- **API Endpoints**: 110+
 - **Database Tables**: 50+
-- **ML Models**: 3 (Crop Recommendation, Rotation, Fertilizer)
-- **External APIs**: 5+ (AGMARKNET, data.gov.in, IMD, weatherapi.com, Bhashini)
+- **ML Models**: 4 (Crop Recommendation, Rotation, Fertilizer, Disease)
+- **External APIs**: 6+ (AGMARKNET, data.gov.in, IMD, Nominatim, AWS Bedrock)
 
 ## 🚀 Deployment
 
@@ -182,12 +184,12 @@ User → Search Criteria → Mandi Service → AGMARKNET/data.gov.in → Prices
 
 ### 4. Voice Assistant
 ```
-User → Voice Question → Lambda RAG → Bedrock LLM → Voice Response
+User → Voice/Text → AI Service (Bedrock MCP) → Tools (Weather/Mandi/etc) → Smart Response
 ```
 
-### 5. Disease Detection
+### 5. Multi-Language RAG
 ```
-User → Upload Image → Lambda RAG → Vision Model → Disease Info
+User Question → Lambda RAG → Bedrock Knowledge Base → Language-Specific Response
 ```
 
 ## 🎯 Features
@@ -372,8 +374,8 @@ This documentation is part of the Indian Farmer Assistance App project.
 
 ---
 
-**Last Updated**: March 6, 2024  
-**Version**: 1.0.0  
-**Status**: Active
+**Last Updated**: March 6, 2026  
+**Version**: 1.1.0  
+**Status**: Active (Enhanced AI & Multi-Language)
 
 For the latest updates, check the [INDEX.md](./INDEX.md) file.

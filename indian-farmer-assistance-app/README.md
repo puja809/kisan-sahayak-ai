@@ -200,15 +200,19 @@ The application includes comprehensive API documentation accessible via Swagger 
 
 | Service | Port | Documentation |
 |---------|------|---|
-| User Service | 8099 | `/swagger-ui.html` |
-| Weather Service | 8100 | `/swagger-ui.html` |
-| Crop Service | 8093 | `/swagger-ui.html` |
-| Scheme Service | 8097 | `/swagger-ui.html` |
-| Mandi Service | 8096 | `/swagger-ui.html` |
-| Location Service | 8095 | `/swagger-ui.html` |
-| Yield Service | 8094 | `/swagger-ui.html` |
-| Admin Service | 8091 | `/swagger-ui.html` |
-| API Gateway | 8080 | `/swagger-ui.html` |
+| API Gateway | 8080 | [README.md](./backend/api-gateway/README.md) |
+| User Service | 8099 | [README.md](./backend/user-service/README.md) |
+| Weather Service | 8100 | [README.md](./backend/weather-service/README.md) |
+| Crop Service | 8093 | [README.md](./backend/crop-service/README.md) |
+| Scheme Service | 8097 | [README.md](./backend/scheme-service/README.md) |
+| Mandi Service | 8096 | [README.md](./backend/mandi-service/README.md) |
+| Location Service | 8095 | [README.md](./backend/location-service/README.md) |
+| Yield Service | 8094 | [README.md](./backend/yield-service/README.md) |
+| Admin Service | 8091 | [README.md](./backend/admin-service/README.md) |
+| AI Service | 8001 | [README.md](./backend/ai-service/README.md) |
+| Eureka Server | 8761 | [README.md](./backend/eureka-server/README.md) |
+| AWS Lambda Service | - | [AWS_LAMBDA_SERVICE.md](./AWS_LAMBDA_SERVICE.md) |
+| Frontend | 4200 | [README.md](./frontend/README.md) |
 
 ## 🧪 Testing
 
