@@ -182,13 +182,15 @@ def process_question_with_memory(question, chat_history, user_language):
     You are "Kisan Sahayak", an AI assistant helping Indian farmers.
     
     RULES:
-    1. Answer ONLY agriculture-related questions
-    2. Use provided context from Knowledge Base
-    3. If not found, say "I don't have this information"
-    4. Respond in {user_language}
+    1. Answer ONLY agriculture-related questions.
+    2. Use the provided context from Knowledge Base.
+    3. If not found, say "I don't have this information".
+    4. Respond in {user_language}. Use the appropriate script (e.g., Devanagari for Hindi).
     
     CONTEXT: {memory_context}
     QUESTION: {question}
+    
+    Answer clearly and helpfully in {user_language}.
     """
     
     response = bedrock.retrieve_and_generate(
@@ -362,16 +364,16 @@ def build_memory_context(messages):
 
 | Language | Code | Transcribe | Polly | Bedrock |
 |----------|------|-----------|-------|---------|
-| Hindi | hi | hi-IN | Aditi | ✓ |
-| Bengali | bn | bn-IN | Kajal | ✓ |
-| Telugu | te | te-IN | Shruti | ✓ |
-| Marathi | mr | mr-IN | Arpita | ✓ |
-| Tamil | ta | ta-IN | Priyadarshani | ✓ |
-| Gujarati | gu | gu-IN | Dhvani | ✓ |
-| Punjabi | pa | pa-IN | Aditi* | ✓ |
-| Kannada | ka | kn-IN | Aditi* | ✓ |
-| Malayalam | ml | ml-IN | Aditi* | ✓ |
-| English | en | en-IN | En-GB-Sonia | ✓ |
+| Hindi    | hi   | hi-IN     | Aditi | ✓ (Devanagari) |
+| Bengali  | bn   | bn-IN     | Kajal | ✓ (Bengali) |
+| Telugu   | te   | te-IN     | Shruti| ✓ (Telugu) |
+| Marathi  | mr   | mr-IN     | Arpita| ✓ (Devanagari) |
+| Tamil    | ta   | ta-IN     | Priyadarshani | ✓ (Tamil) |
+| Gujarati | gu   | gu-IN     | Dhvani| ✓ (Gujarati) |
+| Punjabi  | pa   | pa-IN     | Aditi*| ✓ (Gurmukhi) |
+| Kannada  | ka   | kn-IN     | Aditi*| ✓ (Kannada) |
+| Malayalam| ml   | ml-IN     | Aditi*| ✓ (Malayalam) |
+| English  | en   | en-IN     | Sonia | ✓ (Latin) |
 
 *Fallback to Aditi for languages not natively supported by Polly
 
@@ -609,11 +611,14 @@ Paths:
 
 ## Future Enhancements
 
-1. **Streaming Responses**: Real-time answer streaming
-2. **Multi-turn Conversations**: Better context management
+**Last Updated**: March 6, 2026  
+**Version**: 1.1.0  
+**Status**: Active (Enhanced Multi-Language & Prompt Tuning)
+ **Multi-turn Conversations**: Better context management
 3. **Image Caching**: Cache disease detection results
 4. **Fine-tuned Models**: Custom models for specific crops
 5. **Feedback Loop**: Improve answers based on user feedback
 6. **Analytics**: Track popular questions and diseases
 7. **Offline Support**: Cache common answers locally
 8. **Integration with IoT**: Real-time sensor data analysis
+```
