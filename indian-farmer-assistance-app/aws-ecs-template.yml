@@ -36,6 +36,28 @@ Resources:
             - logs:CreateLogStream
             - logs:PutLogEvents
             Resource: arn:aws:logs:*:*:*
+  MlServiceTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: farmer-ml-service-task-role
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ecs-tasks.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: BedrockInvokePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - bedrock:InvokeModel
+            - bedrock:InvokeModelWithResponseStream
+            Resource: '*'
   CloudMapNamespace:
     Type: AWS::ServiceDiscovery::PrivateDnsNamespace
     Properties:
@@ -892,6 +914,10 @@ Resources:
       - FARGATE
       ExecutionRoleArn:
         Ref: EcsTaskExecutionRole
+      TaskRoleArn:
+        Fn::GetAtt:
+        - MlServiceTaskRole
+        - Arn
       ContainerDefinitions:
       - Name: ml-service
         Image: 211125690509.dkr.ecr.us-east-1.amazonaws.com/farmer-ml-service:latest
@@ -904,11 +930,7 @@ Resources:
         - Name: INSTANCE_HOST
           Value: ml-service
         - Name: MCP_ENDPOINTS
-          Value: http://scheme-service.farmer-network.local:8097/mcp/sse,http://mandi-service.farmer-network.local:8096/mcp/sse,http://location-service.farmer-network.local:8095/mcp/sse,http://weather-service.farmer-network.local:8100/mcp/sse,http://crop-service.farmer-network.local:8093/mcp/sse,http://yield-service.farmer-network.local:8101/mcp/sse
-        - Name: AWS_ACCESS_KEY_ID
-          Value: <YOUR_AWS_ACCESS_KEY>
-        - Name: AWS_SECRET_ACCESS_KEY
-          Value: <YOUR_AWS_SECRET_KEY>
+          Value: http://scheme-service.farmer-network.local:8097/sse,http://mandi-service.farmer-network.local:8096/sse,http://location-service.farmer-network.local:8095/sse,http://weather-service.farmer-network.local:8100/sse,http://crop-service.farmer-network.local:8093/sse,http://yield-service.farmer-network.local:8101/sse
         - Name: AWS_REGION
           Value: us-east-1
         - Name: AWS_API_TEXT_ENDPOINT
