@@ -89,8 +89,8 @@ The Indian Farmer Assistance Application integrates with multiple government Dig
 
 **Backend Services**
 - Spring Boot microservices (Java)
-- API Gateway with authentication and rate limiting
-- User, Weather, Crop, Scheme, Mandi, IoT, and Admin services
+- API Gateway
+- User, Weather, Crop, Scheme, Mandi, and Admin services
 
 **AI/ML Services**
 - Python-based AI service
@@ -101,7 +101,7 @@ The Indian Farmer Assistance Application integrates with multiple government Dig
 
 **Data Layer**
 - MySQL for relational data
-- MongoDB for vector embeddings and document storage
+- Amazon  for vector embeddings and document storage
 - Redis for caching
 - Vector database for semantic search
 
@@ -109,18 +109,16 @@ The Indian Farmer Assistance Application integrates with multiple government Dig
 - IMD Weather API
 - AGMARKNET API
 - AgriStack UFSI
-- Bhashini API (ASR, NMT, TTS, OCR)
 
 ### Microservices
 
-1. **API Gateway** - Request routing, authentication, rate limiting
-2. **User Service** - Registration, profile management, AgriStack integration
-3. **Weather Service** - IMD integration, weather caching, alerts
+1. **API Gateway** - Request routing
+2. **User Service** - Registration, profile management, growth-management
+3. **Weather Service** - IMD integration
 4. **Crop Service** - Recommendations, rotation planning, yield estimation
-5. **Scheme Service** - Scheme catalog, eligibility assessment, application tracking
-6. **Mandi Service** - AGMARKNET integration, price trends, alerts
-7. **IoT Service** - Device provisioning, sensor data collection, alerts
-8. **Admin Service** - Document management, scheme administration, analytics
+5. **Scheme Service** - Scheme catalog
+6. **Mandi Service** - AGMARKNET integration
+8. **Admin Service** - Document management
 9. **AI/ML Service** - Disease detection, yield prediction, recommendations, voice processing
 
 ## Non-Functional Requirements
@@ -156,8 +154,6 @@ The Indian Farmer Assistance Application integrates with multiple government Dig
 - Node.js 16+ (for Angular frontend)
 - Python 3.8+ (for AI/ML services)
 - MySQL 8.0+
-- MongoDB 4.4+
-- Redis 6.0+
 
 ### Installation
 
@@ -276,15 +272,11 @@ The application uses a comprehensive data model including:
 - **Farms** - Land parcel information with GPS coordinates
 - **Crops** - Crop records with sowing/harvest dates and input costs
 - **Fertilizer Applications** - Nutrient tracking and application history
-- **Livestock** - Farm animal records
-- **Equipment** - Farm machinery tracking
 - **Yield Predictions** - AI-driven yield estimates with confidence intervals
 - **Schemes** - Government scheme catalog with eligibility criteria
 - **Mandi Prices** - Real-time commodity prices from regulated markets
-- **IoT Devices** - Connected farm sensors and readings
 - **Disease Detections** - AI-identified crop diseases with treatment recommendations
 - **Weather Cache** - Offline weather data storage
-- **Audit Logs** - Complete data provenance and compliance tracking
 
 ## Correctness Properties
 
@@ -386,9 +378,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 For support, contact:
-- **Email**: support@farmerapp.gov.in
-- **Phone**: 1800-FARMER-1 (1800-327-6371)
-- **Website**: https://farmerapp.gov.in
+- **Email**: nikhil8.jsg@gmail.com and pujachatterjee809@gmail.com
+- **Website**: http://kisan-sahayak-ai.devmistri.com/
 
 ## Acknowledgments
 
